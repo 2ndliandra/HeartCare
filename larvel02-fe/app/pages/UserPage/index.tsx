@@ -1,435 +1,313 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Search, Bell, User, Star, Clock, BookOpen, ChevronLeft, ChevronRight, Filter, MoreHorizontal } from 'lucide-react';
-import type { Course, FilterState } from '../../types/UserPage/User';
+import { Link, useNavigate } from 'react-router-dom';
+import {
+    LayoutDashboard,
+    Map,
+    Bot,
+    ScanLine,
+    CloudSun,
+    LogOut,
+    Menu,
+    X,
+    Bell,
+    User,
+    AlertTriangle,
+    CheckCircle2,
+    Sprout,
+    BrainCircuit,
+    ChevronRight,
+    Leaf
+} from 'lucide-react';
+import { authService } from '../../lib/authService';
 
 const UserPage: React.FC = () => {
-    // Mock Data
-    const courses: Course[] = [
-        {
-            id: 1,
-            title: "Mastering Business Emails & Communication",
-            instructor: "Sarah Jenkins, Senior Linguist",
-            level: "B2 Upper Int",
-            rating: 4.8,
-            reviews: 1200,
-            duration: "12h 30m",
-            lessons: 18,
-            price: 29.99,
-            image: "https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-            tags: ["New"],
-            category: "Business English"
-        },
-        {
-            id: 2,
-            title: "Daily Conversational English for Beginners",
-            instructor: "David Miller",
-            level: "A2 Elementary",
-            rating: 4.9,
-            reviews: 856,
-            duration: "8h 15m",
-            lessons: 24,
-            price: 'Free',
-            image: "https://images.unsplash.com/photo-1513002749550-c59d786b8e6c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-            category: "Speaking"
-        },
-        {
-            id: 3,
-            title: "Academic Writing: Research Papers & Essays",
-            instructor: "Prof. Elena Rodriguez",
-            level: "C1 Advanced",
-            rating: 4.7,
-            reviews: 420,
-            duration: "15h 45m",
-            lessons: 10,
-            price: 44.99,
-            image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-            category: "Academic Preparation"
-        },
-        {
-            id: 4,
-            title: "English for Travelers: Survival Guide",
-            instructor: "Michael Ross",
-            level: "B1 Intermediate",
-            rating: 4.6,
-            reviews: 2100,
-            duration: "5h 20m",
-            lessons: 32,
-            price: 19.99,
-            image: "https://images.unsplash.com/photo-1524863479829-916d8e77f114?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-            category: "Travel & Culture"
-        },
-        {
-            id: 5,
-            title: "Grammar Deep Dive: Tenses & Moods",
-            instructor: "Julia Thorne",
-            level: "B2 Upper Int",
-            rating: 4.9,
-            reviews: 5400,
-            duration: "22h 00m",
-            lessons: 45,
-            price: 34.99,
-            image: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-            category: "Grammar"
-        },
-        {
-            id: 6,
-            title: "English Essentials: First 500 Words",
-            instructor: "Alex Thompson",
-            level: "A1 Beginner",
-            rating: 4.5,
-            reviews: 128,
-            duration: "4h 45m",
-            lessons: 15,
-            price: 'Free',
-            image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-            category: "Vocabulary"
+    const navigate = useNavigate();
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+
+    // Mock user
+    const userString = localStorage.getItem('user');
+    const user = userString ? JSON.parse(userString) : null;
+
+    const handleLogout = async () => {
+        try {
+            await authService.logout();
+        } catch (error) {
+            console.error('Logout error:', error);
+        } finally {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user');
+            navigate('/login');
         }
-    ];
-
-    const [filters, setFilters] = useState<FilterState>({
-        search: '',
-        levels: [],
-        topics: [],
-        skills: [],
-        sort: 'popular'
-    });
-
-    const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-
-    // Filter Handlers
-    const toggleFilter = (type: 'levels' | 'topics' | 'skills', value: string) => {
-        setFilters(prev => {
-            const current = prev[type];
-            const updated = current.includes(value)
-                ? current.filter(item => item !== value)
-                : [...current, value];
-            return { ...prev, [type]: updated };
-        });
     };
 
+    const navigation = [
+        { name: 'Beranda', icon: LayoutDashboard, href: '#', current: true },
+        { name: 'Manajemen Lahan', icon: Map, href: '#', current: false },
+        { name: 'Rekomendasi AI', icon: Bot, href: '#', current: false },
+        { name: 'Diagnosa Penyakit', icon: ScanLine, href: '#', current: false, hasNotification: true },
+        { name: 'Pantau Cuaca', icon: CloudSun, href: '#', current: false },
+    ];
+
+    const scanHistory = [
+        { id: 1, date: '12 Okt 2026', status: 'Bercak Daun', severity: 'Tinggi', type: 'Late Blight' },
+        { id: 2, date: '10 Okt 2026', status: 'Sehat', severity: 'Normal', type: 'Normal' },
+        { id: 3, date: '08 Okt 2026', status: 'Kuning', severity: 'Sedang', type: 'Virus Kuning' },
+    ];
+
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-900">
-            {/* Navigation */}
-            <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between h-16">
-                        <div className="flex items-center gap-8">
-                            {/* Logo */}
-                            <Link to="/" className="flex items-center gap-2">
-                                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                                    <span className="text-white font-bold text-lg">E</span>
-                                </div>
-                                <span className="text-xl font-bold text-gray-900">FluentEnglish</span>
-                            </Link>
+        <div className="min-h-screen bg-slate-50 flex font-sans text-slate-900">
 
-                            {/* Desktop Nav Links */}
-                            <div className="hidden md:flex items-center gap-6">
-                                <Link to="/user" className="text-blue-600 font-semibold border-b-2 border-blue-600 py-5">Catalog</Link>
-                                <a href="#" className="text-gray-500 hover:text-gray-900 font-medium transition-colors">My Courses</a>
-                                <a href="#" className="text-gray-500 hover:text-gray-900 font-medium transition-colors">Tests</a>
-                                <a href="#" className="text-gray-500 hover:text-gray-900 font-medium transition-colors">Tutors</a>
-                            </div>
+            {/* Mobile Sidebar Overlay */}
+            {sidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-slate-900/50 z-40 lg:hidden backdrop-blur-sm transition-opacity"
+                    onClick={() => setSidebarOpen(false)}
+                />
+            )}
+
+            {/* Sidebar */}
+            <aside className={`
+                fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:flex-shrink-0 flex flex-col
+                ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+            `}>
+                <div className="h-20 flex items-center px-8 border-b border-slate-100">
+                    <Link to="/" className="flex items-center gap-2 group">
+                        <div className="bg-emerald-100 p-2 rounded-xl group-hover:bg-emerald-200 transition-colors">
+                            <Leaf className="h-6 w-6 text-emerald-600" />
                         </div>
-
-                        {/* Right Side Icons */}
-                        <div className="flex items-center gap-4">
-                            <button className="text-gray-400 hover:text-gray-600 transition-colors relative">
-                                <Bell size={20} />
-                                <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-                            </button>
-                            <button className="hidden sm:block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
-                                Upgrade to Pro
-                            </button>
-                            <div className="w-9 h-9 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 border border-orange-200 cursor-pointer">
-                                <User size={20} />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </nav>
-
-            <div className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Header Section */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-                    <div>
-                        <h1 className="text-3xl font-bold text-gray-900">Course Catalog</h1>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
-                        <span>Showing 24 of 142 courses</span>
-                        <select
-                            className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            value={filters.sort}
-                            onChange={(e) => setFilters({ ...filters, sort: e.target.value as any })}
-                        >
-                            <option value="popular">Most Popular</option>
-                            <option value="newest">Newest</option>
-                            <option value="price-low">Price: Low to High</option>
-                            <option value="price-high">Price: High to Low</option>
-                        </select>
-                    </div>
-                </div>
-
-                {/* Search Bar */}
-                <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-200 mb-8 flex items-center gap-2">
+                        <span className="font-bold text-xl tracking-tight text-slate-900">Agri<span className="text-emerald-600">Tomat</span></span>
+                    </Link>
                     <button
-                        className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
-                        onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
+                        className="lg:hidden ml-auto text-slate-500 hover:text-slate-700"
+                        onClick={() => setSidebarOpen(false)}
                     >
-                        <Filter size={20} />
-                    </button>
-                    <Search className="text-gray-400 ml-3" size={20} />
-                    <input
-                        type="text"
-                        placeholder="Search for courses, topics, or instructors..."
-                        className="flex-grow bg-transparent border-none focus:ring-0 text-gray-700 placeholder-gray-400 h-10"
-                        value={filters.search}
-                        onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                    />
-                    <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-semibold transition-colors">
-                        Find
+                        <X size={24} />
                     </button>
                 </div>
 
-                <div className="flex flex-col lg:flex-row gap-8">
-                    {/* Filters Sidebar */}
-                    <aside className={`lg:w-64 flex-shrink-0 ${mobileFiltersOpen ? 'block' : 'hidden lg:block'}`}>
-                        <div className="flex items-center justify-between mb-6">
-                            <div className="flex items-center gap-2 font-bold text-gray-900 uppercase tracking-wider text-sm">
-                                <Filter size={18} />
-                                Filters
-                            </div>
-                            <button
-                                className="lg:hidden text-gray-500 hover:text-gray-900"
-                                onClick={() => setMobileFiltersOpen(false)}
+                <div className="flex-1 overflow-y-auto py-6 px-4 space-y-1">
+                    <div className="px-4 mb-2 text-xs font-semibold text-slate-400 tracking-wider uppercase">Menu Utama</div>
+                    {navigation.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                            <a
+                                key={item.name}
+                                href={item.href}
+                                className={`
+                                    group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 relative
+                                    ${item.current
+                                        ? 'bg-emerald-50 text-emerald-700'
+                                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                                    }
+                                `}
                             >
-                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
+                                <Icon className={`
+                                    mr-3 h-5 w-5 flex-shrink-0 transition-colors
+                                    ${item.current ? 'text-emerald-600' : 'text-slate-400 group-hover:text-slate-500'}
+                                `} />
+                                {item.name}
+
+                                {item.hasNotification && (
+                                    <span className="absolute right-4 w-2 h-2 rounded-full bg-red-500 ring-4 ring-red-50"></span>
+                                )}
+                            </a>
+                        );
+                    })}
+                </div>
+
+                <div className="p-4 border-t border-slate-100">
+                    <button
+                        onClick={handleLogout}
+                        className="group flex w-full items-center px-4 py-3 text-sm font-medium rounded-xl text-blue-600 hover:bg-blue-50 transition-colors"
+                    >
+                        <LogOut className="mr-3 h-5 w-5 flex-shrink-0 text-blue-400 group-hover:text-blue-600 transition-colors" />
+                        Keluar Akun
+                    </button>
+                </div>
+            </aside>
+
+            {/* Main Content Area */}
+            <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+                {/* Header */}
+                <header className="bg-white border-b border-slate-200 h-20 flex items-center justify-between px-4 sm:px-6 lg:px-8 z-30">
+                    <div className="flex items-center gap-4">
+                        <button
+                            className="lg:hidden p-2 -ml-2 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors"
+                            onClick={() => setSidebarOpen(true)}
+                        >
+                            <Menu size={24} />
+                        </button>
+
+                        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-sky-50 text-sky-700 rounded-lg border border-sky-100">
+                            <CloudSun size={18} className="text-sky-500" />
+                            <span className="text-sm font-medium">Jember, 24°C <span className="opacity-60 font-normal px-1">•</span> Cerah Berawan</span>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 sm:gap-6">
+                        <button className="relative p-2 text-slate-400 hover:bg-slate-50 rounded-full transition-colors">
+                            <Bell size={20} />
+                            <span className="absolute top-2 right-2.5 w-2 h-2 rounded-full bg-red-500 border-2 border-white"></span>
+                        </button>
+
+                        <div className="h-8 w-px bg-slate-200 hidden sm:block"></div>
+
+                        <div className="flex items-center gap-3">
+                            <div className="hidden sm:block text-right">
+                                <p className="text-sm font-semibold text-slate-900 leading-tight">{user?.name || 'Petani Cerdas'}</p>
+                                <p className="text-xs text-slate-500">Premium Plan</p>
+                            </div>
+                            <div className="h-10 w-10 rounded-full bg-emerald-100 border-2 border-emerald-50 flex items-center justify-center text-emerald-700 font-bold overflow-hidden shadow-sm">
+                                {user?.name ? user.name.charAt(0).toUpperCase() : 'P'}
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                {/* Dashboard Stats & Content */}
+                <div className="flex-1 overflow-y-auto bg-slate-50">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+                        {/* Page Title */}
+                        <div>
+                            <h1 className="text-2xl font-bold text-slate-900">Ringkasan Lahan Hari Ini</h1>
+                            <p className="text-slate-500 text-sm mt-1">Pantau kondisi lahan dan hasil diagnosa AI Anda secara real-time.</p>
                         </div>
 
-                        {/* Proficiency Level */}
-                        <div className="mb-8">
-                            <h3 className="font-bold text-gray-900 text-xs uppercase tracking-wider mb-4">Proficiency Level</h3>
-                            <div className="space-y-3">
-                                {['A1 - Beginner', 'A2 - Elementary', 'B1 - Intermediate', 'B2 - Upper Intermediate', 'C1 - Advanced'].map((level) => (
-                                    <label key={level} className="flex items-center gap-3 cursor-pointer group">
-                                        <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${filters.levels.includes(level) ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-300 group-hover:border-blue-400'}`}>
-                                            {filters.levels.includes(level) && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
-                                        </div>
-                                        <input
-                                            type="checkbox"
-                                            className="hidden"
-                                            checked={filters.levels.includes(level)}
-                                            onChange={() => toggleFilter('levels', level)}
-                                        />
-                                        <span className={`text-sm ${filters.levels.includes(level) ? 'text-gray-900 font-medium' : 'text-gray-600'}`}>{level}</span>
-                                    </label>
-                                ))}
+                        {/* Top Widgets */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {/* Widget 1: Cuaca */}
+                            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-amber-50 rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <p className="text-sm font-medium text-slate-500 mb-1">Status Iklim Area Lahan</p>
+                                        <h3 className="text-2xl font-bold text-slate-900">Waspada</h3>
+                                        <p className="text-xs text-amber-600 font-medium mt-2 flex items-center gap-1.5">
+                                            <AlertTriangle size={14} /> Kelembapan &gt; 85% besok
+                                        </p>
+                                    </div>
+                                    <div className="p-3 bg-amber-100 text-amber-600 rounded-xl">
+                                        <CloudSun size={24} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Widget 2: Lahan */}
+                            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <p className="text-sm font-medium text-slate-500 mb-1">Jumlah Lahan Dikelola</p>
+                                        <h3 className="text-2xl font-bold text-slate-900">3 Petak <span className="text-sm font-normal text-slate-400">/ 500m²</span></h3>
+                                        <p className="text-xs text-emerald-600 font-medium mt-2 flex items-center gap-1.5">
+                                            <CheckCircle2 size={14} /> Semua sensor aktif
+                                        </p>
+                                    </div>
+                                    <div className="p-3 bg-emerald-100 text-emerald-600 rounded-xl">
+                                        <Sprout size={24} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Widget 3: AI */}
+                            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <p className="text-sm font-medium text-slate-500 mb-1">Akurasi Prediksi AI</p>
+                                        <h3 className="text-2xl font-bold text-slate-900">94.8%</h3>
+                                        <p className="text-xs text-indigo-600 font-medium mt-2 flex items-center gap-1.5">
+                                            <BrainCircuit size={14} /> Random Forest Model
+                                        </p>
+                                    </div>
+                                    <div className="p-3 bg-indigo-100 text-indigo-600 rounded-xl">
+                                        <Bot size={24} />
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        {/* Topic */}
-                        <div className="mb-8">
-                            <h3 className="font-bold text-gray-900 text-xs uppercase tracking-wider mb-4">Topic</h3>
-                            <div className="space-y-3">
-                                {['Business English', 'Academic Preparation', 'Travel & Culture', 'Exam Prep (IELTS/TOEFL)'].map((topic) => (
-                                    <label key={topic} className="flex items-center gap-3 cursor-pointer group">
-                                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${filters.topics.includes(topic) ? 'border-blue-600' : 'border-gray-300 group-hover:border-blue-400'}`}>
-                                            {filters.topics.includes(topic) && <div className="w-3 h-3 rounded-full bg-blue-600"></div>}
-                                        </div>
-                                        <input
-                                            type="checkbox"
-                                            className="hidden"
-                                            checked={filters.topics.includes(topic)}
-                                            onChange={() => toggleFilter('topics', topic)}
-                                        />
-                                        <span className={`text-sm ${filters.topics.includes(topic) ? 'text-gray-900 font-medium' : 'text-gray-600'}`}>{topic}</span>
-                                    </label>
-                                ))}
-                            </div>
-                        </div>
+                        {/* Middle Content */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                        {/* Skills Focus */}
-                        <div className="mb-8">
-                            <h3 className="font-bold text-gray-900 text-xs uppercase tracking-wider mb-4">Skills Focus</h3>
-                            <div className="flex flex-wrap gap-2">
-                                {['Grammar', 'Speaking', 'Listening', 'Writing', 'Vocabulary'].map((skill) => (
-                                    <button
-                                        key={skill}
-                                        onClick={() => toggleFilter('skills', skill)}
-                                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${filters.skills.includes(skill)
-                                            ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-600'
-                                            : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300'
-                                            }`}
-                                    >
-                                        {skill}
+                            {/* Insight Cerdas (Takes 2 columns on large screens) */}
+                            <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 lg:p-8 relative overflow-hidden flex flex-col">
+                                <div className="absolute top-0 left-0 w-1 bg-red-500 h-full"></div>
+                                <div className="flex items-center gap-2 mb-6">
+                                    <div className="bg-red-100 text-red-600 p-2 rounded-lg">
+                                        <AlertTriangle size={20} />
+                                    </div>
+                                    <h2 className="text-lg font-bold text-slate-900">Insight Cerdas: Peringatan Dini</h2>
+                                </div>
+
+                                <div className="bg-red-50 border border-red-100 rounded-xl p-5 mb-6">
+                                    <h3 className="text-red-800 font-semibold mb-2">Risiko Penyakit Late Blight (Busuk Daun) Meningkat</h3>
+                                    <p className="text-red-600 text-sm leading-relaxed mb-4">
+                                        Sistem kami mendeteksi tren <strong>kelembapan tinggi (&gt;80%)</strong> berturut-turut pada malam hari dipadu dengan suhu 18-22°C di Petak Lahan A (varietas Victory F1). Kondisi ini sangat ideal bagi penyebaran patogen Phytophthora infestans.
+                                    </p>
+                                    <div className="flex gap-3">
+                                        <button className="bg-red-600 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-sm hover:bg-red-700 transition-colors">
+                                            Jadwalkan Penyemprotan
+                                        </button>
+                                        <button className="bg-white text-slate-700 border border-slate-200 text-sm font-medium px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors">
+                                            Lihat Detail BMKG
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="mt-auto border-t border-slate-100 pt-4 flex items-center justify-between text-sm">
+                                    <span className="text-slate-500 flex items-center gap-1.5"><BrainCircuit size={14} className="text-emerald-500" /> Dianalisis oleh AI 2 menit lalu</span>
+                                    <a href="#" className="font-medium text-emerald-600 hover:text-emerald-700">Lihat semua insight</a>
+                                </div>
+                            </div>
+
+                            {/* Riwayat Scan (Takes 1 column) */}
+                            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col h-[400px]">
+                                <div className="flex items-center justify-between mb-6">
+                                    <h2 className="text-lg font-bold text-slate-900">Riwayat Scan Daun</h2>
+                                    <button className="text-slate-400 hover:text-emerald-600 transition-colors">
+                                        <ChevronRight size={20} />
                                     </button>
-                                ))}
-                            </div>
-                        </div>
+                                </div>
 
-                        {/* Learning Streak Widget */}
-                        <div className="bg-blue-50 rounded-xl p-5 border border-blue-100">
-                            <h3 className="text-blue-900 font-bold text-xs uppercase tracking-wider mb-2">Learning Streak</h3>
-                            <div className="flex items-end gap-2 mb-2">
-                                <span className="text-3xl font-bold text-gray-900">12 Days</span>
-                            </div>
-                            <div className="w-full bg-blue-200 rounded-full h-1.5 mb-2">
-                                <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: '40%' }}></div>
-                            </div>
-                            <p className="text-xs text-blue-700">Next reward in 3 days</p>
-                        </div>
-                    </aside>
-
-                    {/* Course Grid */}
-                    <div className="flex-grow">
-                        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
-                            {courses.map((course) => (
-                                <div key={course.id} className="bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-lg transition-all duration-300 group flex flex-col h-full">
-                                    {/* Card Image */}
-                                    <div className="relative h-48 overflow-hidden">
-                                        <img
-                                            src={course.image}
-                                            alt={course.title}
-                                            className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
-                                        />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-                                        {/* Badge */}
-                                        <span className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded text-xs font-bold text-gray-700 uppercase tracking-wide">
-                                            {course.level}
-                                        </span>
-
-                                        {course.tags?.includes('New') && (
-                                            <span className="absolute top-3 left-3 bg-green-500 text-white px-2.5 py-1 rounded text-xs font-bold uppercase tracking-wide shadow-sm">
-                                                New
-                                            </span>
-                                        )}
-                                    </div>
-
-                                    {/* Card Content */}
-                                    <div className="p-5 flex flex-col flex-grow">
-                                        <h3 className="font-bold text-lg text-gray-900 mb-2 leading-tight group-hover:text-blue-600 transition-colors">
-                                            {course.title}
-                                        </h3>
-                                        <p className="text-sm text-gray-500 mb-3">By {course.instructor}</p>
-
-                                        <div className="flex items-center gap-1 mb-4">
-                                            <Star className="w-4 h-4 text-amber-400 fill-current" />
-                                            <span className="font-bold text-gray-900">{course.rating}</span>
-                                            <span className="text-xs text-gray-400">({course.reviews} reviews)</span>
-                                        </div>
-
-                                        <div className="mt-auto">
-                                            <div className="flex items-center gap-4 text-xs text-gray-500 mb-4 border-t border-gray-100 pt-4">
-                                                <div className="flex items-center gap-1.5">
-                                                    <Clock size={14} />
-                                                    <span>{course.duration}</span>
+                                <div className="flex-1 overflow-y-auto pr-2 space-y-4 custom-scrollbar">
+                                    {scanHistory.map((scan) => (
+                                        <div key={scan.id} className="flex items-center gap-4 p-3 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-colors cursor-pointer group">
+                                            <div className="w-14 h-14 rounded-lg bg-slate-100 flex-shrink-0 border border-slate-200 flex items-center justify-center overflow-hidden">
+                                                {/* Placeholder for leaf photo */}
+                                                <ScanLine size={24} className="text-slate-400 group-hover:scale-110 transition-transform" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex justify-between items-start mb-1">
+                                                    <h4 className="text-sm font-semibold text-slate-900 truncate pr-2">{scan.type}</h4>
+                                                    <span className="text-[10px] text-slate-400 whitespace-nowrap">{scan.date}</span>
                                                 </div>
-                                                <div className="flex items-center gap-1.5">
-                                                    <BookOpen size={14} />
-                                                    <span>{course.lessons} Lessons</span>
-                                                </div>
-                                                {course.price === 'Free' && (
-                                                    <span className="ml-auto bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-bold uppercase">
-                                                        Free
+                                                <div className="flex items-center gap-2">
+                                                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${scan.severity === 'Tinggi' ? 'bg-red-100 text-red-700' :
+                                                            scan.severity === 'Sedang' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
+                                                        }`}>
+                                                        {scan.status}
                                                     </span>
-                                                )}
-                                            </div>
-
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-xl font-bold text-blue-600">
-                                                    {course.price === 'Free' ? 'Free' : `$${course.price}`}
-                                                </span>
-                                                {course.price !== 'Free' && (
-                                                    <button className="text-gray-900 p-2 hover:bg-gray-100 rounded-full transition-colors">
-                                                        <MoreHorizontal size={20} />
-                                                    </button>
-                                                )}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    ))}
                                 </div>
-                            ))}
-                        </div>
 
-                        {/* Pagination */}
-                        <div className="flex justify-center items-center gap-2 mt-12">
-                            <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-colors disabled:opacity-50">
-                                <ChevronLeft size={18} />
-                            </button>
-                            <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-600 text-white font-bold shadow-md shadow-blue-200">1</button>
-                            <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">2</button>
-                            <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">3</button>
-                            <span className="w-8 h-8 flex items-center justify-center text-gray-400">...</span>
-                            <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">12</button>
-                            <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-600 transition-colors">
-                                <ChevronRight size={18} />
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Footer */}
-            <footer className="bg-white border-t border-gray-200 mt-auto">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-                        <div className="col-span-1">
-                            <div className="flex items-center gap-2 mb-4">
-                                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                                    <span className="text-white font-bold">E</span>
+                                <div className="mt-4 pt-4 border-t border-slate-100">
+                                    <button className="w-full flex items-center justify-center gap-2 py-2.5 bg-emerald-50 text-emerald-700 text-sm font-medium rounded-xl hover:bg-emerald-100 transition-colors">
+                                        <ScanLine size={16} />
+                                        Mulai Scan Baru
+                                    </button>
                                 </div>
-                                <span className="text-xl font-bold text-gray-900">FluentEnglish</span>
-                            </div>
-                            <p className="text-gray-500 text-sm leading-relaxed">
-                                Empowering global learners with modern English courses designed for real-world success.
-                            </p>
-                        </div>
-
-                        <div>
-                            <h4 className="font-bold text-gray-900 mb-4 text-sm uppercase tracking-wider">Platform</h4>
-                            <ul className="space-y-2 text-sm text-gray-600">
-                                <li><a href="#" className="hover:text-blue-600 transition-colors">Courses</a></li>
-                                <li><a href="#" className="hover:text-blue-600 transition-colors">Assessments</a></li>
-                                <li><a href="#" className="hover:text-blue-600 transition-colors">Learning Paths</a></li>
-                                <li><a href="#" className="hover:text-blue-600 transition-colors">Pricing</a></li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h4 className="font-bold text-gray-900 mb-4 text-sm uppercase tracking-wider">Support</h4>
-                            <ul className="space-y-2 text-sm text-gray-600">
-                                <li><a href="#" className="hover:text-blue-600 transition-colors">Help Center</a></li>
-                                <li><a href="#" className="hover:text-blue-600 transition-colors">Terms of Service</a></li>
-                                <li><a href="#" className="hover:text-blue-600 transition-colors">Privacy Policy</a></li>
-                                <li><a href="#" className="hover:text-blue-600 transition-colors">Contact Us</a></li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h4 className="font-bold text-gray-900 mb-4 text-sm uppercase tracking-wider">Join our Newsletter</h4>
-                            <p className="text-gray-500 text-sm mb-4">Get the latest updates and learning tips.</p>
-                            <div className="flex gap-2">
-                                <input
-                                    type="email"
-                                    placeholder="Email"
-                                    className="flex-grow bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                                />
-                                <button className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg transition-colors">
-                                    <ChevronRight size={18} />
-                                </button>
                             </div>
                         </div>
-                    </div>
 
-                    <div className="border-t border-gray-100 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-gray-400">
-                        <p>© 2024 FluentEnglish. All rights reserved.</p>
                     </div>
                 </div>
-            </footer>
+            </main>
         </div>
     );
 };

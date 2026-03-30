@@ -5,8 +5,16 @@ export default {
     "./app/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        primary: '#064E3B', // Deep Emerald Green
+        accent: '#E11D48',  // Tomato Red
+        background: '#F8FAFC', // Off-White
+      },
+      fontFamily: {
+        sans: ['"Inter"', 'sans-serif'],
+      },
+    },
   },
   plugins: [],
 }
-
