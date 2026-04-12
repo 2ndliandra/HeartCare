@@ -4,17 +4,23 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Http\Resources\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
+    /**
+     * User registration with UserResource transformation.
+     */
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
+            'email' => 'required|string|email|max:255|unique:mongodb.users,email',
             'password' => 'required|string|min:6',
         ]);
 
@@ -27,79 +33,75 @@ class AuthController extends Controller
         }
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'name' => (string) $request->name,
+            'email' => (string) $request->email,
+            'password' => Hash::make((string) $request->password),
         ]);
 
-        // Assign default 'user' role
         $user->assignRole('user');
-
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json([
+        return (new UserResource($user))->additional([
             'success' => true,
-            'message' => 'User registered successfully',
+            'message' => 'Registrasi berhasil',
             'data' => [
-                'user' => $user,
-                'roles' => $user->roles->pluck('name'),
                 'token' => $token
             ]
-        ], 201);
+        ])->response()->setStatusCode(201);
     }
 
+    /**
+     * Login with UserResource transformation.
+     */
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
-            'password' => 'required',
+            'email' => 'required|string|email',
+            'password' => 'required|string',
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => $validator->errors()->first(),
-                'errors' => $validator->errors()
-            ], 422);
+            return response()->json(['success' => false, 'message' => $validator->errors()->first()], 422);
         }
 
-        $user = User::where('email', $request->email)->first();
-
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        $throttleKey = Str::lower($request->email) . '|' . $request->ip();
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
             return response()->json([
-                'success' => false,
-                'message' => 'Invalid credentials'
-            ], 401);
+                'success' => false, 
+                'message' => "Terlalu banyak percobaan login. Silakan coba lagi dalam $seconds detik."
+            ], 429);
         }
 
+        $user = User::where('email', (string) $request->email)->first();
+
+        if (!$user || !Hash::check((string) $request->password, $user->password)) {
+            RateLimiter::hit($throttleKey, 60);
+            return response()->json(['success' => false, 'message' => 'Email atau password salah'], 401);
+        }
+
+        RateLimiter::clear($throttleKey);
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json([
+        return (new UserResource($user))->additional([
             'success' => true,
-            'message' => 'Login successful',
+            'message' => 'Login berhasil',
             'data' => [
-                'user' => $user,
-                'roles' => $user->roles->pluck('name'),
                 'token' => $token
             ]
-        ], 200);
+        ]);
     }
 
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Logged out successfully'
-        ], 200);
+        return response()->json(['success' => true, 'message' => 'Logged out successfully'], 200);
     }
 
     public function me(Request $request)
     {
-        return response()->json([
-            'success' => true,
-            'data' => $request->user()
-        ], 200);
+        return (new UserResource($request->user()))->additional([
+            'success' => true
+        ]);
     }
 }

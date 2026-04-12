@@ -1,16 +1,28 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authService } from '../../lib/authService';
-import { Leaf, ArrowLeft } from 'lucide-react';
+import { 
+  Heart, 
+  ArrowLeft, 
+  KeyRound, 
+  Mail, 
+  AlertCircle,
+  ShieldCheck,
+  RefreshCcw,
+  ArrowRight
+} from 'lucide-react';
 
 const ForgotPassword: React.FC = () => {
+    const navigate = useNavigate();
+    const [step, setStep] = useState(1); // 1: Email, 2: Token
     const [email, setEmail] = useState('');
+    const [token, setToken] = useState('');
+    
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
-    const navigate = useNavigate();
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSendEmail = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setError(null);
@@ -19,89 +31,168 @@ const ForgotPassword: React.FC = () => {
         try {
             const response = await authService.forgotPassword({ email });
             if (response.success) {
-                setSuccess('Password reset link has been sent to your email.');
-                setEmail('');
+                setSuccess('Kode verifikasi telah dikirim ke email Anda.');
+                setStep(2);
             } else {
-                setError(response.message || 'Failed to send reset link.');
+                setError(response.message || 'Gagal mengirim email reset.');
             }
         } catch (err: any) {
             console.error('Forgot password error', err);
-            setError(err.response?.data?.message || err.response?.data?.email?.[0] || 'An error occurred. Please try again later.');
+            setError(err.response?.data?.message || 'Terjadi kesalahan sistem.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleVerifyToken = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+
+        try {
+            const response = await authService.verifyToken({ email, token });
+            if (response.success) {
+                navigate(`/reset-password?email=${encodeURIComponent(email)}&token=${encodeURIComponent(token)}`);
+            } else {
+                setError(response.message || 'Kode verifikasi tidak valid.');
+            }
+        } catch (err: any) {
+            console.error('Verify token error', err);
+            setError(err.response?.data?.message || 'Kode yang Anda masukkan salah atau kedaluwarsa.');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen relative flex items-center justify-center overflow-hidden bg-slate-50">
-            {/* Background gradients matching landing page */}
+        <div className="min-h-screen relative flex items-center justify-center bg-slate-50 overflow-hidden">
+            {/* Background Background matching Login/Register */}
             <div className="absolute top-0 right-0 w-1/2 h-full bg-emerald-50/50 rounded-bl-[100px] pointer-events-none" />
             <div className="absolute -top-24 -right-24 w-96 h-96 bg-emerald-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob pointer-events-none" />
             <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-rose-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-2000 pointer-events-none" />
 
-            {/* Main Container */}
-            <div className="w-full max-w-md mx-auto px-6 relative z-10 py-8">
+            {/* Wrapper Container */}
+            <div className="w-full max-w-md mx-auto px-6 relative z-10 py-10">
                 
-                {/* Logo */}
-                <div className="flex justify-center mb-8">
-                    <Link to="/" className="group flex items-center justify-center">
-                        <div className="bg-white p-2.5 rounded-xl shadow-md border border-gray-100 group-hover:shadow-lg transition-all flex items-center justify-center gap-2">
-                            <Leaf className="w-6 h-6 text-emerald-600" />
-                            <span className="font-bold text-lg text-slate-900 hidden sm:block">Agri<span className="text-emerald-600">Tomat</span></span>
-                        </div>
+                {/* Logo Section */}
+                <div className="flex flex-col items-center mb-6">
+                    <Link to="/" className="flex items-center gap-2.5 bg-white px-3.5 py-2.5 rounded-xl shadow-md border border-gray-100 mb-8 transition-transform hover:scale-105">
+                        <Heart className="w-6 h-6 text-primary" />
+                        <span className="font-bold text-slate-900">HeartPredict</span>
                     </Link>
                 </div>
 
-                {/* Card */}
+                {/* Main Card Section */}
                 <div className="bg-[#fcfcfc] rounded-lg shadow-xl p-6 sm:p-8 w-full border border-gray-100">
-                    <div>
-                        <Link to="/login" className="inline-flex items-center text-sm text-gray-500 hover:text-emerald-600 mb-6 transition-colors">
-                            <ArrowLeft size={16} className="mr-1.5" /> Back to Login
-                        </Link>
-
-                        <h2 className="text-2xl font-semibold text-gray-900 mb-1.5">Forgot Password?</h2>
-                        <p className="text-gray-500 text-xs mb-5 pb-5 border-b border-gray-200 leading-relaxed">
-                            Enter the email address associated with your account and we'll send you a link to reset your password.
+                    <div className="mb-6">
+                        <h2 className="text-2xl font-semibold text-gray-900 mb-1.5">
+                            {step === 1 ? 'Forget Password' : 'Verify Identity'}
+                        </h2>
+                        <p className="text-gray-500 text-xs pb-5 border-b border-gray-200 leading-normal">
+                            {step === 1 
+                                ? 'Enter your registered email address below to receive a password reset verification code.'
+                                : `We have sent a 6-digit security token to your email address. Please enter it below to continue.`
+                            }
                         </p>
+                    </div>
 
-                        {error && (
-                            <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded mb-4 text-sm">
-                                {error}
-                            </div>
-                        )}
+                    {error && (
+                        <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded mb-4 text-xs font-medium flex items-start gap-2">
+                            <AlertCircle size={14} className="mt-0.5 shrink-0" />
+                            {error}
+                        </div>
+                    )}
 
-                        {success && (
-                            <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 p-3 rounded mb-4 text-sm">
-                                {success}
-                            </div>
-                        )}
+                    {success && (
+                        <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 p-3 rounded mb-4 text-xs font-medium flex items-start gap-2">
+                            <ShieldCheck size={14} className="mt-0.5 shrink-0" />
+                            {success}
+                        </div>
+                    )}
 
-                        <form onSubmit={handleSubmit} className="space-y-4">
+                    {step === 1 ? (
+                        <form onSubmit={handleSendEmail} className="space-y-5">
                             <div>
-                                <label className="block text-gray-700 text-xs font-medium mb-1.5">Email Address</label>
+                                <label className="block text-gray-700 text-xs font-medium mb-1.5 uppercase tracking-wider">Email Address</label>
+                                <div className="relative">
+                                    <input
+                                        type="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        required
+                                        className="w-full bg-[#f4f4f4] border border-gray-200 rounded px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-gray-400 focus:bg-white transition-colors"
+                                        placeholder="yourname@email.com"
+                                    />
+                                    <Mail className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300" size={16} />
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col gap-4 pt-2">
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="w-full bg-primary text-white text-sm font-medium py-2.5 rounded hover:bg-primary/90 transition-all shadow-md active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-2 mt-2"
+                                >
+                                    {loading ? 'Sending Code...' : 'Send Verification Code'}
+                                    {!loading && <ArrowRight size={16} />}
+                                </button>
+                                
+                                <Link to="/login" className="flex items-center justify-center gap-1.5 py-1 text-xs text-[#5294e2] hover:underline font-medium">
+                                    <ArrowLeft size={14} /> Back to Sign In
+                                </Link>
+                            </div>
+                        </form>
+                    ) : (
+                        <form onSubmit={handleVerifyToken} className="space-y-6">
+                            <div>
+                                <label className="block text-gray-700 text-xs font-medium mb-1.5 uppercase tracking-wider text-center">Enter 6-Digit Token</label>
                                 <input
-                                    type="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
+                                    type="text"
+                                    maxLength={6}
+                                    value={token}
+                                    onChange={(e) => setToken(e.target.value.replace(/\D/g, ''))}
                                     required
-                                    className="w-full bg-[#f4f4f4] border border-gray-200 rounded px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:bg-white transition-all"
-                                    placeholder="Enter your registered email"
+                                    className="w-full bg-[#f4f4f4] border border-gray-200 rounded px-4 py-4 text-2xl font-bold tracking-[0.5em] text-center text-slate-900 focus:outline-none focus:border-gray-400 focus:bg-white transition-all shadow-inner"
+                                    placeholder="------"
                                 />
                             </div>
 
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="w-full bg-black text-white text-sm font-medium py-3 rounded hover:bg-gray-800 transition-colors mt-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                            >
-                                {loading ? 'Sending Link...' : 'Send Reset Link'}
-                            </button>
+                            <div className="flex flex-col gap-5 pt-2">
+                                <button
+                                    type="submit"
+                                    disabled={loading || token.length !== 6}
+                                    className="w-full bg-primary text-white text-sm font-medium py-2.5 rounded hover:bg-primary/90 transition-all shadow-md active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-2 mt-2"
+                                >
+                                    {loading ? 'Verifying Token...' : 'Verify & Continue'}
+                                    {!loading && <ArrowRight size={16} />}
+                                </button>
+                                
+                                <div className="flex items-center justify-center gap-5 pt-1">
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setStep(1)} 
+                                        className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1 font-medium transition-colors"
+                                    >
+                                        <ArrowLeft size={14} /> Wrong Email?
+                                    </button>
+                                    <div className="w-1 h-1 rounded-full bg-gray-300"></div>
+                                    <button 
+                                        type="button" 
+                                        onClick={handleSendEmail} 
+                                        className="text-xs text-[#5294e2] hover:underline flex items-center gap-1 font-medium transition-colors"
+                                    >
+                                        <RefreshCcw size={14} /> Resend Code
+                                    </button>
+                                </div>
+                            </div>
                         </form>
-                    </div>
+                    )}
+                </div>
 
-                    <div className="mt-8 pt-6 border-t border-gray-100 text-center text-xs text-gray-400">
-                        © 2026 AgriTomat • Privacy Policy • Terms of Service
-                    </div>
+                {/* Footer Disclaimer */}
+                <div className="mt-8 text-center text-[11px] text-gray-400">
+                    © 2026 HeartPredict Digital Labs <br />
+                    Secure AES-256 Medical Data Encryption
                 </div>
             </div>
         </div>

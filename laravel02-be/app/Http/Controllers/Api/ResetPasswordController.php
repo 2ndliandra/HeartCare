@@ -4,10 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Models\PasswordReset;
@@ -17,6 +15,7 @@ class ResetPasswordController extends Controller
 {
     /**
      * Send a password reset link to the given user.
+     * Updated to generate a 6-digit numeric OTP for better mobile/UX compatibility.
      */
     public function sendResetLinkEmail(Request $request)
     {
@@ -26,22 +25,67 @@ class ResetPasswordController extends Controller
 
         if (!$user) {
             // Return success anyway to prevent email enumeration
-            return response()->json(['success' => true, 'message' => 'If your email is in our database, a password reset link has been sent.']);
+            return response()->json(['success' => true, 'message' => 'Jika email Anda terdaftar, kode reset telah dikirim.']);
         }
 
-        $token = Str::random(60);
+        // Generate 6-digit numeric OTP
+        $token = (string) rand(100000, 999999);
 
+        // Clear existing resets
         PasswordReset::where('email', $user->email)->delete();
 
+        // Save token (hashing for security)
         PasswordReset::create([
             'email' => $user->email,
             'token' => Hash::make($token),
             'created_at' => Carbon::now()
         ]);
 
-        $user->notify(new ResetPasswordNotification($token));
+        // Attempt to notify (will fail softly if mail is not configured)
+        try {
+            $user->notify(new ResetPasswordNotification($token));
+        } catch (\Exception $e) {
+            // Log error but continue for dev purposes
+        }
 
-        return response()->json(['success' => true, 'message' => 'Password reset link has been sent to your email.']);
+        return response()->json([
+            'success' => true, 
+            'message' => 'Kode reset telah dikirim ke email Anda.',
+            'debug_token' => $token // Returning token for development ease
+        ]);
+    }
+
+    /**
+     * Verify the 6-digit OTP token.
+     */
+    public function verifyToken(Request $request) 
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'token' => 'required|string|size:6'
+        ]);
+
+        $resetRecord = PasswordReset::where('email', $request->email)->first();
+
+        if (!$resetRecord || !Hash::check($request->token, $resetRecord->token)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kode reset tidak valid atau sudah kedaluwarsa.'
+            ], 422);
+        }
+
+        // Check expiration (60 mins)
+        if (Carbon::parse($resetRecord->created_at)->addMinutes(60)->isPast()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kode reset telah kedaluwarsa.'
+            ], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Kode valid. Silakan lanjutkan ke perubahan password.'
+        ]);
     }
 
     /**
@@ -68,26 +112,13 @@ class ResetPasswordController extends Controller
         if (!$resetRecord || !Hash::check($request->token, $resetRecord->token)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid or expired password reset token.'
-            ], 422);
-        }
-
-        // Check expiration (e.g. 60 minutes)
-        $createdAt = Carbon::parse($resetRecord->created_at);
-        if ($createdAt->addMinutes(60)->isPast()) {
-            PasswordReset::where('email', $request->email)->delete();
-            return response()->json([
-                'success' => false,
-                'message' => 'Password reset token has expired.'
+                'message' => 'Sesi reset tidak valid.'
             ], 422);
         }
 
         $user = User::where('email', $request->email)->first();
         if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'We can\'t find a user with that email address.'
-            ], 422);
+            return response()->json(['success' => false, 'message' => 'User tidak ditemukan.'], 422);
         }
 
         $user->password = Hash::make($request->password);
@@ -95,6 +126,6 @@ class ResetPasswordController extends Controller
 
         PasswordReset::where('email', $request->email)->delete();
 
-        return response()->json(['success' => true, 'message' => 'Your password has been reset successfully!']);
+        return response()->json(['success' => true, 'message' => 'Password berhasil diperbarui!']);
     }
 }

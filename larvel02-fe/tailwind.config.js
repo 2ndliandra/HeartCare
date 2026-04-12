@@ -7,14 +7,28 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#064E3B', // Deep Emerald Green
+        primary: {
+            DEFAULT: '#064E3B', 
+            foreground: '#ffffff',
+        },
         accent: '#E11D48',  // Tomato Red
-        background: '#F8FAFC', // Off-White
+        background: '#ffffff',
+        foreground: '#0f172a', // slate-900
+        muted: {
+          DEFAULT: '#f8fafc', // slate-50
+          foreground: '#64748b', // slate-500
+        },
+        secondary: {
+          DEFAULT: '#ecfdf5', // emerald-50
+          foreground: '#064e3b',
+        }
       },
       fontFamily: {
         sans: ['"Inter"', 'sans-serif'],
       },
     },
   },
-  plugins: [],
+  plugins: [
+    require('@tailwindcss/typography'),
+  ],
 }

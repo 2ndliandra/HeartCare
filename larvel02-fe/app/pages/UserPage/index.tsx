@@ -2,21 +2,19 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard,
-    Map,
-    Bot,
-    ScanLine,
-    CloudSun,
     LogOut,
     Menu,
     X,
     Bell,
-    User,
+    Activity,
+    Stethoscope,
+    HeartPulse,
+    ClipboardList,
     AlertTriangle,
     CheckCircle2,
-    Sprout,
+    Heart,
     BrainCircuit,
-    ChevronRight,
-    Leaf
+    ChevronRight
 } from 'lucide-react';
 import { authService } from '../../lib/authService';
 
@@ -41,17 +39,17 @@ const UserPage: React.FC = () => {
     };
 
     const navigation = [
-        { name: 'Beranda', icon: LayoutDashboard, href: '#', current: true },
-        { name: 'Manajemen Lahan', icon: Map, href: '#', current: false },
-        { name: 'Rekomendasi AI', icon: Bot, href: '#', current: false },
-        { name: 'Diagnosa Penyakit', icon: ScanLine, href: '#', current: false, hasNotification: true },
-        { name: 'Pantau Cuaca', icon: CloudSun, href: '#', current: false },
+        { name: 'Beranda', icon: LayoutDashboard, href: '/user', current: true },
+        { name: 'Cek Kesehatan', icon: Activity, href: '/user/cek-kesehatan', current: false, hasNotification: true },
+        { name: 'Hasil Prediksi AI', icon: BrainCircuit, href: '/user/hasil-prediksi', current: false },
+        { name: 'Rekomendasi Medis', icon: Stethoscope, href: '/user/rekomendasi', current: false },
+        { name: 'Riwayat Pemeriksaan', icon: ClipboardList, href: '/user/riwayat', current: false },
     ];
 
     const scanHistory = [
-        { id: 1, date: '12 Okt 2026', status: 'Bercak Daun', severity: 'Tinggi', type: 'Late Blight' },
+        { id: 1, date: '12 Okt 2026', status: 'Risiko Tinggi', severity: 'Tinggi', type: 'Penyakit Jantung Koroner' },
         { id: 2, date: '10 Okt 2026', status: 'Sehat', severity: 'Normal', type: 'Normal' },
-        { id: 3, date: '08 Okt 2026', status: 'Kuning', severity: 'Sedang', type: 'Virus Kuning' },
+        { id: 3, date: '08 Okt 2026', status: 'Risiko Sedang', severity: 'Sedang', type: 'Hipertensi' },
     ];
 
     return (
@@ -72,10 +70,10 @@ const UserPage: React.FC = () => {
             `}>
                 <div className="h-20 flex items-center px-8 border-b border-slate-100">
                     <Link to="/" className="flex items-center gap-2 group">
-                        <div className="bg-emerald-100 p-2 rounded-xl group-hover:bg-emerald-200 transition-colors">
-                            <Leaf className="h-6 w-6 text-emerald-600" />
+                        <div className="bg-primary/10 p-2 rounded-xl group-hover:bg-primary/20 transition-colors">
+                            <Heart className="h-6 w-6 text-primary" />
                         </div>
-                        <span className="font-bold text-xl tracking-tight text-slate-900">Agri<span className="text-emerald-600">Tomat</span></span>
+                        <span className="font-bold text-xl tracking-tight text-slate-900">Heart<span className="text-primary">Predict</span></span>
                     </Link>
                     <button
                         className="lg:hidden ml-auto text-slate-500 hover:text-slate-700"
@@ -90,9 +88,9 @@ const UserPage: React.FC = () => {
                     {navigation.map((item) => {
                         const Icon = item.icon;
                         return (
-                            <a
+                            <Link
                                 key={item.name}
-                                href={item.href}
+                                to={item.href}
                                 className={`
                                     group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 relative
                                     ${item.current
@@ -110,7 +108,7 @@ const UserPage: React.FC = () => {
                                 {item.hasNotification && (
                                     <span className="absolute right-4 w-2 h-2 rounded-full bg-red-500 ring-4 ring-red-50"></span>
                                 )}
-                            </a>
+                            </Link>
                         );
                     })}
                 </div>
@@ -139,9 +137,9 @@ const UserPage: React.FC = () => {
                             <Menu size={24} />
                         </button>
 
-                        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-sky-50 text-sky-700 rounded-lg border border-sky-100">
-                            <CloudSun size={18} className="text-sky-500" />
-                            <span className="text-sm font-medium">Jember, 24°C <span className="opacity-60 font-normal px-1">•</span> Cerah Berawan</span>
+                        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg border border-blue-100">
+                            <HeartPulse size={18} className="text-blue-500" />
+                            <span className="text-sm font-medium">BPM Normal <span className="opacity-60 font-normal px-1">•</span> 72 detak/menit</span>
                         </div>
                     </div>
 
@@ -155,10 +153,10 @@ const UserPage: React.FC = () => {
 
                         <div className="flex items-center gap-3">
                             <div className="hidden sm:block text-right">
-                                <p className="text-sm font-semibold text-slate-900 leading-tight">{user?.name || 'Petani Cerdas'}</p>
-                                <p className="text-xs text-slate-500">Premium Plan</p>
+                                <p className="text-sm font-semibold text-slate-900 leading-tight">{user?.name || 'Pasien Cerdas'}</p>
+                                <p className="text-xs text-slate-500">Member Aktif</p>
                             </div>
-                            <div className="h-10 w-10 rounded-full bg-emerald-100 border-2 border-emerald-50 flex items-center justify-center text-emerald-700 font-bold overflow-hidden shadow-sm">
+                            <div className="h-10 w-10 rounded-full bg-primary/10 border-2 border-primary/5 flex items-center justify-center text-primary font-bold overflow-hidden shadow-sm">
                                 {user?.name ? user.name.charAt(0).toUpperCase() : 'P'}
                             </div>
                         </div>
@@ -171,42 +169,42 @@ const UserPage: React.FC = () => {
 
                         {/* Page Title */}
                         <div>
-                            <h1 className="text-2xl font-bold text-slate-900">Ringkasan Lahan Hari Ini</h1>
-                            <p className="text-slate-500 text-sm mt-1">Pantau kondisi lahan dan hasil diagnosa AI Anda secara real-time.</p>
+                            <h1 className="text-2xl font-bold text-slate-900">Ringkasan Kesehatan Hari Ini</h1>
+                            <p className="text-slate-500 text-sm mt-1">Pantau kondisi jantung dan hasil diagnosa AI Anda secara real-time.</p>
                         </div>
 
                         {/* Top Widgets */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {/* Widget 1: Cuaca */}
+                            {/* Widget 1: Risiko */}
                             <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-amber-50 rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <p className="text-sm font-medium text-slate-500 mb-1">Status Iklim Area Lahan</p>
-                                        <h3 className="text-2xl font-bold text-slate-900">Waspada</h3>
+                                        <p className="text-sm font-medium text-slate-500 mb-1">Status Risiko Medis</p>
+                                        <h3 className="text-2xl font-bold text-slate-900">Perhatikan</h3>
                                         <p className="text-xs text-amber-600 font-medium mt-2 flex items-center gap-1.5">
-                                            <AlertTriangle size={14} /> Kelembapan &gt; 85% besok
+                                            <AlertTriangle size={14} /> Tekanan darah tinggi
                                         </p>
                                     </div>
                                     <div className="p-3 bg-amber-100 text-amber-600 rounded-xl">
-                                        <CloudSun size={24} />
+                                        <Activity size={24} />
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Widget 2: Lahan */}
+                            {/* Widget 2: Kondisi */}
                             <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <p className="text-sm font-medium text-slate-500 mb-1">Jumlah Lahan Dikelola</p>
-                                        <h3 className="text-2xl font-bold text-slate-900">3 Petak <span className="text-sm font-normal text-slate-400">/ 500m²</span></h3>
-                                        <p className="text-xs text-emerald-600 font-medium mt-2 flex items-center gap-1.5">
-                                            <CheckCircle2 size={14} /> Semua sensor aktif
+                                        <p className="text-sm font-medium text-slate-500 mb-1">Pemantauan Terakhir</p>
+                                        <h3 className="text-2xl font-bold text-slate-900">Normal <span className="text-sm font-normal text-slate-400">/ 1 Hari lalu</span></h3>
+                                        <p className="text-xs text-primary font-medium mt-2 flex items-center gap-1.5">
+                                            <CheckCircle2 size={14} /> Semua indikator stabil
                                         </p>
                                     </div>
-                                    <div className="p-3 bg-emerald-100 text-emerald-600 rounded-xl">
-                                        <Sprout size={24} />
+                                    <div className="p-3 bg-primary/10 text-primary rounded-xl">
+                                        <HeartPulse size={24} />
                                     </div>
                                 </div>
                             </div>
@@ -223,7 +221,7 @@ const UserPage: React.FC = () => {
                                         </p>
                                     </div>
                                     <div className="p-3 bg-indigo-100 text-indigo-600 rounded-xl">
-                                        <Bot size={24} />
+                                        <BrainCircuit size={24} />
                                     </div>
                                 </div>
                             </div>
@@ -243,41 +241,40 @@ const UserPage: React.FC = () => {
                                 </div>
 
                                 <div className="bg-red-50 border border-red-100 rounded-xl p-5 mb-6">
-                                    <h3 className="text-red-800 font-semibold mb-2">Risiko Penyakit Late Blight (Busuk Daun) Meningkat</h3>
+                                    <h3 className="text-red-800 font-semibold mb-2">Risiko Hipertensi & Kardiovaskular Meningkat</h3>
                                     <p className="text-red-600 text-sm leading-relaxed mb-4">
-                                        Sistem kami mendeteksi tren <strong>kelembapan tinggi (&gt;80%)</strong> berturut-turut pada malam hari dipadu dengan suhu 18-22°C di Petak Lahan A (varietas Victory F1). Kondisi ini sangat ideal bagi penyebaran patogen Phytophthora infestans.
+                                        Sistem kami mendeteksi tren <strong>tekanan darah tinggi (&gt;130/80 mmHg)</strong> dipadu dengan kolesterol LDL tinggi. Kondisi ini secara signifikan meningkatkan risiko serangan jantung atau stroke.
                                     </p>
                                     <div className="flex gap-3">
                                         <button className="bg-red-600 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-sm hover:bg-red-700 transition-colors">
-                                            Jadwalkan Penyemprotan
+                                            Jadwalkan Konsultasi Medis
                                         </button>
                                         <button className="bg-white text-slate-700 border border-slate-200 text-sm font-medium px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors">
-                                            Lihat Detail BMKG
+                                            Lihat Anjuran Diet
                                         </button>
                                     </div>
                                 </div>
 
                                 <div className="mt-auto border-t border-slate-100 pt-4 flex items-center justify-between text-sm">
-                                    <span className="text-slate-500 flex items-center gap-1.5"><BrainCircuit size={14} className="text-emerald-500" /> Dianalisis oleh AI 2 menit lalu</span>
-                                    <a href="#" className="font-medium text-emerald-600 hover:text-emerald-700">Lihat semua insight</a>
+                                    <span className="text-slate-500 flex items-center gap-1.5"><BrainCircuit size={14} className="text-primary" /> Dianalisis oleh AI 2 menit lalu</span>
+                                    <Link to="/user/hasil-prediksi" className="font-medium text-primary hover:text-primary/80">Lihat semua insight</Link>
                                 </div>
                             </div>
 
                             {/* Riwayat Scan (Takes 1 column) */}
                             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col h-[400px]">
                                 <div className="flex items-center justify-between mb-6">
-                                    <h2 className="text-lg font-bold text-slate-900">Riwayat Scan Daun</h2>
-                                    <button className="text-slate-400 hover:text-emerald-600 transition-colors">
+                                    <h2 className="text-lg font-bold text-slate-900">Riwayat Pengecekan</h2>
+                                    <Link to="/user/riwayat" className="text-slate-400 hover:text-primary transition-colors">
                                         <ChevronRight size={20} />
-                                    </button>
+                                    </Link>
                                 </div>
 
                                 <div className="flex-1 overflow-y-auto pr-2 space-y-4 custom-scrollbar">
                                     {scanHistory.map((scan) => (
                                         <div key={scan.id} className="flex items-center gap-4 p-3 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-colors cursor-pointer group">
                                             <div className="w-14 h-14 rounded-lg bg-slate-100 flex-shrink-0 border border-slate-200 flex items-center justify-center overflow-hidden">
-                                                {/* Placeholder for leaf photo */}
-                                                <ScanLine size={24} className="text-slate-400 group-hover:scale-110 transition-transform" />
+                                                <HeartPulse size={24} className="text-slate-400 group-hover:scale-110 transition-transform" />
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex justify-between items-start mb-1">
@@ -297,10 +294,10 @@ const UserPage: React.FC = () => {
                                 </div>
 
                                 <div className="mt-4 pt-4 border-t border-slate-100">
-                                    <button className="w-full flex items-center justify-center gap-2 py-2.5 bg-emerald-50 text-emerald-700 text-sm font-medium rounded-xl hover:bg-emerald-100 transition-colors">
-                                        <ScanLine size={16} />
-                                        Mulai Scan Baru
-                                    </button>
+                                    <Link to="/user/cek-kesehatan" className="w-full flex items-center justify-center gap-2 py-2.5 bg-primary/10 text-primary text-sm font-medium rounded-xl hover:bg-primary/20 transition-colors">
+                                        <Activity size={16} />
+                                        Masukkan Data Baru
+                                    </Link>
                                 </div>
                             </div>
                         </div>

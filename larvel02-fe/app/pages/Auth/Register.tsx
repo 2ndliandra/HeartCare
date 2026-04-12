@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authService } from '../../lib/authService';
-import { Eye, EyeOff, Leaf } from 'lucide-react';
+import { Eye, EyeOff, Heart } from 'lucide-react';
 
 const Register: React.FC = () => {
     const [name, setName] = useState('');
@@ -17,16 +17,16 @@ const Register: React.FC = () => {
 
     const slides = [
         {
-            title: "Varietas Pintar",
-            description: "Mekanisme analisis variabel suhu, curah hujan, dan elevasi (mdpl) menggunakan model Random Forest AI. Memberikan rekomendasi otomatis dari database varietas unggul seperti Victory F1 dan Permata F1."
+            title: "Deteksi Dini",
+            description: "Sistem prediksi penyakit jantung berbasis AI untuk membantu Anda mendeteksi risiko lebih awal dan mengambil tindakan preventif yang tepat."
         },
         {
-            title: "Diagnosa Daun",
-            description: "Diagnosa patogen instan untuk penyakit seperti Early/Late Blight dan Virus Kuning melalui kamera Computer Vision agar penanganan hama lebih tepat sasaran dengan BioProtection Portal."
+            title: "Pemantauan Mandiri",
+            description: "Membantu Anda dalam memantau kondisi kesehatan secara mandiri dengan antarmuka yang mudah digunakan dan hasil yang akurat."
         },
         {
-            title: "Monitoring Iklim",
-            description: "Sinkronisasi data iklim & notifikasi real-time jika lingkungan memicu penyebaran patogen. Dilengkapi dengan integrasi data BMKG untuk peringatan dini cuaca ekstrem."
+            title: "Rekomendasi Cerdas",
+            description: "Memberikan saran tindak lanjut dan rekomendasi kesehatan berdasarkan analisis data medis Anda secara menyeluruh dan personal."
         }
     ];
 
@@ -78,8 +78,9 @@ const Register: React.FC = () => {
                 <div className="flex flex-col relative h-full">
                     {/* Logo */}
                     <Link to="/" className="absolute -top-10 lg:-top-5 -left-2 z-20 group">
-                        <div className="bg-white p-2.5 rounded-xl shadow-md border border-gray-100 group-hover:shadow-lg transition-all">
-                            <Leaf className="w-6 h-6 text-emerald-600" />
+                        <div className="bg-white p-2.5 rounded-xl shadow-md border border-gray-100 group-hover:shadow-lg transition-all flex items-center gap-2">
+                            <Heart className="w-6 h-6 text-primary" />
+                            <span className="font-bold text-slate-900 hidden sm:block">HeartPredict</span>
                         </div>
                     </Link>
 
@@ -163,7 +164,7 @@ const Register: React.FC = () => {
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="w-full bg-black text-white text-sm font-medium py-2.5 rounded hover:bg-gray-800 transition-colors mt-4"
+                                    className="w-full bg-primary text-white text-sm font-medium py-2.5 rounded hover:bg-primary/90 transition-colors mt-4"
                                 >
                                     {loading ? 'Signing Up...' : 'Sign Up'}
                                 </button>
@@ -175,7 +176,7 @@ const Register: React.FC = () => {
                         </div>
 
                         <div className="mt-8 text-center text-xs text-gray-400">
-                            © 2026 Your App Name Privacy Policy • Terms of Service
+                            © 2026 HeartPredict Privacy Policy • Terms of Service
                         </div>
                     </div>
                 </div>
@@ -189,7 +190,7 @@ const Register: React.FC = () => {
 
                     <h1 className="text-4xl lg:text-5xl font-bold leading-tight tracking-tight text-gray-900 mb-6">
                         Start your <br />
-                        <span className="text-emerald-600">New Journey</span>
+                        <span className="text-primary">New Journey</span>
                     </h1>
 
                     <div className="w-full h-px bg-gray-900 my-6 opacity-80"></div>

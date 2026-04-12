@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { authService } from '../../lib/authService';
-import { Eye, EyeOff, Leaf } from 'lucide-react';
+import { Eye, EyeOff, Heart } from 'lucide-react';
 
 const ResetPassword: React.FC = () => {
     const [password, setPassword] = useState('');
@@ -82,8 +82,8 @@ const ResetPassword: React.FC = () => {
                 <div className="flex justify-center mb-8">
                     <Link to="/" className="group flex items-center justify-center">
                         <div className="bg-white p-2.5 rounded-xl shadow-md border border-gray-100 group-hover:shadow-lg transition-all flex items-center justify-center gap-2">
-                            <Leaf className="w-6 h-6 text-emerald-600" />
-                            <span className="font-bold text-lg text-slate-900 hidden sm:block">Agri<span className="text-emerald-600">Tomat</span></span>
+                            <Heart className="w-6 h-6 text-primary" />
+                            <span className="font-bold text-lg text-slate-900 hidden sm:block">HeartPredict</span>
                         </div>
                     </Link>
                 </div>
@@ -103,7 +103,7 @@ const ResetPassword: React.FC = () => {
                         )}
 
                         {success && (
-                            <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 p-3 rounded mb-4 text-sm">
+                            <div className="bg-primary/10 border border-primary/20 text-primary p-3 rounded mb-4 text-sm">
                                 {success}
                             </div>
                         )}
@@ -156,7 +156,7 @@ const ResetPassword: React.FC = () => {
                             <button
                                 type="submit"
                                 disabled={loading || !token || !email || !!success}
-                                className="w-full bg-black text-white text-sm font-medium py-3 rounded hover:bg-gray-800 transition-colors mt-4 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                className="w-full bg-primary text-white text-sm font-medium py-3 rounded hover:bg-primary/90 transition-colors mt-4 disabled:bg-gray-400 disabled:cursor-not-allowed"
                             >
                                 {loading ? 'Resetting Password...' : 'Reset Password'}
                             </button>
@@ -164,10 +164,10 @@ const ResetPassword: React.FC = () => {
                     </div>
 
                     <div className="mt-8 pt-6 border-t border-gray-100 text-center text-xs text-gray-400">
-                        <Link to="/login" className="text-emerald-600 hover:underline font-medium block mb-2">
+                        <Link to="/login" className="text-primary hover:underline font-medium block mb-2">
                             Return to Login
                         </Link>
-                        © 2026 AgriTomat
+                        © 2026 HeartPredict
                     </div>
                 </div>
             </div>

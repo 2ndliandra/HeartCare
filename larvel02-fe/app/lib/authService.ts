@@ -26,6 +26,11 @@ export const authService = {
         return response.data;
     },
 
+    async verifyToken(data: { email: string; token: string }) {
+        const response = await api.post('/verify-token', data);
+        return response.data;
+    },
+
     async resetPassword(data: any) {
         const response = await api.post('/reset-password', data);
         return response.data;

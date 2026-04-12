@@ -7,7 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class ResetPasswordNotification extends Notification
+class ResetPasswordNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -36,14 +36,14 @@ class ResetPasswordNotification extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $frontendUrl = 'http://localhost:5173/reset-password?token=' . $this->token . '&email=' . urlencode($notifiable->email);
-
         return (new MailMessage)
-                    ->subject('Reset Password Notification')
-                    ->line('You are receiving this email because we received a password reset request for your account.')
-                    ->action('Reset Password', $frontendUrl)
-                    ->line('This password reset link will expire in 60 minutes.')
-                    ->line('If you did not request a password reset, no further action is required.');
+                    ->subject('Kode Keamanan Reset Password - HeartPredict')
+                    ->greeting('Halo, ' . $notifiable->name . '!')
+                    ->line('Kami menerima permintaan untuk mengatur ulang kata sandi akun medis Anda.')
+                    ->line('Gunakan kode verifikasi berikut untuk melanjutkan:')
+                    ->line('**' . $this->token . '**')
+                    ->line('Kode rahasia ini berlaku selama 60 menit. Jangan berikan kode ini kepada siapa pun untuk menjaga keamanan akun Anda.')
+                    ->line('Jika Anda tidak melakukan permintaan ini, Anda dapat mengabaikan email ini dengan aman.');
     }
 
     /**
