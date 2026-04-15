@@ -32,7 +32,15 @@ const UserPage: React.FC = () => {
     const userString = localStorage.getItem('user');
     const user = userString ? JSON.parse(userString) : null;
 
-    const baseNavigation = [
+    interface NavItem {
+        name: string;
+        icon: React.ComponentType<any>;
+        href: string;
+        hasNotification?: boolean;
+        current?: boolean;
+    }
+
+    const baseNavigation: NavItem[] = [
         { name: 'Beranda', icon: LayoutDashboard, href: '/user' },
         { name: 'Cek Kesehatan', icon: Activity, href: '/user/cek-kesehatan', hasNotification: true },
         { name: 'Hasil Prediksi AI', icon: BrainCircuit, href: '/user/hasil-prediksi' },
