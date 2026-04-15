@@ -3,14 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use MongoDB\Laravel\Eloquent\Model;
+use Illuminate\Database\Eloquent\Model;
+use MongoDB\Laravel\Eloquent\HybridRelations;
 
 class Category extends Model
 {
-    use HasFactory;
+    use HasFactory, HybridRelations;
 
-    protected $connection = 'mongodb';
-    protected $collection = 'categories';
+    protected $connection = 'mysql';
 
     protected $fillable = [
         'name',

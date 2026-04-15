@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\AdminArticleController;
 use App\Http\Controllers\Api\AdminDatasetController;
 use App\Http\Controllers\Api\AdminDashboardController;
 use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\AiController;
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -33,11 +34,14 @@ Route::post('/predict', [PredictionController::class, 'predict']);
 Route::get('/articles', [AdminArticleController::class, 'index']); // Public articles list
 Route::get('/articles/{slug}', [AdminArticleController::class, 'show']); // Public article detail
 Route::get('/categories', [CategoryController::class, 'index']); // Public categories list
-Route::post('/test-ai', [AiController::class, 'test']);
+Route::post('/test-ai', [AiController::class, 'test']);  
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+    Route::get('/chats', [AiController::class, 'index']);
+    Route::post('/chat', [AiController::class, 'chat']);
+    Route::post('/profile', [ProfileController::class, 'update']);
 
     // Admin Routes
     Route::middleware(['admin'])->prefix('admin')->group(function () {

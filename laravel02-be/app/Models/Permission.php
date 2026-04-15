@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
-use MongoDB\Laravel\Eloquent\Model;
+use Illuminate\Database\Eloquent\Model;
+use MongoDB\Laravel\Eloquent\HybridRelations;
 
 class Permission extends Model
 {
-    protected $connection = 'mongodb';
-    protected $collection = 'permissions';
+    use HybridRelations;
+
+    protected $connection = 'mysql';
     protected $fillable = ['name', 'guard_name'];
 }

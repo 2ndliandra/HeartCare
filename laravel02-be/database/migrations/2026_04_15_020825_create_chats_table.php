@@ -11,8 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::connection('mongodb')->table('articles', function (Blueprint $table) {
-            $table->text('raw_content')->nullable();
+        Schema::connection('mongodb')->create('chats', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->text('message');
+            $table->text('response');
+            $table->timestamps();
         });
     }
 
@@ -21,8 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::connection('mongodb')->table('articles', function (Blueprint $table) {
-            $table->dropColumn('raw_content');
-        });
+        Schema::connection('mongodb')->dropIfExists('chats');
     }
 };

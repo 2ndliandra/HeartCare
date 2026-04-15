@@ -15,38 +15,43 @@ class RolePermissionSeeder extends Seeder
      */
     public function run(): void
     {
-        // Reset cached roles and permissions
-        // app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
-
         // create permissions
-        Permission::create(['name' => 'edit articles']);
-        Permission::create(['name' => 'delete articles']);
-        Permission::create(['name' => 'publish articles']);
-        Permission::create(['name' => 'unpublish articles']);
+        $permissions = [
+            'edit articles',
+            'delete articles',
+            'publish articles',
+            'unpublish articles',
+        ];
+
+        foreach ($permissions as $permission) {
+            Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
+        }
 
         // create roles and assign created permissions
+        $userRole = Role::firstOrCreate(['name' => 'user', 'guard_name' => 'web']);
+        $userRole->givePermissionTo('edit articles');
 
-        // this can be done as separate statements
-        $role = Role::create(['name' => 'user']);
-        $role->givePermissionTo('edit articles');
-
-        $role = Role::create(['name' => 'admin']);
-        $role->givePermissionTo(Permission::all());
+        $adminRole = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
+        $adminRole->givePermissionTo(Permission::all());
 
         // Create admin user
-        $admin = User::create([
-            'name' => 'Admin User',
-            'email' => 'admin@example.com',
-            'password' => Hash::make('password'),
-        ]);
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@example.com'],
+            [
+                'name' => 'Admin User',
+                'password' => Hash::make('password'),
+            ]
+        );
         $admin->assignRole('admin');
 
         // Create regular user
-        $user = User::create([
-            'name' => 'Regular User',
-            'email' => 'user@example.com',
-            'password' => Hash::make('password'),
-        ]);
+        $user = User::firstOrCreate(
+            ['email' => 'user@example.com'],
+            [
+                'name' => 'Regular User',
+                'password' => Hash::make('password'),
+            ]
+        );
         $user->assignRole('user');
     }
 }

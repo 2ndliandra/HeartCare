@@ -9,7 +9,8 @@ trait HasRoles
 {
     public function roles()
     {
-        return $this->belongsToMany(Role::class, null, 'user_ids', 'role_ids');
+        return $this->belongsToMany(Role::class, 'model_has_roles', 'model_id', 'role_id')
+                    ->wherePivot('model_type', static::class);
     }
 
     public function assignRole($role)
@@ -17,7 +18,7 @@ trait HasRoles
         if (is_string($role)) {
             $role = Role::where('name', $role)->firstOrFail();
         }
-        $this->roles()->attach($role);
+        $this->roles()->syncWithoutDetaching([$role->id => ['model_type' => static::class]]);
     }
 
     public function hasRole($role)

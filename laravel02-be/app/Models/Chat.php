@@ -5,18 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use MongoDB\Laravel\Eloquent\Model;
 
-class Dataset extends Model
+class Chat extends Model
 {
     use HasFactory;
+
     protected $connection = 'mongodb';
-    protected $collection = 'datasets';
+    protected $collection = 'chats';
 
     protected $fillable = [
-        'name',
-        'description',
-        'file_path',
-        'sample_count',
-        'accuracy_score',
-        'status',
+        'user_id',
+        'message',
+        'response'
     ];
 }

@@ -2,24 +2,37 @@
 
 namespace App\Models;
 
-use MongoDB\Laravel\Eloquent\Model;
+use Illuminate\Database\Eloquent\Model;
+use MongoDB\Laravel\Eloquent\HybridRelations;
 
 class Role extends Model
 {
-    protected $connection = 'mongodb';
-    protected $collection = 'roles';
-    protected $fillable = ['name', 'guard_name', 'permission_ids'];
+    use HybridRelations;
+
+    protected $connection = 'mysql';
+    protected $fillable = ['name', 'guard_name'];
 
     public function permissions()
     {
-        return $this->belongsToMany(Permission::class, null, 'role_ids', 'permission_ids');
+        return $this->belongsToMany(Permission::class, 'role_has_permissions');
     }
 
     public function givePermissionTo($permission)
     {
         if (is_string($permission)) {
             $permission = Permission::where('name', $permission)->firstOrFail();
+            $this->permissions()->syncWithoutDetaching($permission->id);
+            return;
         }
-        $this->permissions()->attach($permission);
+
+        // Handle collection of permissions
+        if ($permission instanceof \Illuminate\Database\Eloquent\Collection) {
+            foreach ($permission as $perm) {
+                $this->permissions()->syncWithoutDetaching($perm->id);
+            }
+            return;
+        }
+
+        $this->permissions()->syncWithoutDetaching($permission->id);
     }
 }

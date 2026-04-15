@@ -12,6 +12,8 @@ import RiwayatPemeriksaanPage from './pages/UserPage/RiwayatPemeriksaan';
 import RekomendasiMedisPage from './pages/UserPage/RekomendasiMedis';
 import CekKesehatanPage from './pages/UserPage/CekKesehatan';
 import HasilPrediksiPage from './pages/UserPage/HasilPrediksi';
+import ChatConsultationPage from './pages/UserPage/ChatConsultation';
+import ProfilePage from './pages/UserPage/Profil';
 import ArticlesPage from './pages/ArticlesPage';
 import ArticleDetailPage from './pages/ArticlesPage/ArticleDetail';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -38,6 +40,8 @@ function App() {
                     <Route path="/user/rekomendasi" element={<RekomendasiMedisPage />} />
                     <Route path="/user/cek-kesehatan" element={<CekKesehatanPage />} />
                     <Route path="/user/hasil-prediksi" element={<HasilPrediksiPage />} />
+                    <Route path="/user/konsultasi" element={<ChatConsultationPage />} />
+                    <Route path="/user/profile" element={<ProfilePage />} />
                 </Route>
             </Routes>
         </BrowserRouter>

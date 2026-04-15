@@ -17,6 +17,7 @@ interface Article {
 export default function LandingPage() {
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState("home");
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('auth_token'));
   const { scrollY } = useScroll();
   const heroOpacity = useTransform(scrollY, [0, 300], [1, 0]);
   const heroScale = useTransform(scrollY, [0, 300], [1, 0.95]);
@@ -25,6 +26,16 @@ export default function LandingPage() {
   const [loadingArticles, setLoadingArticles] = useState(true);
 
   useEffect(() => {
+    // Check initial auth status
+    setIsAuthenticated(!!localStorage.getItem('auth_token'));
+
+    // Listen for storage changes (logout from another tab/window)
+    const handleStorageChange = () => {
+      setIsAuthenticated(!!localStorage.getItem('auth_token'));
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
     fetchLatestArticles();
 
     const handleScroll = () => {
@@ -44,7 +55,10 @@ export default function LandingPage() {
     };
 
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   const fetchLatestArticles = async () => {
@@ -89,23 +103,39 @@ export default function LandingPage() {
                 <button
                   key={item}
                   onClick={() => scrollToSection(item.toLowerCase())}
-                  className={`text-sm transition-colors ${
-                    activeSection === item.toLowerCase()
-                      ? "text-primary font-medium"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
+                  className={`text-sm transition-colors ${activeSection === item.toLowerCase()
+                    ? "text-primary font-medium"
+                    : "text-muted-foreground hover:text-foreground"
+                    }`}
                 >
                   {item}
                 </button>
               ))}
-              
+
               <div className="flex items-center gap-4 border-l border-gray-200 pl-6">
-                <Link to="/login" className="text-sm font-medium text-slate-600 hover:text-primary transition-colors">
-                  Masuk Sign In
-                </Link>
-                <Link to="/register" className="px-5 py-2.5 border border-primary text-primary text-sm font-medium rounded-lg hover:bg-primary/5 transition-all">
-                  Daftar
-                </Link>
+                {isAuthenticated ? (
+                  <button
+                    onClick={() => navigate('/user')}
+                    className="px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary/90 transition-all shadow-md shadow-primary/20"
+                  >
+                    Ke Dashboard
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => navigate('/login')}
+                      className="text-sm font-bold text-slate-600 hover:text-primary transition-colors"
+                    >
+                      Masuk / Sign In
+                    </button>
+                    <button
+                      onClick={() => navigate('/register')}
+                      className="px-5 py-2.5 border-2 border-primary/20 text-primary text-sm font-bold rounded-xl hover:bg-primary/5 hover:border-primary/40 transition-all"
+                    >
+                      Daftar
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -141,32 +171,18 @@ export default function LandingPage() {
               </p>
               <motion.button
                 onClick={() => {
-                  if (localStorage.getItem('auth_token')) {
+                  if (isAuthenticated) {
                     navigate('/user');
                   } else {
                     navigate('/login');
                   }
                 }}
-                className="px-8 py-4 bg-primary text-primary-foreground rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                animate={{
-                  boxShadow: [
-                    "0 10px 25px rgba(37, 99, 235, 0.3)",
-                    "0 10px 35px rgba(37, 99, 235, 0.5)",
-                    "0 10px 25px rgba(37, 99, 235, 0.3)",
-                  ],
-                }}
-                transition={{
-                  boxShadow: {
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  },
-                }}
+                className="px-8 py-4 bg-primary text-white rounded-xl shadow-lg hover:shadow-xl hover:bg-primary/95 transition-all flex items-center gap-2 font-bold"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
                 <Activity className="w-5 h-5" />
-                Mulai Pengecekan
+                {isAuthenticated ? 'Lanjutkan Pengecekan' : 'Mulai Pengecekan'}
               </motion.button>
             </motion.div>
           </div>
@@ -362,15 +378,15 @@ export default function LandingPage() {
                 >
                   <div className="h-48 overflow-hidden bg-slate-100">
                     {article.thumbnail ? (
-                        <img
+                      <img
                         src={article.thumbnail}
                         alt={article.title}
                         className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
-                        />
+                      />
                     ) : (
-                        <div className="w-full h-full flex items-center justify-center text-slate-300">
-                            <FileText size={48} />
-                        </div>
+                      <div className="w-full h-full flex items-center justify-center text-slate-300">
+                        <FileText size={48} />
+                      </div>
                     )}
                   </div>
                   <div className="p-6">
@@ -381,12 +397,12 @@ export default function LandingPage() {
                 </motion.div>
               ))
             ) : (
-                <div className="col-span-full py-12 text-center text-slate-400">
-                    <p>Belum ada artikel yang tersedia.</p>
-                </div>
+              <div className="col-span-full py-12 text-center text-slate-400">
+                <p>Belum ada artikel yang tersedia.</p>
+              </div>
             )}
           </div>
-          
+
           <div className="mt-16 text-center">
             <Link to="/articles">
               <motion.button

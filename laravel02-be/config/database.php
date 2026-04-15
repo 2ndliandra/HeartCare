@@ -66,7 +66,7 @@ return [
         'mongodb' => [
             'driver'   => 'mongodb',
             'dsn'      => env('MONGODB_URI'), 
-            'database' => env('DB_DATABASE'),
+            'database' => env('MONGODB_DATABASE', 'belajar_mongo'),
             'options'  => [
                 'authSource' => 'admin', // auth database
             ],

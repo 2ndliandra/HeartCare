@@ -10,6 +10,7 @@ import {
     ClipboardList,
     Heart,
     BrainCircuit,
+    Bot,
     ChevronRight,
     ShieldCheck,
     AlertTriangle,
@@ -45,6 +46,7 @@ const HasilPrediksiPage: React.FC = () => {
         { name: 'Beranda', icon: LayoutDashboard, href: '/user', current: false },
         { name: 'Cek Kesehatan', icon: Activity, href: '/user/cek-kesehatan', current: false },
         { name: 'Hasil Prediksi AI', icon: BrainCircuit, href: '/user/hasil-prediksi', current: true },
+        { name: 'Konsultasi AI', icon: Bot, href: '/user/konsultasi', current: false },
         { name: 'Rekomendasi Medis', icon: Stethoscope, href: '/user/rekomendasi', current: false },
         { name: 'Riwayat Pemeriksaan', icon: ClipboardList, href: '/user/riwayat', current: false },
     ];
