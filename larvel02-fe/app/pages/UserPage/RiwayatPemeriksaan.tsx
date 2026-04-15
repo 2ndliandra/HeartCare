@@ -13,6 +13,7 @@ import {
     Heart,
     BrainCircuit,
     Bot,
+    User,
     ChevronRight,
     Search,
     Filter,
@@ -47,6 +48,7 @@ const RiwayatPemeriksaanPage: React.FC = () => {
         { name: 'Konsultasi AI', icon: Bot, href: '/user/konsultasi', current: false },
         { name: 'Rekomendasi Medis', icon: Stethoscope, href: '/user/rekomendasi', current: false },
         { name: 'Riwayat Pemeriksaan', icon: ClipboardList, href: '/user/riwayat', current: true },
+        { name: 'Profil Saya', icon: User, href: '/user/profile', current: false },
     ];
 
     const historyData = [
@@ -92,8 +94,8 @@ const RiwayatPemeriksaanPage: React.FC = () => {
         }
     ];
 
-    const filteredHistory = historyData.filter(item => 
-        item.type.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    const filteredHistory = historyData.filter(item =>
+        item.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.result.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.date.includes(searchTerm)
     );
@@ -195,13 +197,13 @@ const RiwayatPemeriksaanPage: React.FC = () => {
 
                 <div className="flex-1 overflow-y-auto bg-slate-50 p-4 sm:p-6 lg:p-8">
                     <div className="max-w-6xl mx-auto space-y-6">
-                        
+
                         {/* Search and Filters */}
                         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                             <div className="relative w-full sm:max-w-md group">
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors" size={18} />
-                                <input 
-                                    type="text" 
+                                <input
+                                    type="text"
                                     placeholder="Cari berdasarkan tanggal atau jenis keluhan..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -243,11 +245,10 @@ const RiwayatPemeriksaanPage: React.FC = () => {
                                         {/* Result Summary */}
                                         <div className="lg:w-1/4 flex flex-col gap-4">
                                             <div className="flex items-center gap-3">
-                                                <div className={`p-3 rounded-2xl ${
-                                                    item.severity === 'High' ? 'bg-red-50 text-red-600' :
-                                                    item.severity === 'Moderate' ? 'bg-amber-50 text-amber-600' :
-                                                    'bg-emerald-50 text-emerald-600'
-                                                }`}>
+                                                <div className={`p-3 rounded-2xl ${item.severity === 'High' ? 'bg-red-50 text-red-600' :
+                                                        item.severity === 'Moderate' ? 'bg-amber-50 text-amber-600' :
+                                                            'bg-emerald-50 text-emerald-600'
+                                                    }`}>
                                                     <HeartPulse size={24} />
                                                 </div>
                                                 <div>
@@ -257,11 +258,10 @@ const RiwayatPemeriksaanPage: React.FC = () => {
                                             </div>
                                             <div>
                                                 <h3 className="text-lg font-bold text-slate-900 leading-tight mb-2">{item.type}</h3>
-                                                <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-                                                    item.severity === 'High' ? 'bg-red-100 text-red-700' :
-                                                    item.severity === 'Moderate' ? 'bg-amber-100 text-amber-700' :
-                                                    'bg-emerald-100 text-emerald-700'
-                                                }`}>
+                                                <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${item.severity === 'High' ? 'bg-red-100 text-red-700' :
+                                                        item.severity === 'Moderate' ? 'bg-amber-100 text-amber-700' :
+                                                            'bg-emerald-100 text-emerald-700'
+                                                    }`}>
                                                     {item.result}
                                                 </span>
                                             </div>

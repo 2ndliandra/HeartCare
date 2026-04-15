@@ -12,6 +12,7 @@ import {
     Heart,
     BrainCircuit,
     Bot,
+    User,
     ChevronRight,
     BookOpen,
     ArrowUpRight,
@@ -68,8 +69,7 @@ const RekomendasiMedisPage: React.FC = () => {
         { name: 'Hasil Prediksi AI', icon: BrainCircuit, href: '/user/hasil-prediksi', current: false },
         { name: 'Konsultasi AI', icon: Bot, href: '/user/konsultasi', current: false },
         { name: 'Rekomendasi Medis', icon: Stethoscope, href: '/user/rekomendasi', current: true },
-        { name: 'Riwayat Pemeriksaan', icon: ClipboardList, href: '/user/riwayat', current: false },
-    ];
+        { name: 'Riwayat Pemeriksaan', icon: ClipboardList, href: '/user/riwayat', current: false }, { name: 'Profil Saya', icon: User, href: '/user/profile', current: false },];
 
     const recommendations = {
         title: "Panduan Pemulihan & Pencegahan Jantung Koroner",
@@ -135,7 +135,7 @@ const RekomendasiMedisPage: React.FC = () => {
                                 </div>
                                 <h1 className="text-3xl font-bold text-slate-900 mb-4">{recommendations.title}</h1>
                                 <p className="text-slate-500 leading-relaxed mb-8">{recommendations.description}</p>
-                                
+
                                 <div className="grid sm:grid-cols-2 gap-4">
                                     {recommendations.priority.map(item => (
                                         <div key={item.id} className={`${item.bg} p-5 rounded-2xl border border-transparent hover:border-slate-100 transition-all group`}>
@@ -181,7 +181,7 @@ const RekomendasiMedisPage: React.FC = () => {
                                                     <div className="w-full h-full flex items-center justify-center text-slate-200"><FileText size={48} /></div>
                                                 )}
                                                 <div className="absolute inset-0 bg-black/10 transition-opacity opacity-0 group-hover:opacity-100 flex items-center justify-center">
-                                                     <div className="w-12 h-12 bg-white/90 backdrop-blur rounded-full flex items-center justify-center text-primary shadow-lg"><ArrowUpRight size={20} /></div>
+                                                    <div className="w-12 h-12 bg-white/90 backdrop-blur rounded-full flex items-center justify-center text-primary shadow-lg"><ArrowUpRight size={20} /></div>
                                                 </div>
                                                 <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur px-2.5 py-1 rounded-lg text-[10px] font-bold text-primary uppercase shadow-sm">
                                                     {article.category}

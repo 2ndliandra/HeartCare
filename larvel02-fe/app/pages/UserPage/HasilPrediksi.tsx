@@ -11,6 +11,7 @@ import {
     Heart,
     BrainCircuit,
     Bot,
+    User,
     ChevronRight,
     ShieldCheck,
     AlertTriangle,
@@ -28,7 +29,7 @@ const HasilPrediksiPage: React.FC = () => {
     const [sidebarOpen, setSidebarOpen] = React.useState(false);
 
     // Get prediction result from navigation state
-    const { prediction, formData } = location.state || { 
+    const { prediction, formData } = location.state || {
         prediction: { risk: 'Sedang', message: 'Hipertensi Terdeteksi', accuracy: 92.1 },
         formData: { age: 45, bloodPressure: 135, cholesterol: 210, heartRate: 80 }
     };
@@ -48,6 +49,8 @@ const HasilPrediksiPage: React.FC = () => {
         { name: 'Hasil Prediksi AI', icon: BrainCircuit, href: '/user/hasil-prediksi', current: true },
         { name: 'Konsultasi AI', icon: Bot, href: '/user/konsultasi', current: false },
         { name: 'Rekomendasi Medis', icon: Stethoscope, href: '/user/rekomendasi', current: false },
+        { name: 'Riwayat Pemeriksaan', icon: ClipboardList, href: '/user/riwayat', current: false },
+        { name: 'Profil Saya', icon: User, href: '/user/profile', current: false },
         { name: 'Riwayat Pemeriksaan', icon: ClipboardList, href: '/user/riwayat', current: false },
     ];
 
@@ -110,7 +113,7 @@ const HasilPrediksiPage: React.FC = () => {
 
                 <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
                     <div className="max-w-5xl mx-auto space-y-8">
-                        
+
                         {/* Status Hero Card */}
                         <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-xl shadow-slate-200/50 overflow-hidden transition-all hover:shadow-2xl">
                             <div className={`p-8 md:p-12 text-center border-b ${styles.border} ${styles.bg}`}>
@@ -181,7 +184,7 @@ const HasilPrediksiPage: React.FC = () => {
                                     </div>
                                     <ChevronRight className="text-slate-300 group-hover:text-primary transition-colors" />
                                 </Link>
-                                
+
                                 <Link to="/articles" className="group bg-white rounded-3xl border border-slate-200 p-6 flex items-center gap-6 hover:shadow-xl transition-all">
                                     <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-all">
                                         <BookOpen size={30} className="text-indigo-600 group-hover:text-white transition-all" />

@@ -11,6 +11,7 @@ import {
     Heart,
     BrainCircuit,
     Bot,
+    User,
     ShieldCheck,
     AlertCircle,
     Loader2
@@ -48,13 +49,14 @@ const CekKesehatanPage: React.FC = () => {
         { name: 'Konsultasi AI', icon: Bot, href: '/user/konsultasi', current: false },
         { name: 'Rekomendasi Medis', icon: Stethoscope, href: '/user/rekomendasi', current: false },
         { name: 'Riwayat Pemeriksaan', icon: ClipboardList, href: '/user/riwayat', current: false },
+        { name: 'Profil Saya', icon: User, href: '/user/profile', current: false },
     ];
 
     const toggleHistory = (item: string) => {
         setFormData(prev => ({
             ...prev,
-            history: prev.history.includes(item) 
-                ? prev.history.filter(h => h !== item) 
+            history: prev.history.includes(item)
+                ? prev.history.filter(h => h !== item)
                 : [...prev.history, item]
         }));
     };
@@ -62,19 +64,19 @@ const CekKesehatanPage: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsAnalyzing(true);
-        
+
         try {
             // Give 2 seconds of "AI Processing" feeling
             await new Promise(resolve => setTimeout(resolve, 2000));
-            
+
             const response = await api.post('/predict', formData);
-            
+
             setIsAnalyzing(false);
-            navigate('/user/hasil-prediksi', { 
-                state: { 
+            navigate('/user/hasil-prediksi', {
+                state: {
                     prediction: response.data,
-                    formData: formData 
-                } 
+                    formData: formData
+                }
             });
         } catch (error) {
             console.error('Prediction error:', error);
@@ -130,7 +132,7 @@ const CekKesehatanPage: React.FC = () => {
 
                 <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
                     <div className="max-w-4xl mx-auto">
-                        
+
                         <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden mb-8">
                             <div className="bg-primary p-8 md:p-12 text-white relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
@@ -150,21 +152,21 @@ const CekKesehatanPage: React.FC = () => {
                                     <div className="grid md:grid-cols-2 gap-6">
                                         <div className="space-y-2">
                                             <label className="text-sm font-semibold text-slate-700">Usia (Tahun)</label>
-                                            <input 
+                                            <input
                                                 required
-                                                type="number" 
+                                                type="number"
                                                 placeholder="Contoh: 45"
                                                 value={formData.age}
-                                                onChange={(e) => setFormData({...formData, age: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, age: e.target.value })}
                                                 className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all"
                                             />
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-sm font-semibold text-slate-700">Jenis Kelamin</label>
-                                            <select 
+                                            <select
                                                 required
                                                 value={formData.gender}
-                                                onChange={(e) => setFormData({...formData, gender: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
                                                 className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all appearance-none"
                                             >
                                                 <option value="">Pilih Jenis Kelamin</option>
@@ -185,12 +187,12 @@ const CekKesehatanPage: React.FC = () => {
                                         <div className="space-y-2">
                                             <label className="text-sm font-semibold text-slate-700">Tekanan Darah (Systolic)</label>
                                             <div className="relative">
-                                                <input 
+                                                <input
                                                     required
-                                                    type="number" 
+                                                    type="number"
                                                     placeholder="120"
                                                     value={formData.bloodPressure}
-                                                    onChange={(e) => setFormData({...formData, bloodPressure: e.target.value})}
+                                                    onChange={(e) => setFormData({ ...formData, bloodPressure: e.target.value })}
                                                     className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:border-primary transition-all pr-12"
                                                 />
                                                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">mmHg</span>
@@ -199,12 +201,12 @@ const CekKesehatanPage: React.FC = () => {
                                         <div className="space-y-2">
                                             <label className="text-sm font-semibold text-slate-700">Kadar Kolesterol</label>
                                             <div className="relative">
-                                                <input 
+                                                <input
                                                     required
-                                                    type="number" 
+                                                    type="number"
                                                     placeholder="200"
                                                     value={formData.cholesterol}
-                                                    onChange={(e) => setFormData({...formData, cholesterol: e.target.value})}
+                                                    onChange={(e) => setFormData({ ...formData, cholesterol: e.target.value })}
                                                     className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:border-primary transition-all pr-12"
                                                 />
                                                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">mg/dL</span>
@@ -213,12 +215,12 @@ const CekKesehatanPage: React.FC = () => {
                                         <div className="space-y-2">
                                             <label className="text-sm font-semibold text-slate-700">Detak Jantung</label>
                                             <div className="relative">
-                                                <input 
+                                                <input
                                                     required
-                                                    type="number" 
+                                                    type="number"
                                                     placeholder="75"
                                                     value={formData.heartRate}
-                                                    onChange={(e) => setFormData({...formData, heartRate: e.target.value})}
+                                                    onChange={(e) => setFormData({ ...formData, heartRate: e.target.value })}
                                                     className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:border-primary transition-all pr-12"
                                                 />
                                                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">BPM</span>
@@ -239,11 +241,10 @@ const CekKesehatanPage: React.FC = () => {
                                                 key={item}
                                                 type="button"
                                                 onClick={() => toggleHistory(item)}
-                                                className={`px-4 py-3 rounded-xl text-xs font-bold transition-all border ${
-                                                    formData.history.includes(item)
-                                                    ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20'
-                                                    : 'bg-white border-slate-200 text-slate-600 hover:border-primary/30'
-                                                }`}
+                                                className={`px-4 py-3 rounded-xl text-xs font-bold transition-all border ${formData.history.includes(item)
+                                                        ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20'
+                                                        : 'bg-white border-slate-200 text-slate-600 hover:border-primary/30'
+                                                    }`}
                                             >
                                                 {item}
                                             </button>
@@ -257,8 +258,8 @@ const CekKesehatanPage: React.FC = () => {
                                         <ShieldCheck className="text-emerald-500 shrink-0" size={24} />
                                         <p className="text-[10px] leading-relaxed italic">Data Anda dienkripsi dan hanya digunakan untuk keperluan analisis AI prediktif oleh HeartPredict.</p>
                                     </div>
-                                    
-                                    <button 
+
+                                    <button
                                         type="submit"
                                         disabled={isAnalyzing}
                                         className="w-full md:w-auto px-10 py-4 bg-primary text-white font-bold rounded-2xl hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
