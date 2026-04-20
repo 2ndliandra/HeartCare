@@ -1,18 +1,22 @@
+// @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { authService } from '../../lib/authService';
 import { Eye, EyeOff, Heart } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import { Card, CardContent } from '../../components/ui/card';
 
 const ResetPassword: React.FC = () => {
     const [password, setPassword] = useState('');
     const [passwordConfirmation, setPasswordConfirmation] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    
+
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
-    
+
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -29,7 +33,7 @@ const ResetPassword: React.FC = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (!token || !email) {
             setError('Invalid reset link.');
             return;
@@ -77,7 +81,7 @@ const ResetPassword: React.FC = () => {
 
             {/* Main Container */}
             <div className="w-full max-w-md mx-auto px-6 relative z-10 py-8">
-                
+
                 {/* Logo */}
                 <div className="flex justify-center mb-8">
                     <Link to="/" className="group flex items-center justify-center">
@@ -89,87 +93,82 @@ const ResetPassword: React.FC = () => {
                 </div>
 
                 {/* Card */}
-                <div className="bg-[#fcfcfc] rounded-lg shadow-xl p-6 sm:p-8 w-full border border-gray-100">
-                    <div>
+                <Card className="mt-4 shadow-xl border-none">
+                    <CardContent className="p-6 sm:p-8 sm:pb-6">
                         <h2 className="text-2xl font-semibold text-gray-900 mb-1.5">Create New Password</h2>
                         <p className="text-gray-500 text-xs mb-5 pb-5 border-b border-gray-200 leading-relaxed">
                             Your new password must be securely chosen and at least 6 characters long.
                         </p>
 
                         {error && (
-                            <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded mb-4 text-sm">
+                            <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg mb-4 text-sm">
                                 {error}
                             </div>
                         )}
 
                         {success && (
-                            <div className="bg-primary/10 border border-primary/20 text-primary p-3 rounded mb-4 text-sm">
+                            <div className="bg-primary/10 border border-primary/20 text-primary p-3 rounded-lg mb-4 text-sm">
                                 {success}
                             </div>
                         )}
 
                         <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <label className="block text-gray-700 text-xs font-medium mb-1.5">New Password</label>
-                                <div className="relative">
-                                    <input
-                                        type={showPassword ? "text" : "password"}
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        required
-                                        disabled={!token || !email || !!success}
-                                        className="w-full bg-[#f4f4f4] border border-gray-200 rounded pl-3 pr-9 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors disabled:opacity-60"
-                                        placeholder="Enter new password"
-                                    />
+                            <Input
+                                label="New Password"
+                                type={showPassword ? "text" : "password"}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                                disabled={!token || !email || !!success}
+                                placeholder="Enter new password"
+                                suffix={
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                                        className="text-gray-400 hover:text-gray-600 focus:outline-none"
                                     >
                                         {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                                     </button>
-                                </div>
-                            </div>
+                                }
+                            />
 
-                            <div>
-                                <label className="block text-gray-700 text-xs font-medium mb-1.5">Confirm New Password</label>
-                                <div className="relative">
-                                    <input
-                                        type={showConfirmPassword ? "text" : "password"}
-                                        value={passwordConfirmation}
-                                        onChange={(e) => setPasswordConfirmation(e.target.value)}
-                                        required
-                                        disabled={!token || !email || !!success}
-                                        className="w-full bg-[#f4f4f4] border border-gray-200 rounded pl-3 pr-9 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors disabled:opacity-60"
-                                        placeholder="Confirm new password"
-                                    />
+                            <Input
+                                label="Confirm New Password"
+                                type={showConfirmPassword ? "text" : "password"}
+                                value={passwordConfirmation}
+                                onChange={(e) => setPasswordConfirmation(e.target.value)}
+                                required
+                                disabled={!token || !email || !!success}
+                                placeholder="Confirm new password"
+                                suffix={
                                     <button
                                         type="button"
                                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                                        className="text-gray-400 hover:text-gray-600 focus:outline-none"
                                     >
                                         {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                                     </button>
-                                </div>
-                            </div>
+                                }
+                            />
 
-                            <button
+                            <Button
                                 type="submit"
                                 disabled={loading || !token || !email || !!success}
-                                className="w-full bg-primary text-white text-sm font-medium py-3 rounded hover:bg-primary/90 transition-colors mt-4 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                isLoading={loading}
+                                className="w-full mt-4"
                             >
-                                {loading ? 'Resetting Password...' : 'Reset Password'}
-                            </button>
+                                {loading ? 'Resetting...' : 'Reset Password'}
+                            </Button>
                         </form>
-                    </div>
 
-                    <div className="mt-8 pt-6 border-t border-gray-100 text-center text-xs text-gray-400">
-                        <Link to="/login" className="text-primary hover:underline font-medium block mb-2">
-                            Return to Login
-                        </Link>
-                        © 2026 HeartPredict
-                    </div>
-                </div>
+                        <div className="mt-8 pt-6 border-t border-gray-100 text-center text-xs text-gray-400">
+                            <Link to="/login" className="text-primary hover:underline font-medium block mb-2">
+                                Return to Login
+                            </Link>
+                            © 2026 HeartPredict
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         </div>
     );

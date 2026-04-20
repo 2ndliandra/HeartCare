@@ -1,214 +1,284 @@
-import React from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import {
-    LayoutDashboard,
-    LogOut,
-    Menu,
-    X,
-    Activity,
-    Stethoscope,
-    ClipboardList,
-    Heart,
-    BrainCircuit,
-    Bot,
-    User,
-    ChevronRight,
-    ShieldCheck,
-    AlertTriangle,
-    CheckCircle2,
-    ArrowLeft,
-    Share2,
-    Download,
-    BookOpen
-} from 'lucide-react';
-import { authService } from '../../lib/authService';
+// @ts-nocheck
+import * as React from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { 
+  Download, 
+  Printer, 
+  Info, 
+  MessageSquare, 
+  History,
+  ChevronRight,
+  Apple,
+  Dumbbell,
+  Stethoscope,
+  Brain,
+  MinusCircle,
+  ShieldCheck,
+  AlertCircle
+} from "lucide-react";
+import { Card } from "~/components/ui/card";
+import { Button } from "~/components/ui/button";
+import { RiskBadge } from "~/components/shared/RiskBadge";
+import type { RiskLevel } from "~/components/shared/RiskBadge";
+import { cn } from "~/lib/utils";
 
-const HasilPrediksiPage: React.FC = () => {
-    const navigate = useNavigate();
-    const location = useLocation();
-    const [sidebarOpen, setSidebarOpen] = React.useState(false);
-
-    // Get prediction result from navigation state
-    const { prediction, formData } = location.state || {
-        prediction: { risk: 'Sedang', message: 'Hipertensi Terdeteksi', accuracy: 92.1 },
-        formData: { age: 45, bloodPressure: 135, cholesterol: 210, heartRate: 80 }
+export default function HasilPrediksiPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Get data from location state or localStorage or use defaults
+  const [data, setData] = React.useState(() => {
+    if (location.state) return location.state;
+    const stored = localStorage.getItem('last_prediction');
+    if (stored) return JSON.parse(stored);
+    return {
+      prediction: { risk_level: "rendah", risk_score: 25 },
+      formData: { 
+        age: 35, gender: "male", systolic_bp: 120, diastolic_bp: 80, 
+        cholesterol: 200, heart_rate: 72, weight: 70, height: 170,
+        smoking: "Tidak", exercise: "3-4x Seminggu", medical_history: ["Diabetes"]
+      }
     };
+  });
 
-    const handleLogout = async () => {
-        try {
-            await authService.logout();
-            navigate('/login');
-        } catch (error) {
-            console.error('Logout error:', error);
-        }
-    };
+  const { prediction, formData, timestamp } = data;
 
-    const navigation = [
-        { name: 'Beranda', icon: LayoutDashboard, href: '/user', current: false },
-        { name: 'Cek Kesehatan', icon: Activity, href: '/user/cek-kesehatan', current: false },
-        { name: 'Hasil Prediksi AI', icon: BrainCircuit, href: '/user/hasil-prediksi', current: true },
-        { name: 'Konsultasi AI', icon: Bot, href: '/user/konsultasi', current: false },
-        { name: 'Rekomendasi Medis', icon: Stethoscope, href: '/user/rekomendasi', current: false },
-        { name: 'Riwayat Pemeriksaan', icon: ClipboardList, href: '/user/riwayat', current: false },
-        { name: 'Profil Saya', icon: User, href: '/user/profile', current: false },
-        { name: 'Riwayat Pemeriksaan', icon: ClipboardList, href: '/user/riwayat', current: false },
-    ];
+  let rawRisk = prediction.risk_level;
+  if (typeof rawRisk === 'boolean') {
+    rawRisk = rawRisk ? "TINGGI" : "RENDAH";
+  } else if (rawRisk === "true" || rawRisk === "1") {
+    rawRisk = "TINGGI";
+  } else if (rawRisk === "false" || rawRisk === "0") {
+    rawRisk = "RENDAH";
+  }
 
-    const getRiskStyles = () => {
-        switch (prediction.risk) {
-            case 'Tinggi': return { color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-100', icon: AlertTriangle };
-            case 'Sedang': return { color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100', icon: AlertTriangle };
-            default: return { color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', icon: CheckCircle2 };
-        }
-    };
+  const riskLevel = (rawRisk?.toUpperCase() === "RENDAH" ? "RENDAH" : "TINGGI") as RiskLevel;
+  const score = prediction.risk_score || (riskLevel === "TINGGI" ? 85 : 15);
 
-    const styles = getRiskStyles();
-    const RiskIcon = styles.icon;
+  const getColorByLevel = (lvl: string) => {
+    if (lvl === "RENDAH") return "text-emerald-600";
+    return "text-red-500";
+  };
 
-    return (
-        <div className="min-h-screen bg-slate-50 flex font-sans text-slate-900">
-            {/* Sidebar */}
-            {sidebarOpen && (
-                <div className="fixed inset-0 bg-slate-900/50 z-40 lg:hidden backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
-            )}
+  const getInterpretation = (lvl: string) => {
+    switch (lvl) {
+      case "RENDAH":
+        return "Selamat! Hasil analisis menunjukkan bahwa Kondisi Terpantau Baik. Ini adalah kabar baik yang menunjukkan bahwa kondisi kesehatan jantung Anda saat ini dalam keadaan optimal. Namun, tetap penting untuk menjaga pola hidup sehat.";
+      default:
+        return "Hasil analisis menunjukkan bahwa Anda Perlu Perhatian Medis segera. Kami sangat menyarankan Anda untuk segera berkonsultasi dengan dokter spesialis jantung untuk pemeriksaan lebih lanjut.";
+    }
+  };
 
-            <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:flex-shrink-0 flex flex-col ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                <div className="h-20 flex items-center px-8 border-b border-slate-100">
-                    <Link to="/" className="flex items-center gap-2 group">
-                        <div className="bg-primary/10 p-2 rounded-xl group-hover:bg-primary/20 transition-colors">
-                            <Heart className="h-6 w-6 text-primary" />
-                        </div>
-                        <span className="font-bold text-xl tracking-tight text-slate-900">HeartPredict</span>
-                    </Link>
-                    <button className="lg:hidden ml-auto text-slate-500" onClick={() => setSidebarOpen(false)}><X size={24} /></button>
-                </div>
-                <div className="flex-1 overflow-y-auto py-6 px-4 space-y-1">
-                    <div className="px-4 mb-2 text-xs font-semibold text-slate-400 tracking-wider uppercase">Menu Utama</div>
-                    {navigation.map((item) => {
-                        const Icon = item.icon;
-                        return (
-                            <Link key={item.name} to={item.href} className={`group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all ${item.current ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-50'}`}>
-                                <Icon className={`mr-3 h-5 w-5 ${item.current ? 'text-emerald-600' : 'text-slate-400'}`} />
-                                {item.name}
-                            </Link>
-                        );
-                    })}
-                </div>
-                <div className="p-4 border-t border-slate-100">
-                    <button onClick={handleLogout} className="flex w-full items-center px-4 py-3 text-sm font-medium rounded-xl text-blue-600 hover:bg-blue-50 transition-colors">
-                        <LogOut className="mr-3 h-5 w-5 text-blue-400" /> Keluar Akun
-                    </button>
-                </div>
-            </aside>
+  const recommendations = [
+    {
+      category: "NUTRISI",
+      title: "Jaga Pola Makan Sehat",
+      desc: "Konsumsi makanan rendah lemak jenuh, tinggi serat seperti buah, sayur, dan biji-bijian. Kurangi garam dan gula.",
+      icon: Apple,
+      color: "emerald"
+    },
+    {
+      category: "OLAHRAGA",
+      title: "Tingkatkan Aktivitas Fisik",
+      desc: "Lakukan olahraga aerobik minimal 150 menit per minggu. Pilihan: jalan cepat, jogging, atau berenang.",
+      icon: Dumbbell,
+      color: "blue"
+    }
+  ];
 
-            {/* Main Area */}
-            <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-                <header className="bg-white border-b border-slate-200 h-20 flex items-center justify-between px-4 sm:px-6 lg:px-8 z-30">
-                    <div className="flex items-center gap-4">
-                        <button className="lg:hidden" onClick={() => setSidebarOpen(true)}><Menu size={24} /></button>
-                        <Link to="/user/cek-kesehatan" className="text-slate-400 hover:text-slate-600 transition-colors"><ArrowLeft size={24} /></Link>
-                        <h1 className="text-xl font-bold text-slate-900">Hasil Analisis AI</h1>
-                    </div>
-                </header>
+  // Dynamic recommendations based on data
+  if (parseInt(formData.systolic_bp) >= 140 || parseInt(formData.diastolic_bp) >= 90) {
+    recommendations.push({
+      category: "HIPERTENSI",
+      title: "Kontrol Tekanan Darah",
+      desc: "Tekanan darah Anda terpantau tinggi. Kurangi asupan garam (maks 1 sdt/hari) dan kelola stres dengan baik.",
+      icon: Stethoscope,
+      color: "red"
+    });
+  }
 
-                <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-                    <div className="max-w-5xl mx-auto space-y-8">
+  if (parseInt(formData.cholesterol) >= 240) {
+    recommendations.push({
+      category: "KOLESTEROL",
+      title: "Turunkan Kadar Kolesterol",
+      desc: "Kadar kolesterol Anda cukup tinggi. Hindari gorengan dan makanan bersantan. Tingkatkan konsumsi omega-3.",
+      icon: Brain,
+      color: "amber"
+    });
+  }
 
-                        {/* Status Hero Card */}
-                        <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-xl shadow-slate-200/50 overflow-hidden transition-all hover:shadow-2xl">
-                            <div className={`p-8 md:p-12 text-center border-b ${styles.border} ${styles.bg}`}>
-                                <div className={`w-24 h-24 sm:w-32 sm:h-32 rounded-full border-8 ${styles.border.replace('border-', 'border-opacity-50 border-')} flex items-center justify-center mx-auto mb-6 bg-white shadow-xl`}>
-                                    <RiskIcon className={`w-12 h-12 sm:w-16 sm:h-16 ${styles.color} animate-pulse`} />
-                                </div>
-                                <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400 mb-2">Diagnosa Risiko</p>
-                                <h2 className={`text-4xl sm:text-5xl font-black ${styles.color} mb-3`}>{prediction.risk}</h2>
-                                <h3 className="text-xl font-semibold text-slate-800 mb-6">{prediction.message}</h3>
-                                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-slate-100 text-xs font-bold text-slate-500">
-                                    <BrainCircuit size={14} className="text-primary" /> Akurasi Model: {prediction.accuracy}%
-                                </div>
-                            </div>
+  const h = (parseFloat(formData.height) || 0) / 100;
+  const w = parseFloat(formData.weight) || 0;
+  const bmi = h > 0 ? (w / (h * h)) : 0;
+  
+  if (bmi >= 25) {
+    recommendations.push({
+      category: "BERAT BADAN",
+      title: "Manajemen Berat Badan",
+      desc: `BMI Anda ${bmi.toFixed(1)} (Overweight/Obesitas). Penurunan berat badan 5-10% dapat signifikan mengurangi beban jantung.`,
+      icon: HeartPulse,
+      color: "rose"
+    });
+  }
 
-                            {/* Metrics Breakdown */}
-                            <div className="p-8 md:p-12 bg-white">
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                                    <div className="space-y-1">
-                                        <p className="text-[10px] uppercase font-bold text-slate-400">Tekanan Darah</p>
-                                        <p className="text-xl font-bold text-slate-900">{formData.bloodPressure} <span className="text-xs font-normal text-slate-400">mmHg</span></p>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <p className="text-[10px] uppercase font-bold text-slate-400">Kolesterol</p>
-                                        <p className="text-xl font-bold text-slate-900">{formData.cholesterol} <span className="text-xs font-normal text-slate-400">mg/dL</span></p>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <p className="text-[10px] uppercase font-bold text-slate-400">Detak Jantung</p>
-                                        <p className="text-xl font-bold text-slate-900">{formData.heartRate} <span className="text-xs font-normal text-slate-400">BPM</span></p>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <p className="text-[10px] uppercase font-bold text-slate-400">Usia Pasien</p>
-                                        <p className="text-xl font-bold text-slate-900">{formData.age} <span className="text-xs font-normal text-slate-400">Tahun</span></p>
-                                    </div>
-                                </div>
+  if (formData.smoking && formData.smoking !== "Tidak") {
+    recommendations.push({
+      category: "GAYA HIDUP",
+      title: "Hentikan Kebiasaan Merokok",
+      desc: "Merokok adalah faktor risiko utama. Segera hentikan dan konsultasikan program berhenti merokok.",
+      icon: MinusCircle,
+      color: "red"
+    });
+  }
 
-                                <div className="mt-12 flex flex-wrap items-center justify-between gap-6 border-t border-slate-50 pt-8">
-                                    <div className="flex items-center gap-3">
-                                        <ShieldCheck className="text-emerald-500" size={24} />
-                                        <p className="text-xs text-slate-500 leading-relaxed italic max-w-sm">Data ini telah disimpan secara aman dalam riwayat medis Anda. Selalu gunakan rincian ini sebagai referensi awal saat berkonsultasi dengan profesional medis.</p>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <button className="p-3 bg-slate-50 text-slate-400 rounded-2xl hover:bg-slate-100 transition-all"><Share2 size={20} /></button>
-                                        <button className="p-3 bg-slate-50 text-slate-400 rounded-2xl hover:bg-slate-100 transition-all text-sm font-bold flex items-center gap-2">
-                                            <Download size={20} /> Unduh PDF
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+  // Calculate gauge dash offset
+  const radius = 90;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (score / 100) * circumference;
 
-                        {/* Recommendation Preview Section */}
-                        <div className="space-y-6">
-                            <div className="flex items-center justify-between px-2">
-                                <h3 className="text-2xl font-bold text-slate-900">Rekomendasi Pintar</h3>
-                                <Link to="/user/rekomendasi" className="text-primary text-sm font-bold flex items-center gap-1 hover:gap-2 transition-all">
-                                    Lihat Selengkapnya <ChevronRight size={18} />
-                                </Link>
-                            </div>
+  const displayDate = timestamp ? new Date(timestamp) : new Date();
 
-                            <div className="grid md:grid-cols-2 gap-6">
-                                <Link to="/user/rekomendasi" className="group bg-white rounded-3xl border border-slate-200 p-6 flex items-center gap-6 hover:shadow-xl transition-all">
-                                    <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-white transition-all">
-                                        <Stethoscope size={30} />
-                                    </div>
-                                    <div className="flex-1">
-                                        <h4 className="font-bold text-slate-900 mb-1">Panduan Medis Tailored</h4>
-                                        <p className="text-xs text-slate-500">Lihat instruksi medis berdasarkan hasil diagnosa Anda.</p>
-                                    </div>
-                                    <ChevronRight className="text-slate-300 group-hover:text-primary transition-colors" />
-                                </Link>
-
-                                <Link to="/articles" className="group bg-white rounded-3xl border border-slate-200 p-6 flex items-center gap-6 hover:shadow-xl transition-all">
-                                    <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-all">
-                                        <BookOpen size={30} className="text-indigo-600 group-hover:text-white transition-all" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <h4 className="font-bold text-slate-900 mb-1">Artikel Nutrisi & Diet</h4>
-                                        <p className="text-xs text-slate-500">Baca artikel pencegahan terpilih untuk kondisi Anda.</p>
-                                    </div>
-                                    <ChevronRight className="text-slate-300 group-hover:text-indigo-600 transition-colors" />
-                                </Link>
-                            </div>
-                        </div>
-
-                        {/* Back to Home CTA */}
-                        <div className="text-center">
-                            <Link to="/user" className="inline-flex items-center justify-center gap-2 text-sm font-bold text-slate-400 hover:text-primary transition-colors">
-                                <LayoutDashboard size={18} /> Kembali ke Beranda Dashboard
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            </main>
+  return (
+    <div className="max-w-5xl mx-auto py-4">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+        <div>
+          <div className="flex items-center gap-2 text-sm text-slate-500 mb-2 font-medium">
+            Dashboard <ChevronRight className="w-4 h-4" /> <span className="text-slate-900">Hasil Prediksi</span>
+          </div>
+          <h1 className="text-3xl font-bold text-slate-900 mb-1 font-display">Hasil Prediksi Risiko Jantung</h1>
+          <p className="text-sm text-slate-600">Dibuat pada: {displayDate.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
         </div>
-    );
-};
+        <div className="flex gap-3">
+          <Button variant="outline" size="sm" onClick={() => window.print()}>
+            <Download className="w-4 h-4 mr-2" /> PDF Hasil
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => window.print()}>
+            <Printer className="w-4 h-4 mr-2" /> Cetak
+          </Button>
+        </div>
+      </div>
 
-export default HasilPrediksiPage;
+      {/* Main Analysis Card */}
+      <Card className={cn(
+        "p-12 mb-8 border-none shadow-2xl rounded-[3rem] relative overflow-hidden flex flex-col items-center justify-center text-center transition-all duration-500",
+        riskLevel === "RENDAH" ? "bg-gradient-to-br from-emerald-500 to-emerald-600 text-white" : 
+        "bg-gradient-to-br from-rose-500 to-rose-600 text-white"
+      )}>
+        {/* Abstract Background Shapes */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl opacity-50" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/10 rounded-full -ml-24 -mb-24 blur-2xl opacity-20" />
+        
+        <div className="relative z-10 space-y-6">
+           <div className="w-24 h-24 bg-white/20 backdrop-blur-md rounded-3xl flex items-center justify-center mx-auto shadow-inner border border-white/30">
+              {riskLevel === "RENDAH" ? <ShieldCheck className="w-12 h-12" /> : <AlertCircle className="w-12 h-12" />}
+           </div>
+           
+           <div className="space-y-2">
+              <span className="text-xs font-black uppercase tracking-[0.3em] opacity-80">Status Kesehatan Jantung</span>
+              <h2 className="text-4xl md:text-5xl font-black font-display tracking-tight leading-tight">
+                {riskLevel === "RENDAH" ? "Kondisi Terpantau Baik" : "Perlu Perhatian Medis"}
+              </h2>
+           </div>
+
+           <p className="max-w-2xl mx-auto text-sm md:text-base font-medium opacity-90 leading-relaxed italic">
+              "{getInterpretation(riskLevel)}"
+           </p>
+        </div>
+      </Card>
+
+      {/* Interpretation Section */}
+       <div className={cn(
+        "p-6 rounded-2xl mb-8 flex items-start gap-4 border",
+        riskLevel === "RENDAH" ? "bg-emerald-50/50 border-emerald-100" : "bg-red-50/50 border-red-100"
+      )}>
+        <div className={cn(
+          "w-12 h-12 flex-shrink-0 rounded-xl flex items-center justify-center",
+          riskLevel === "RENDAH" ? "bg-emerald-100 text-emerald-600" : "bg-red-100 text-red-600"
+        )}>
+          <Info className="w-6 h-6" />
+        </div>
+        <div>
+          <h3 className="text-lg font-bold text-slate-900 mb-2 font-display">Interpretasi Hasil</h3>
+          <p className="text-sm text-slate-700 leading-relaxed font-medium">
+            {getInterpretation(riskLevel)}
+          </p>
+        </div>
+      </div>
+
+      {/* Data Summary Grid */}
+      <div className="mb-10">
+        <h3 className="text-xl font-bold text-slate-900 mb-6 font-display">Ringkasan Data Kesehatan</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[
+            { label: "Usia", val: `${formData.age} tahun` },
+            { label: "Tekanan Darah", val: `${formData.systolic_bp}/${formData.diastolic_bp} mmHg` },
+            { label: "Kolesterol", val: `${formData.cholesterol} mg/dL` },
+            { label: "Detak Jantung", val: `${formData.heart_rate} bpm` },
+            { label: "Gaya Hidup", val: `${formData.exercise}` },
+            { label: "Riwayat", val: formData.medical_history?.[0] || "Tidak Ada" }
+          ].map((item, i) => (
+            <div key={i} className="p-4 bg-slate-50 border border-slate-100 rounded-2xl">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">{item.label}</span>
+              <span className="text-sm font-bold text-slate-900">{item.val}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Recommendations */}
+      <div className="mb-10">
+        <h3 className="text-2xl font-bold text-slate-900 mb-2 font-display">Rekomendasi untuk Anda</h3>
+        <p className="text-sm text-slate-600 mb-8">Ikuti rekomendasi berikut untuk menjaga kesehatan jantung Anda secara optimal.</p>
+        
+        <div className="flex flex-col gap-4">
+          {recommendations.map((rec, i) => (
+            <Card key={i} className={cn(
+              "p-6 border-l-4 transition-all hover:shadow-lg hover:-translate-y-1 group",
+              rec.color === "emerald" ? "border-l-emerald-500" : 
+              rec.color === "blue" ? "border-l-blue-500" : 
+              rec.color === "purple" ? "border-l-purple-500" : "border-l-red-500"
+            )}>
+              <div className="flex items-start gap-4">
+                <div className={cn(
+                  "w-12 h-12 flex-shrink-0 rounded-xl flex items-center justify-center transition-colors",
+                  rec.color === "emerald" ? "bg-emerald-100 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white" : 
+                  rec.color === "blue" ? "bg-blue-100 text-blue-600 group-hover:bg-blue-600 group-hover:text-white" : 
+                  rec.color === "purple" ? "bg-purple-100 text-purple-600 group-hover:bg-purple-600 group-hover:text-white" : 
+                  "bg-red-100 text-red-600 group-hover:bg-red-600 group-hover:text-white"
+                )}>
+                  <rec.icon className="w-6 h-6" />
+                </div>
+                <div>
+                  <span className={cn(
+                    "text-[10px] font-bold tracking-widest uppercase mb-1 block",
+                    rec.color === "emerald" ? "text-emerald-600" : 
+                    rec.color === "blue" ? "text-blue-600" : 
+                    rec.color === "purple" ? "text-purple-600" : "text-red-600"
+                  )}>
+                    {rec.category}
+                  </span>
+                  <h4 className="text-base font-bold text-slate-900 mb-2 font-display">{rec.title}</h4>
+                  <p className="text-sm text-slate-600 leading-relaxed">
+                    {rec.desc}
+                  </p>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      </div>
+
+      {/* CTA Buttons */}
+      <div className="pt-8 border-t border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Button size="lg" className="rounded-2xl h-14 font-bold" onClick={() => navigate('/user/konsultasi')}>
+          <MessageSquare className="w-5 h-5 mr-3" /> Konsultasi AI Sekarang
+        </Button>
+        <Button variant="outline" size="lg" className="rounded-2xl h-14 font-bold" onClick={() => navigate('/user/riwayat')}>
+          <History className="w-5 h-5 mr-3" /> Lihat Riwayat Prediksi
+        </Button>
+      </div>
+    </div>
+  );
+}

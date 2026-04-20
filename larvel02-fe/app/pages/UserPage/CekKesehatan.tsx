@@ -1,311 +1,503 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import {
-    LayoutDashboard,
-    LogOut,
-    Menu,
-    X,
-    Activity,
-    Stethoscope,
-    ClipboardList,
-    Heart,
-    BrainCircuit,
-    Bot,
-    User,
-    ShieldCheck,
-    AlertCircle,
-    Loader2
-} from 'lucide-react';
-import { authService } from '../../lib/authService';
-import api from '../../lib/api';
+import * as React from "react";
+import { useNavigate } from "react-router-dom";
+import { 
+  HeartPulse, 
+  User, 
+  Activity as ActivityIcon, 
+  FileText, 
+  Stethoscope, 
+  Calendar, 
+  Weight, 
+  Ruler, 
+  Droplet, 
+  HelpCircle,
+  ChevronRight,
+  ArrowRight,
+  Loader2,
+  ShieldCheck
+} from "lucide-react";
+import api from "../../lib/api";
+import { Button } from "~/components/ui/button";
+import { Card } from "~/components/ui/card";
+import { Input, Label, HelperText } from "~/components/ui/input";
+import { cn } from "~/lib/utils";
 
-const CekKesehatanPage: React.FC = () => {
-    const navigate = useNavigate();
-    const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [isAnalyzing, setIsAnalyzing] = useState(false);
+export default function CekKesehatanPage() {
+  const navigate = useNavigate();
+  const [loading, setLoading] = React.useState(false);
+  const [formData, setFormData] = React.useState({
+    age: "",
+    gender: "",
+    systolic_bp: "",
+    diastolic_bp: "",
+    cholesterol: "",
+    blood_sugar: "",
+    heart_rate: "",
+    weight: "",
+    height: "",
+    medical_history: [] as string[],
+    symptoms: [] as string[],
+    smoking: "",
+    exercise: "",
+    alcohol: ""
+  });
 
-    const [formData, setFormData] = useState({
-        age: '',
-        gender: '',
-        bloodPressure: '',
-        cholesterol: '',
-        heartRate: '',
-        history: [] as string[]
+  // Calculate completion percentage
+  const totalRequiredFields = 9; // age, gender, systolic, diastolic, cholesterol, heart_rate, weight, height, smoking/exercise
+  const filledRequiredFields = [
+    formData.age, formData.gender, formData.systolic_bp, formData.diastolic_bp, 
+    formData.cholesterol, formData.heart_rate, formData.weight, formData.height, 
+    formData.smoking || formData.exercise
+  ].filter(Boolean).length;
+  
+  const progress = Math.round((filledRequiredFields / totalRequiredFields) * 100);
+
+  // BMI Calculation
+  const bmi = React.useMemo(() => {
+    if (formData.weight && formData.height) {
+      const h = parseFloat(formData.height) / 100;
+      const w = parseFloat(formData.weight);
+      return (w / (h * h)).toFixed(1);
+    }
+    return null;
+  }, [formData.weight, formData.height]);
+
+  const getBMICategory = (val: number) => {
+    if (val < 18.5) return { label: "Kekurangan Berat", color: "text-blue-600" };
+    if (val < 25) return { label: "Normal", color: "text-emerald-600" };
+    if (val < 30) return { label: "Kelebihan Berat", color: "text-amber-600" };
+    return { label: "Obesitas", color: "text-red-600" };
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const toggleSelection = (field: 'medical_history' | 'symptoms', value: string) => {
+    setFormData(prev => {
+      const current = prev[field];
+      if (current.includes(value)) {
+        return { ...prev, [field]: current.filter(item => item !== value) };
+      } else {
+        // If "Tidak Ada" is selected, clear everything else
+        if (value.includes("Tidak Ada")) {
+          return { ...prev, [field]: [value] };
+        }
+        // If something else is selected, remove "Tidak Ada"
+        return { ...prev, [field]: [...current.filter(item => !item.includes("Tidak Ada")), value] };
+      }
     });
+  };
 
-    const handleLogout = async () => {
-        try {
-            await authService.logout();
-            navigate('/login');
-        } catch (error) {
-            console.error('Logout error:', error);
-        }
-    };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      // Simulate AI Processing
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      const res = await api.post("/predict", {
+        ...formData,
+        bmi: bmi ? parseFloat(bmi) : null
+      });
+      
+      const predictionData = { 
+        prediction: res.data.prediction,
+        formData: formData,
+        timestamp: new Date().toISOString()
+      };
 
-    const navigation = [
-        { name: 'Beranda', icon: LayoutDashboard, href: '/user', current: false },
-        { name: 'Cek Kesehatan', icon: Activity, href: '/user/cek-kesehatan', current: true },
-        { name: 'Hasil Prediksi AI', icon: BrainCircuit, href: '/user/hasil-prediksi', current: false },
-        { name: 'Konsultasi AI', icon: Bot, href: '/user/konsultasi', current: false },
-        { name: 'Rekomendasi Medis', icon: Stethoscope, href: '/user/rekomendasi', current: false },
-        { name: 'Riwayat Pemeriksaan', icon: ClipboardList, href: '/user/riwayat', current: false },
-        { name: 'Profil Saya', icon: User, href: '/user/profile', current: false },
-    ];
+      // Save to local storage for persistence
+      localStorage.setItem('last_prediction', JSON.stringify(predictionData));
+      
+      navigate(`/user/hasil-prediksi`, { 
+        state: predictionData
+      });
+    } catch (err) {
+      console.error("Prediction error:", err);
+      alert("Gagal melakukan analisis. Silakan periksa koneksi Anda.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const toggleHistory = (item: string) => {
-        setFormData(prev => ({
-            ...prev,
-            history: prev.history.includes(item)
-                ? prev.history.filter(h => h !== item)
-                : [...prev.history, item]
-        }));
-    };
+  const medicalHistoryOptions = [
+    "Diabetes", "Hipertensi", "Kolesterol Tinggi", 
+    "Riwayat Serangan Jantung", "Riwayat Stroke", 
+    "Penyakit Ginjal", "Tidak Ada Riwayat"
+  ];
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsAnalyzing(true);
+  // @ts-ignore
+const symptomOptions = [
+    "Nyeri Dada", "Sesak Napas", "Detak Jantung Tidak Teratur",
+    "Mudah Lelah", "Pusing", "Pingsan", "Tidak Ada Gejala"
+  ];
 
-        try {
-            // Give 2 seconds of "AI Processing" feeling
-            await new Promise(resolve => setTimeout(resolve, 2000));
-
-            const response = await api.post('/predict', formData);
-
-            setIsAnalyzing(false);
-            navigate('/user/hasil-prediksi', {
-                state: {
-                    prediction: response.data,
-                    formData: formData
-                }
-            });
-        } catch (error) {
-            console.error('Prediction error:', error);
-            setIsAnalyzing(false);
-            alert('Gagal melakukan analisis AI. Pastikan server backend dan Python terkonfigurasi dengan benar.');
-        }
-    };
-
-    return (
-        <div className="min-h-screen bg-slate-50 flex font-sans text-slate-900">
-            {/* Sidebar (same as UserPage) */}
-            {sidebarOpen && (
-                <div className="fixed inset-0 bg-slate-900/50 z-40 lg:hidden backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
-            )}
-
-            <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:flex-shrink-0 flex flex-col ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                <div className="h-20 flex items-center px-8 border-b border-slate-100">
-                    <Link to="/" className="flex items-center gap-2 group">
-                        <div className="bg-primary/10 p-2 rounded-xl group-hover:bg-primary/20 transition-colors">
-                            <Heart className="h-6 w-6 text-primary" />
-                        </div>
-                        <span className="font-bold text-xl tracking-tight text-slate-900">HeartPredict</span>
-                    </Link>
-                    <button className="lg:hidden ml-auto text-slate-500" onClick={() => setSidebarOpen(false)}><X size={24} /></button>
-                </div>
-                <div className="flex-1 overflow-y-auto py-6 px-4 space-y-1">
-                    <div className="px-4 mb-2 text-xs font-semibold text-slate-400 tracking-wider uppercase">Menu Utama</div>
-                    {navigation.map((item) => {
-                        const Icon = item.icon;
-                        return (
-                            <Link key={item.name} to={item.href} className={`group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all ${item.current ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-50'}`}>
-                                <Icon className={`mr-3 h-5 w-5 ${item.current ? 'text-emerald-600' : 'text-slate-400'}`} />
-                                {item.name}
-                            </Link>
-                        );
-                    })}
-                </div>
-                <div className="p-4 border-t border-slate-100">
-                    <button onClick={handleLogout} className="flex w-full items-center px-4 py-3 text-sm font-medium rounded-xl text-blue-600 hover:bg-blue-50 transition-colors">
-                        <LogOut className="mr-3 h-5 w-5 text-blue-400" /> Keluar Akun
-                    </button>
-                </div>
-            </aside>
-
-            {/* Main Area */}
-            <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-                <header className="bg-white border-b border-slate-200 h-20 flex items-center justify-between px-4 sm:px-6 lg:px-8 z-30">
-                    <div className="flex items-center gap-4">
-                        <button className="lg:hidden" onClick={() => setSidebarOpen(true)}><Menu size={24} /></button>
-                        <h1 className="text-xl font-bold text-slate-900">Pemeriksaan Jantung AI</h1>
-                    </div>
-                </header>
-
-                <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-                    <div className="max-w-4xl mx-auto">
-
-                        <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden mb-8">
-                            <div className="bg-primary p-8 md:p-12 text-white relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
-                                <div className="relative z-10">
-                                    <h2 className="text-3xl font-bold mb-4">Mulai Diagnosa Baru</h2>
-                                    <p className="text-emerald-100/80 max-w-xl">Lengkapi data kesehatan Anda di bawah ini. AI kami akan menganalisis parameter tersebut dan memberikan prediksi risiko penyakit jantung dalam hitungan detik.</p>
-                                </div>
-                            </div>
-
-                            <form onSubmit={handleSubmit} className="p-8 md:p-12 space-y-10">
-                                {/* Basic Info */}
-                                <div className="space-y-6">
-                                    <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                                        <div className="w-1.5 h-6 bg-primary rounded-full"></div>
-                                        Informasi Dasar
-                                    </h3>
-                                    <div className="grid md:grid-cols-2 gap-6">
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-semibold text-slate-700">Usia (Tahun)</label>
-                                            <input
-                                                required
-                                                type="number"
-                                                placeholder="Contoh: 45"
-                                                value={formData.age}
-                                                onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-                                                className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-semibold text-slate-700">Jenis Kelamin</label>
-                                            <select
-                                                required
-                                                value={formData.gender}
-                                                onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                                                className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all appearance-none"
-                                            >
-                                                <option value="">Pilih Jenis Kelamin</option>
-                                                <option value="male">Laki-laki</option>
-                                                <option value="female">Perempuan</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Vital Signs */}
-                                <div className="space-y-6">
-                                    <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                                        <div className="w-1.5 h-6 bg-primary rounded-full"></div>
-                                        Parameter Kesehatan (Vitals)
-                                    </h3>
-                                    <div className="grid md:grid-cols-3 gap-6">
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-semibold text-slate-700">Tekanan Darah (Systolic)</label>
-                                            <div className="relative">
-                                                <input
-                                                    required
-                                                    type="number"
-                                                    placeholder="120"
-                                                    value={formData.bloodPressure}
-                                                    onChange={(e) => setFormData({ ...formData, bloodPressure: e.target.value })}
-                                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:border-primary transition-all pr-12"
-                                                />
-                                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">mmHg</span>
-                                            </div>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-semibold text-slate-700">Kadar Kolesterol</label>
-                                            <div className="relative">
-                                                <input
-                                                    required
-                                                    type="number"
-                                                    placeholder="200"
-                                                    value={formData.cholesterol}
-                                                    onChange={(e) => setFormData({ ...formData, cholesterol: e.target.value })}
-                                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:border-primary transition-all pr-12"
-                                                />
-                                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">mg/dL</span>
-                                            </div>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-semibold text-slate-700">Detak Jantung</label>
-                                            <div className="relative">
-                                                <input
-                                                    required
-                                                    type="number"
-                                                    placeholder="75"
-                                                    value={formData.heartRate}
-                                                    onChange={(e) => setFormData({ ...formData, heartRate: e.target.value })}
-                                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:border-primary transition-all pr-12"
-                                                />
-                                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">BPM</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Medical History */}
-                                <div className="space-y-6">
-                                    <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                                        <div className="w-1.5 h-6 bg-primary rounded-full"></div>
-                                        Riwayat Penyakit & Kebiasaan
-                                    </h3>
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                        {['Hipertensi', 'Diabetes', 'Merokok', 'Kurang Olahraga', 'Stres', 'Gemuk (Obese)', 'Keturunan', 'Lainnya'].map(item => (
-                                            <button
-                                                key={item}
-                                                type="button"
-                                                onClick={() => toggleHistory(item)}
-                                                className={`px-4 py-3 rounded-xl text-xs font-bold transition-all border ${formData.history.includes(item)
-                                                        ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20'
-                                                        : 'bg-white border-slate-200 text-slate-600 hover:border-primary/30'
-                                                    }`}
-                                            >
-                                                {item}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Form Footer */}
-                                <div className="pt-8 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-6">
-                                    <div className="flex items-center gap-3 text-slate-500 max-w-xs">
-                                        <ShieldCheck className="text-emerald-500 shrink-0" size={24} />
-                                        <p className="text-[10px] leading-relaxed italic">Data Anda dienkripsi dan hanya digunakan untuk keperluan analisis AI prediktif oleh HeartPredict.</p>
-                                    </div>
-
-                                    <button
-                                        type="submit"
-                                        disabled={isAnalyzing}
-                                        className="w-full md:w-auto px-10 py-4 bg-primary text-white font-bold rounded-2xl hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
-                                    >
-                                        {isAnalyzing ? (
-                                            <>
-                                                <Loader2 className="animate-spin" size={20} />
-                                                Menganalisis...
-                                            </>
-                                        ) : (
-                                            <>
-                                                Mulai Analisis AI <BrainCircuit size={20} />
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-
-                        {/* Additional Info Cards */}
-                        <div className="grid md:grid-cols-2 gap-6">
-                            <div className="bg-white p-8 rounded-[2rem] border border-slate-200 flex gap-4">
-                                <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center shrink-0">
-                                    <AlertCircle size={24} />
-                                </div>
-                                <div>
-                                    <h4 className="font-bold text-slate-900 mb-2">Panduan Pengisian</h4>
-                                    <p className="text-sm text-slate-500 leading-relaxed">Gunakan alat ukur tensi digital dan pastikan Anda dalam kondisi istirahat (rileks) sebelum mengambil data vitals agar diagnosa AI lebih akurat.</p>
-                                </div>
-                            </div>
-                            <div className="bg-white p-8 rounded-[2rem] border border-slate-200 flex gap-4">
-                                <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center shrink-0">
-                                    <Activity size={24} />
-                                </div>
-                                <div>
-                                    <h4 className="font-bold text-slate-900 mb-2">Mekanisme Kerja AI</h4>
-                                    <p className="text-sm text-slate-500 leading-relaxed">Kami menggunakan model <strong>Random Forest Classifier</strong> yang telah dilatih pada puluhan ribu dataset klinis untuk mendeteksi pola risiko tinggi penyakit jantung.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </main>
+  return (
+    <div className="max-w-4xl mx-auto py-4">
+      {/* Breadcrumb & Header */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 text-sm text-slate-500 mb-4 font-medium">
+          Dashboard <ChevronRight className="w-4 h-4" /> <span className="text-slate-900">Cek Kesehatan</span>
         </div>
-    );
-};
+        <h1 className="text-3xl font-bold text-slate-900 mb-2 font-display">Cek Kesehatan Jantung</h1>
+        <p className="text-slate-600">Lengkapi data kesehatan Anda untuk mendapatkan prediksi risiko penyakit jantung oleh AI.</p>
+      </div>
 
-export default CekKesehatanPage;
+      {/* Progress Indicator */}
+      <Card className="mb-8 border-slate-200 shadow-sm">
+        <div className="p-4 flex items-center gap-4">
+          <span className="text-sm font-medium text-slate-700 whitespace-nowrap">Progres Pengisian</span>
+          <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-emerald-600 transition-all duration-500 ease-out"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <span className="text-sm font-bold text-emerald-600">{progress}%</span>
+        </div>
+      </Card>
+
+      <form onSubmit={handleSubmit} className="space-y-8 pb-20">
+        <Card className="border-slate-200 shadow-sm overflow-hidden">
+          {/* Section 1: Demografis */}
+          <div className="p-8 border-b border-slate-100">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-600">
+                <User className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-slate-900 font-display">Data Demografis</h3>
+                <p className="text-sm text-slate-500">Informasi dasar identitas Anda</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-2">
+                <Label required>Usia</Label>
+                <div className="relative">
+                  <Input 
+                    required
+                    name="age"
+                    type="number"
+                    placeholder="Contoh: 35"
+                    iconLeft={<Calendar />}
+                    suffix="tahun"
+                    value={formData.age}
+                    onChange={handleInputChange}
+                  />
+                  <Tooltip text="Usia adalah faktor risiko utama penyakit jantung." />
+                </div>
+                <HelperText>Masukkan usia Anda saat ini.</HelperText>
+              </div>
+
+              <div className="space-y-2">
+                <Label required>Jenis Kelamin</Label>
+                <div className="grid grid-cols-2 gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, gender: "male" }))}
+                    className={cn(
+                      "flex items-center justify-center gap-3 px-4 py-3 border-2 rounded-xl text-sm font-bold transition-all",
+                      formData.gender === "male" 
+                        ? "border-emerald-600 bg-emerald-50 text-emerald-700 shadow-sm"
+                        : "border-slate-200 text-slate-600 hover:border-emerald-200"
+                    )}
+                  >
+                    Laki-laki
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, gender: "female" }))}
+                    className={cn(
+                      "flex items-center justify-center gap-3 px-4 py-3 border-2 rounded-xl text-sm font-bold transition-all",
+                      formData.gender === "female" 
+                        ? "border-emerald-600 bg-emerald-50 text-emerald-700 shadow-sm"
+                        : "border-slate-200 text-slate-600 hover:border-emerald-200"
+                    )}
+                  >
+                    Perempuan
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Section 2: Data Vital */}
+          <div className="p-8 border-b border-slate-100">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600">
+                <ActivityIcon className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-slate-900 font-display">Data Vital</h3>
+                <p className="text-sm text-slate-500">Parameter klinis kesehatan jantung Anda</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
+              <div className="space-y-2">
+                <Label required>Tekanan Darah Sistolik</Label>
+                <div className="relative">
+                  <Input 
+                    required
+                    name="systolic_bp"
+                    type="number"
+                    placeholder="Contoh: 120"
+                    iconLeft={<HeartPulse />}
+                    suffix="mmHg"
+                    value={formData.systolic_bp}
+                    onChange={handleInputChange}
+                  />
+                  <Tooltip text="Tekanan saat jantung berkontraksi (Normal: 90-120)." />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label required>Tekanan Darah Diastolik</Label>
+                <div className="relative">
+                  <Input 
+                    required
+                    name="diastolic_bp"
+                    type="number"
+                    placeholder="Contoh: 80"
+                    iconLeft={<HeartPulse />}
+                    suffix="mmHg"
+                    value={formData.diastolic_bp}
+                    onChange={handleInputChange}
+                  />
+                  <Tooltip text="Tekanan saat jantung beristirahat (Normal: 60-80)." />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label required>Kolesterol Total</Label>
+                <div className="relative">
+                  <Input 
+                    required
+                    name="cholesterol"
+                    type="number"
+                    placeholder="Contoh: 200"
+                    iconLeft={<Droplet />}
+                    suffix="mg/dL"
+                    value={formData.cholesterol}
+                    onChange={handleInputChange}
+                  />
+                  <Tooltip text="Jumlah total lemak dalam darah (Normal: < 200)." />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Gula Darah Puasa (Opsional)</Label>
+                <div className="relative">
+                  <Input 
+                    name="blood_sugar"
+                    type="number"
+                    placeholder="Contoh: 95"
+                    iconLeft={<Droplet />}
+                    suffix="mg/dL"
+                    value={formData.blood_sugar}
+                    onChange={handleInputChange}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  <div className="space-y-2">
+                    <Label required>Detak Jantung</Label>
+                    <Input 
+                      required
+                      name="heart_rate"
+                      type="number"
+                      placeholder="72"
+                      suffix="bpm"
+                      value={formData.heart_rate}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label required>Berat Badan</Label>
+                    <Input 
+                      required
+                      name="weight"
+                      type="number"
+                      placeholder="70"
+                      iconLeft={<Weight />}
+                      suffix="kg"
+                      value={formData.weight}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label required>Tinggi Badan</Label>
+                    <Input 
+                      required
+                      name="height"
+                      type="number"
+                      placeholder="170"
+                      iconLeft={<Ruler />}
+                      suffix="cm"
+                      value={formData.height}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                </div>
+
+                {bmi && (
+                  <div className="mt-6 flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+                    <div>
+                      <span className="text-sm text-slate-500">Body Mass Index (BMI) Anda:</span>
+                      <p className={cn("text-xl font-bold font-display", getBMICategory(parseFloat(bmi)).color)}>
+                        {bmi} <span className="text-sm font-semibold opacity-80 h-5 inline-block align-middle ml-2">— {getBMICategory(parseFloat(bmi)).label}</span>
+                      </p>
+                    </div>
+                    <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center">
+                      <Stethoscope className="w-6 h-6 text-slate-400" />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Section 3: Riwayat Medis */}
+          <div className="p-8 border-b border-slate-100">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600">
+                <FileText className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-slate-900 font-display">Riwayat Medis</h3>
+                <p className="text-sm text-slate-500">Centang kondisi medis yang sedang atau pernah Anda alami</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-6">
+              {medicalHistoryOptions.map((opt) => (
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() => toggleSelection('medical_history', opt)}
+                  className={cn(
+                    "flex items-center gap-3 p-4 border-2 rounded-xl transition-all text-sm font-semibold",
+                    formData.medical_history.includes(opt)
+                      ? "border-emerald-600 bg-emerald-50 text-emerald-700 shadow-sm"
+                      : "border-slate-100 bg-white text-slate-600 hover:border-emerald-100"
+                  )}
+                >
+                  <div className={cn(
+                    "w-5 h-5 rounded border flex items-center justify-center transition-all",
+                    formData.medical_history.includes(opt) ? "bg-emerald-600 border-emerald-600" : "border-slate-300"
+                  )}>
+                    {formData.medical_history.includes(opt) && <ShieldCheck className="w-3.5 h-3.5 text-white" />}
+                  </div>
+                  {opt}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Section 4: Gaya Hidup */}
+          <div className="p-8">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600">
+                <ActivityIcon className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-slate-900 font-display">Gaya Hidup</h3>
+                <p className="text-sm text-slate-500">Informasi perilaku dan kebiasaan harian Anda</p>
+              </div>
+            </div>
+
+            <div className="space-y-8">
+              <div className="space-y-4">
+                <Label required>Kebiasaan Merokok</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                  {["Tidak", "Kadang", "Sering", "Sudah Berhenti"].map((opt) => (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, smoking: opt }))}
+                      className={cn(
+                        "px-4 py-3 border-2 rounded-xl text-xs font-bold transition-all",
+                        formData.smoking === opt 
+                          ? "border-emerald-600 bg-emerald-50 text-emerald-700" 
+                          : "border-slate-100 text-slate-600 hover:border-emerald-100"
+                      )}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <Label required>Aktivitas Fisik / Olahraga</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                  {["Jarang", "1-2x Seminggu", "3-4x Seminggu", "Setiap Hari"].map((opt) => (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, exercise: opt }))}
+                      className={cn(
+                        "px-4 py-3 border-2 rounded-xl text-xs font-bold transition-all",
+                        formData.exercise === opt 
+                          ? "border-emerald-600 bg-emerald-50 text-emerald-700" 
+                          : "border-slate-100 text-slate-600 hover:border-emerald-100"
+                      )}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Submit Footer */}
+          <div className="p-8 bg-slate-50 border-t border-slate-100">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex items-start gap-3 max-w-sm">
+                <ShieldCheck className="w-6 h-6 text-emerald-600 shrink-0" />
+                <p className="text-[11px] text-slate-500 leading-relaxed italic">
+                  Data kesehatan Anda akan tetap rahasia dan hanya digunakan untuk keperluan simulasi prediksi AI medis.
+                </p>
+              </div>
+              <Button 
+                type="submit" 
+                size="lg" 
+                className="w-full md:w-auto px-12 h-14 rounded-2xl shadow-xl shadow-emerald-200/50"
+                disabled={loading || progress < 70}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-3 animate-spin" />
+                    AI Menganalisis...
+                  </>
+                ) : (
+                  <>
+                    Mulai Analisis AI <ArrowRight className="w-5 h-5 ml-3" />
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </Card>
+      </form>
+    </div>
+  );
+}
+
+// Inline Tooltip Helper
+function Tooltip({ text }: { text: string }) {
+  return (
+    <div className="absolute right-14 top-1/2 -translate-y-1/2 group">
+      <HelpCircle className="w-4 h-4 text-slate-300 cursor-help hover:text-emerald-500 transition-colors" />
+      <div className="absolute bottom-full mb-2 right-0 w-48 p-2 bg-slate-900 text-white text-[10px] rounded shadow-xl opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all pointer-events-none z-50">
+        {text}
+        <div className="absolute top-full right-2 border-4 border-transparent border-t-slate-900" />
+      </div>
+    </div>
+  );
+}

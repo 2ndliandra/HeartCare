@@ -8,7 +8,12 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) => {
     const token = localStorage.getItem('auth_token');
     const userString = localStorage.getItem('user');
-    const user = userString ? JSON.parse(userString) : null;
+    let user = null;
+    try {
+        user = userString ? JSON.parse(userString) : null;
+    } catch (e) {
+        console.error('Failed to parse user from localStorage', e);
+    }
 
     console.log('ProtectedRoute Check:', {
         path: window.location.pathname,

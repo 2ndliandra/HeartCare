@@ -1,434 +1,250 @@
-import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import {
-    LayoutDashboard,
-    LogOut,
-    Menu,
-    X,
-    Bell,
-    Activity,
-    Stethoscope,
-    HeartPulse,
-    ClipboardList,
-    AlertTriangle,
-    CheckCircle2,
-    Heart,
-    BrainCircuit,
-    Bot,
-    User,
-    ChevronRight
-} from 'lucide-react';
-import { authService } from '../../lib/authService';
-import api from '../../lib/api';
+import * as React from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { 
+  Heart, 
+  MessageSquare, 
+  BookOpen, 
+  TrendingUp, 
+  ArrowRight, 
+  Plus, 
+  Lightbulb, 
+  ChevronRight,
+  Clock,
+  MoreVertical,
+  HeartPulse
+} from "lucide-react";
+import api from "~/lib/api";
+import { Card } from "~/components/ui/card";
+import { Button } from "~/components/ui/button";
+import { RiskBadge } from "~/components/shared/RiskBadge";
+import { cn } from "~/lib/utils";
 
-const UserPage: React.FC = () => {
-    const navigate = useNavigate();
-    const location = useLocation();
-    const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [chats, setChats] = useState<any[]>([]);
-    const [loadingChat, setLoadingChat] = useState(true);
-
-    // Mock user
-    const userString = localStorage.getItem('user');
-    const user = userString ? JSON.parse(userString) : null;
-
-    interface NavItem {
-        name: string;
-        icon: React.ComponentType<any>;
-        href: string;
-        hasNotification?: boolean;
-        current?: boolean;
-    }
-
-    const baseNavigation: NavItem[] = [
-        { name: 'Beranda', icon: LayoutDashboard, href: '/user' },
-        { name: 'Cek Kesehatan', icon: Activity, href: '/user/cek-kesehatan', hasNotification: true },
-        { name: 'Hasil Prediksi AI', icon: BrainCircuit, href: '/user/hasil-prediksi' },
-        { name: 'Konsultasi AI', icon: Bot, href: '/user/konsultasi' },
-        { name: 'Rekomendasi Medis', icon: Stethoscope, href: '/user/rekomendasi' },
-        { name: 'Riwayat Pemeriksaan', icon: ClipboardList, href: '/user/riwayat' },
-        { name: 'Profil Saya', icon: User, href: '/user/profile' },
-    ];
-
-    // Update navigation based on current location
-    const navigation = baseNavigation.map(item => ({
-        ...item,
-        current: location.pathname === item.href
-    }));
-
-    React.useEffect(() => {
-        fetchChats();
-    }, []);
-
-    const fetchChats = async () => {
-        try {
-            const response = await api.get('chats');
-            if (response.data.success) {
-                setChats(response.data.data);
-            }
-        } catch (error) {
-            console.error('Fetch chats error:', error);
-        } finally {
-            setLoadingChat(false);
-        }
-    };
-
-    const handleLogout = async () => {
-        try {
-            await authService.logout();
-        } catch (error) {
-            console.error('Logout error:', error);
-        } finally {
-            // Clear all auth-related data
-            localStorage.clear();
-            // Also clear any cached data
-            sessionStorage.clear();
-            // Force navigate and reload to ensure fresh session
-            window.location.href = '/login';
-        }
-    };
-
-    const scanHistory = [
-        { id: 1, date: '12 Okt 2026', status: 'Risiko Tinggi', severity: 'Tinggi', type: 'Penyakit Jantung Koroner' },
-        { id: 2, date: '10 Okt 2026', status: 'Sehat', severity: 'Normal', type: 'Normal' },
-        { id: 3, date: '08 Okt 2026', status: 'Risiko Sedang', severity: 'Sedang', type: 'Hipertensi' },
-    ];
-
-    return (
-        <div className="min-h-screen bg-slate-50 flex font-sans text-slate-900">
-
-            {/* Mobile Sidebar Overlay */}
-            {sidebarOpen && (
-                <div
-                    className="fixed inset-0 bg-slate-900/50 z-40 lg:hidden backdrop-blur-sm transition-opacity"
-                    onClick={() => setSidebarOpen(false)}
-                />
-            )}
-
-            {/* Sidebar */}
-            <aside className={`
-                fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:flex-shrink-0 flex flex-col
-                ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-            `}>
-                <div className="h-20 flex items-center px-8 border-b border-slate-100">
-                    <Link to="/" className="flex items-center gap-2 group">
-                        <div className="bg-primary/10 p-2 rounded-xl group-hover:bg-primary/20 transition-colors">
-                            <Heart className="h-6 w-6 text-primary" />
-                        </div>
-                        <span className="font-bold text-xl tracking-tight text-slate-900">Heart<span className="text-primary">Predict</span></span>
-                    </Link>
-                    <button
-                        className="lg:hidden ml-auto text-slate-500 hover:text-slate-700"
-                        onClick={() => setSidebarOpen(false)}
-                    >
-                        <X size={24} />
-                    </button>
-                </div>
-
-                <div className="flex-1 overflow-y-auto py-6 px-4 space-y-1">
-                    <div className="px-4 mb-2 text-xs font-semibold text-slate-400 tracking-wider uppercase">Menu Utama</div>
-                    {navigation.map((item) => {
-                        const Icon = item.icon;
-                        return (
-                            <Link
-                                key={item.name}
-                                to={item.href}
-                                onClick={() => setSidebarOpen(false)}
-                                className={`
-                                    group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 relative
-                                    ${item.current
-                                        ? 'bg-emerald-50 text-emerald-700'
-                                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                                    }
-                                `}
-                            >
-                                <Icon className={`
-                                    mr-3 h-5 w-5 flex-shrink-0 transition-colors
-                                    ${item.current ? 'text-emerald-600' : 'text-slate-400 group-hover:text-slate-500'}
-                                `} />
-                                {item.name}
-
-                                {item.hasNotification && (
-                                    <span className="absolute right-4 w-2 h-2 rounded-full bg-red-500 ring-4 ring-red-50"></span>
-                                )}
-                            </Link>
-                        );
-                    })}
-                </div>
-
-                <div className="p-4 border-t border-slate-100">
-                    <button
-                        onClick={handleLogout}
-                        className="group flex w-full items-center px-4 py-3 text-sm font-medium rounded-xl text-blue-600 hover:bg-blue-50 transition-colors"
-                    >
-                        <LogOut className="mr-3 h-5 w-5 flex-shrink-0 text-blue-400 group-hover:text-blue-600 transition-colors" />
-                        Keluar Akun
-                    </button>
-                </div>
-            </aside>
-
-            {/* Main Content Area */}
-            <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-
-                {/* Header */}
-                <header className="bg-white border-b border-slate-200 h-20 flex items-center justify-between px-4 sm:px-6 lg:px-8 z-30">
-                    <div className="flex items-center gap-4">
-                        <button
-                            className="lg:hidden p-2 -ml-2 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors"
-                            onClick={() => setSidebarOpen(true)}
-                        >
-                            <Menu size={24} />
-                        </button>
-
-                        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg border border-blue-100">
-                            <HeartPulse size={18} className="text-blue-500" />
-                            <span className="text-sm font-medium">BPM Normal <span className="opacity-60 font-normal px-1">•</span> 72 detak/menit</span>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-4 sm:gap-6">
-                        <button className="relative p-2 text-slate-400 hover:bg-slate-50 rounded-full transition-colors">
-                            <Bell size={20} />
-                            <span className="absolute top-2 right-2.5 w-2 h-2 rounded-full bg-red-500 border-2 border-white"></span>
-                        </button>
-
-                        <div className="h-8 w-px bg-slate-200 hidden sm:block"></div>
-
-                        <div className="flex items-center gap-3">
-                            <div className="hidden sm:block text-right">
-                                <p className="text-sm font-semibold text-slate-900 leading-tight">{user?.name || 'Pasien Cerdas'}</p>
-                                <p className="text-xs text-slate-500">Member Aktif</p>
-                            </div>
-                            <Link to="/user/profile" className="h-10 w-10 rounded-full bg-primary/10 border-2 border-primary/5 flex items-center justify-center text-primary font-bold overflow-hidden shadow-sm hover:border-primary/30 transition-all">
-                                {user?.profile_picture ? (
-                                    <img src={`http://localhost:8000/storage/${user.profile_picture}`} alt="" className="w-full h-full object-cover" />
-                                ) : (
-                                    user?.name ? user.name.charAt(0).toUpperCase() : 'P'
-                                )}
-                            </Link>
-                        </div>
-                    </div>
-                </header>
-
-                {/* Dashboard Stats & Content */}
-                <div className="flex-1 overflow-y-auto bg-slate-50">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-
-                        {/* Page Title */}
-                        <div>
-                            <h1 className="text-2xl font-bold text-slate-900">Ringkasan Kesehatan Hari Ini</h1>
-                            <p className="text-slate-500 text-sm mt-1">Pantau kondisi jantung dan hasil diagnosa AI Anda secara real-time.</p>
-                        </div>
-
-                        {/* Top Widgets */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {/* Widget 1: Risiko */}
-                            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-amber-50 rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <p className="text-sm font-medium text-slate-500 mb-1">Status Risiko Medis</p>
-                                        <h3 className="text-2xl font-bold text-slate-900">Perhatikan</h3>
-                                        <p className="text-xs text-amber-600 font-medium mt-2 flex items-center gap-1.5">
-                                            <AlertTriangle size={14} /> Tekanan darah tinggi
-                                        </p>
-                                    </div>
-                                    <div className="p-3 bg-amber-100 text-amber-600 rounded-xl">
-                                        <Activity size={24} />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Widget 2: Kondisi */}
-                            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <p className="text-sm font-medium text-slate-500 mb-1">Pemantauan Terakhir</p>
-                                        <h3 className="text-2xl font-bold text-slate-900">Normal <span className="text-sm font-normal text-slate-400">/ 1 Hari lalu</span></h3>
-                                        <p className="text-xs text-primary font-medium mt-2 flex items-center gap-1.5">
-                                            <CheckCircle2 size={14} /> Semua indikator stabil
-                                        </p>
-                                    </div>
-                                    <div className="p-3 bg-primary/10 text-primary rounded-xl">
-                                        <HeartPulse size={24} />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Widget 3: AI */}
-                            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <p className="text-sm font-medium text-slate-500 mb-1">Akurasi Prediksi AI</p>
-                                        <h3 className="text-2xl font-bold text-slate-900">94.8%</h3>
-                                        <p className="text-xs text-indigo-600 font-medium mt-2 flex items-center gap-1.5">
-                                            <BrainCircuit size={14} /> Random Forest Model
-                                        </p>
-                                    </div>
-                                    <div className="p-3 bg-indigo-100 text-indigo-600 rounded-xl">
-                                        <BrainCircuit size={24} />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Middle Content */}
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-                            {/* Insight Cerdas (Takes 2 columns on large screens) */}
-                            <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 lg:p-8 relative overflow-hidden flex flex-col">
-                                <div className="absolute top-0 left-0 w-1 bg-red-500 h-full"></div>
-                                <div className="flex items-center gap-2 mb-6">
-                                    <div className="bg-red-100 text-red-600 p-2 rounded-lg">
-                                        <AlertTriangle size={20} />
-                                    </div>
-                                    <h2 className="text-lg font-bold text-slate-900">Insight Cerdas: Peringatan Dini</h2>
-                                </div>
-
-                                <div className="bg-red-50 border border-red-100 rounded-xl p-5 mb-6">
-                                    <h3 className="text-red-800 font-semibold mb-2">Risiko Hipertensi & Kardiovaskular Meningkat</h3>
-                                    <p className="text-red-600 text-sm leading-relaxed mb-4">
-                                        Sistem kami mendeteksi tren <strong>tekanan darah tinggi (&gt;130/80 mmHg)</strong> dipadu dengan kolesterol LDL tinggi. Kondisi ini secara signifikan meningkatkan risiko serangan jantung atau stroke.
-                                    </p>
-                                    <div className="flex gap-3">
-                                        <button className="bg-red-600 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-sm hover:bg-red-700 transition-colors">
-                                            Jadwalkan Konsultasi Medis
-                                        </button>
-                                        <button className="bg-white text-slate-700 border border-slate-200 text-sm font-medium px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors">
-                                            Lihat Anjuran Diet
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="mt-auto border-t border-slate-100 pt-4 flex items-center justify-between text-sm">
-                                    <span className="text-slate-500 flex items-center gap-1.5"><BrainCircuit size={14} className="text-primary" /> Dianalisis oleh AI 2 menit lalu</span>
-                                    <Link to="/user/hasil-prediksi" className="font-medium text-primary hover:text-primary/80">Lihat semua insight</Link>
-                                </div>
-                            </div>
-
-                            {/* Riwayat Scan (Takes 1 column) */}
-                            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col h-[400px]">
-                                <div className="flex items-center justify-between mb-6">
-                                    <h2 className="text-lg font-bold text-slate-900">Riwayat Pengecekan</h2>
-                                    <Link to="/user/riwayat" className="text-slate-400 hover:text-primary transition-colors">
-                                        <ChevronRight size={20} />
-                                    </Link>
-                                </div>
-
-                                <div className="flex-1 overflow-y-auto pr-2 space-y-4 custom-scrollbar">
-                                    {scanHistory.map((scan) => (
-                                        <div key={scan.id} className="flex items-center gap-4 p-3 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-colors cursor-pointer group">
-                                            <div className="w-14 h-14 rounded-lg bg-slate-100 flex-shrink-0 border border-slate-200 flex items-center justify-center overflow-hidden">
-                                                <HeartPulse size={24} className="text-slate-400 group-hover:scale-110 transition-transform" />
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex justify-between items-start mb-1">
-                                                    <h4 className="text-sm font-semibold text-slate-900 truncate pr-2">{scan.type}</h4>
-                                                    <span className="text-[10px] text-slate-400 whitespace-nowrap">{scan.date}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${scan.severity === 'Tinggi' ? 'bg-red-100 text-red-700' :
-                                                        scan.severity === 'Sedang' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
-                                                        }`}>
-                                                        {scan.status}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                <div className="mt-4 pt-4 border-t border-slate-100">
-                                    <Link to="/user/cek-kesehatan" className="w-full flex items-center justify-center gap-2 py-2.5 bg-primary/10 text-primary text-sm font-medium rounded-xl hover:bg-primary/20 transition-colors">
-                                        <Activity size={16} />
-                                        Masukkan Data Baru
-                                    </Link>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* AI Chat Interaction Widget */}
-                        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 lg:p-8">
-                            <div className="flex items-center justify-between mb-6">
-                                <div className="flex items-center gap-3">
-                                    <div className="bg-indigo-100 text-indigo-600 p-2.5 rounded-xl">
-                                        <Bot size={22} />
-                                    </div>
-                                    <div>
-                                        <h2 className="text-lg font-bold text-slate-900">Konsultasi AI Terakhir</h2>
-                                        <p className="text-xs text-slate-500">Bantuan cerdas untuk kesehatan jantung Anda</p>
-                                    </div>
-                                </div>
-                                <Link to="/user/konsultasi" className="text-primary text-sm font-bold flex items-center gap-1 hover:gap-2 transition-all">
-                                    Buka Chat <ChevronRight size={18} />
-                                </Link>
-                            </div>
-
-                            {loadingChat ? (
-                                <div className="animate-pulse space-y-4">
-                                    <div className="h-4 bg-slate-100 rounded w-1/4"></div>
-                                    <div className="h-10 bg-slate-50 rounded-2xl w-full"></div>
-                                </div>
-                            ) : chats.length > 0 ? (
-                                <div className="relative min-h-[180px]">
-                                    {chats.slice(0, 3).map((chat, index) => (
-                                        <div
-                                            key={chat._id || chat.id}
-                                            className="absolute w-full transition-all duration-300 hover:translate-y-[-8px] cursor-pointer"
-                                            style={{
-                                                top: `${index * 24}px`,
-                                                zIndex: 30 - index,
-                                                transform: `scale(${1 - index * 0.05})`,
-                                                opacity: 1 - index * 0.2
-                                            }}
-                                            onClick={() => navigate('/user/konsultasi')}
-                                        >
-                                            <div className={`bg-white border ${index === 0 ? 'border-primary/30 shadow-lg shadow-primary/5' : 'border-slate-200 shadow-sm'} rounded-2xl p-5 space-y-3`}>
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] ${index === 0 ? 'bg-primary text-white' : 'bg-slate-100 text-slate-400'}`}>
-                                                            <Bot size={12} />
-                                                        </div>
-                                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                                                            Penyelesaian AI #{chats.length - index}
-                                                        </span>
-                                                    </div>
-                                                    <span className="text-[10px] text-slate-400">
-                                                        {new Date(chat.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
-                                                    </span>
-                                                </div>
-                                                <div>
-                                                    <p className="text-xs text-slate-500 italic line-clamp-1 mb-2">"{chat.message}"</p>
-                                                    <p className="text-sm text-slate-700 leading-relaxed line-clamp-2">
-                                                        {chat.response}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                    {chats.length > 3 && (
-                                        <div className="absolute bottom-[-10px] left-0 right-0 text-center">
-                                            <p className="text-[10px] font-medium text-slate-400">+{chats.length - 3} percakapan lainnya</p>
-                                        </div>
-                                    )}
-                                </div>
-                            ) : (
-                                <div className="py-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                                    <p className="text-sm text-slate-500 mb-4">Belum ada percakapan AI sebelumnya.</p>
-                                    <Link to="/user/konsultasi" className="inline-flex items-center gap-2 px-6 py-2.5 bg-indigo-600 text-white text-xs font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/20">
-                                        Mulai Konsultasi Pertama <Bot size={14} />
-                                    </Link>
-                                </div>
-                            )}
-                        </div>
-
-                    </div>
-                </div>
-            </main>
+// Custom Stat Card for more control
+const StatCard = ({ title, value, icon: Icon, trend, colorClass, delay = 0 }: any) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.4, delay }}
+  >
+    <Card className="p-6 border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group rounded-[2rem] bg-white overflow-hidden relative">
+      <div className={cn("absolute top-0 right-0 w-24 h-24 rounded-full -mr-12 -mt-12 opacity-[0.03]", colorClass)} />
+      
+      <div className="flex items-center justify-between mb-4">
+        <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center shadow-inner", colorClass.replace('bg-', 'bg-').replace('-600', '-100'))}>
+          <Icon className={cn("w-6 h-6", colorClass.replace('bg-', 'text-'))} />
         </div>
-    );
-};
+        <button className="text-slate-300 hover:text-slate-600 transition-colors">
+          <MoreVertical className="w-4 h-4" />
+        </button>
+      </div>
+      
+      <div className="space-y-1">
+        <h3 className="text-3xl font-black text-slate-900 font-display">{value}</h3>
+        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{title}</p>
+      </div>
 
-export default UserPage;
+      {trend && (
+        <div className="mt-4 flex items-center gap-1.5">
+          <div className="bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+            <TrendingUp className="w-3 h-3" />
+            <span className="text-[10px] font-black">{trend}</span>
+          </div>
+          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">vs bulan lalu</span>
+        </div>
+      )}
+    </Card>
+  </motion.div>
+);
+
+export default function UserDashboard() {
+  const navigate = useNavigate();
+  const [chats, setChats] = React.useState<any[]>([]);
+
+  React.useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const chatRes = await api.get('chats');
+        if (chatRes.data?.success) setChats(chatRes.data.data);
+      } catch (e) {
+        console.error("Dashboard fetch error:", e);
+      }
+    };
+    fetchData();
+  }, []);
+
+  return (
+    <div className="space-y-8 relative">
+      {/* Background Decorations */}
+      <div className="fixed top-40 right-10 w-96 h-96 bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none -z-10" />
+      <div className="fixed bottom-20 left-10 w-80 h-80 bg-purple-500/5 rounded-full blur-[80px] pointer-events-none -z-10" />
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard 
+          title="Total Prediksi" 
+          value="12" 
+          icon={HeartPulse} 
+          trend="+2" 
+          colorClass="bg-emerald-600" 
+          delay={0.1}
+        />
+        <StatCard 
+          title="Status Risiko" 
+          value="RENDAH" 
+          icon={Heart} 
+          colorClass="bg-purple-600" 
+          delay={0.2}
+        />
+        <StatCard 
+          title="Konsultasi AI" 
+          value={chats.length > 0 ? chats.length : "8"} 
+          icon={MessageSquare} 
+          trend="+3" 
+          colorClass="bg-blue-600" 
+          delay={0.3}
+        />
+        <StatCard 
+          title="Artikel Dibaca" 
+          value="15" 
+          icon={BookOpen} 
+          trend="+5" 
+          colorClass="bg-amber-600" 
+          delay={0.4}
+        />
+      </div>
+
+      {/* Main Content Sections */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Last Prediction Result */}
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+        >
+          <Card className="p-8 border-slate-200 shadow-sm rounded-[2.5rem] bg-white h-full flex flex-col relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-2 h-full bg-emerald-500" />
+            
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="text-xl font-black text-slate-900 font-display">Prediksi Terakhir</h2>
+                <div className="flex items-center gap-2 text-slate-400 mt-1">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span className="text-xs font-bold uppercase tracking-widest">15 April 2026 • 10:30 WIB</span>
+                </div>
+              </div>
+              <RiskBadge level="RENDAH" className="scale-110" />
+            </div>
+            <div className="flex-1 flex flex-col items-center justify-center py-10">
+               <div className="w-full max-w-md text-center">
+                 <p className="text-slate-600 text-base leading-relaxed font-semibold italic">
+                   "Hasil analisis menunjukkan Kondisi Terpantau Baik. Anda berada dalam kondisi optimal, pertahankan pola hidup sehat."
+                 </p>
+               </div>
+            </div>
+
+            <div className="mt-8 pt-8 border-t border-slate-50 flex gap-3">
+              <Button 
+                variant="outline" 
+                className="flex-1 h-12 rounded-2xl border-slate-200 font-bold"
+                onClick={() => navigate('/user/riwayat')}
+              >
+                Lihat Riwayat
+              </Button>
+              <Button 
+                className="flex-1 h-12 rounded-2xl shadow-xl shadow-emerald-100 font-bold"
+                onClick={() => navigate('/user/hasil-prediksi')}
+              >
+                Detail Hasil <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </div>
+          </Card>
+        </motion.div>
+
+        {/* Recent Consultations */}
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.6 }}
+        >
+          <Card className="p-8 border-slate-200 shadow-sm rounded-[2.5rem] bg-white h-full flex flex-col">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-xl font-black text-slate-900 font-display">Konsultasi Terakhir</h2>
+              <Link to="/user/konsultasi" className="text-xs font-black text-emerald-600 uppercase tracking-widest hover:underline px-3 py-1 bg-emerald-50 rounded-lg transition-all">
+                Lihat Semua
+              </Link>
+            </div>
+
+            <div className="flex-1 space-y-4">
+              {chats.length > 0 ? (
+                chats.slice(0, 3).map((chat: any, idx: number) => (
+                  <motion.div 
+                    key={chat.id || idx}
+                    whileHover={{ x: 4 }}
+                    className="p-4 rounded-3xl border border-slate-50 hover:border-emerald-100 bg-slate-50/50 hover:bg-white transition-all cursor-pointer flex gap-4 items-start"
+                  >
+                    <div className="w-10 h-10 rounded-2xl bg-white shadow-sm flex items-center justify-center text-emerald-600 shrink-0">
+                      <MessageSquare className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-bold text-slate-900 truncate mb-1">{chat.message}</h4>
+                      <p className="text-xs text-slate-500 line-clamp-1 mb-2">AI: {chat.response}</p>
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-tight">2 Hari Lalu</span>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-slate-300 self-center" />
+                  </motion.div>
+                ))
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mb-4">
+                    <MessageSquare className="w-8 h-8" />
+                  </div>
+                  <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Belum ada konsultasi</p>
+                </div>
+              )}
+            </div>
+
+            <Button 
+              variant="outline" 
+              className="w-full h-14 rounded-2xl mt-8 border-dashed border-2 border-slate-200 hover:border-emerald-300 text-slate-500 hover:text-emerald-600 transition-all font-bold"
+              onClick={() => navigate('/user/konsultasi')}
+            >
+              <Plus className="w-4 h-4 mr-2" /> Mulai Konsultasi Baru
+            </Button>
+          </Card>
+        </motion.div>
+      </div>
+
+      {/* Health Tips Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.7 }}
+      >
+        <Card className="p-8 border-none bg-gradient-to-br from-emerald-600 to-emerald-700 text-white rounded-[2.5rem] shadow-xl relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 transition-transform duration-700 group-hover:scale-125" />
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full -ml-16 -mb-16" />
+          
+          <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
+            <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-3xl flex items-center justify-center shrink-0 shadow-lg">
+              <Lightbulb className="w-10 h-10 text-white" />
+            </div>
+            <div className="flex-1 text-center md:text-left">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-100">Tips Kesehatan Hari Ini</span>
+              <h3 className="text-2xl font-black font-display mt-1 mb-2">Minum Air Putih & Istirahat Cukup</h3>
+              <p className="text-emerald-50/80 text-sm font-medium leading-relaxed max-w-2xl">
+                Pastikan Anda minum minimal 8 gelas air putih dan tidur 7-8 jam per hari. Hidrasi yang baik dan istirahat yang cukup sangat krusial untuk menjaga kerja jantung tetap stabil dan sirkulasi darah yang optimal.
+              </p>
+            </div>
+            <Button 
+              className="bg-white text-emerald-700 hover:bg-emerald-50 rounded-2xl h-14 px-8 font-black shadow-xl shrink-0"
+              onClick={() => navigate('/user/artikel')}
+            >
+              Pelajari Lebih Lanjut
+            </Button>
+          </div>
+        </Card>
+      </motion.div>
+    </div>
+  );
+}

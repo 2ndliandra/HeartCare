@@ -1,31 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { authService } from '../../lib/authService';
-import { Eye, EyeOff, Heart } from 'lucide-react';
+import { Mail, Lock, HeartPulse, Loader2, LogIn, AlertCircle, X } from 'lucide-react';
+import { authService } from '~/lib/authService';
+import { Button } from '~/components/ui/button';
+import { Input, Label } from '~/components/ui/input';
+import { Card } from '~/components/ui/card';
+import { useToast } from '~/hooks/useToast';
 
 const Login: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
+    const [rememberMe, setRememberMe] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
-    const [currentSlide, setCurrentSlide] = useState(0);
     const navigate = useNavigate();
-
-    const slides = [
-        {
-            title: "Deteksi Dini",
-            description: "Sistem prediksi penyakit jantung berbasis AI untuk membantu Anda mendeteksi risiko lebih awal dan mengambil tindakan preventif yang tepat."
-        },
-        {
-            title: "Pemantauan Mandiri",
-            description: "Membantu Anda dalam memantau kondisi kesehatan secara mandiri dengan antarmuka yang mudah digunakan dan hasil yang akurat."
-        },
-        {
-            title: "Rekomendasi Cerdas",
-            description: "Memberikan saran tindak lanjut dan rekomendasi kesehatan berdasarkan analisis data medis Anda secara menyeluruh dan personal."
-        }
-    ];
+    const { toast } = useToast();
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -43,173 +32,238 @@ const Login: React.FC = () => {
             }
         };
         checkAuth();
-
-        const timer = setInterval(() => {
-            setCurrentSlide((prev) => (prev + 1) % slides.length);
-        }, 5000);
-        return () => clearInterval(timer);
-    }, [slides.length, navigate]);
+    }, [navigate]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setError(null);
 
+        if (!email || !password) {
+            setError("Email dan password harus diisi");
+            setLoading(false);
+            return;
+        }
+
         try {
             const response = await authService.login({ email, password });
-            if (response.success) {
-                const { token, user, roles } = response.data;
-                localStorage.setItem('auth_token', token);
-                localStorage.setItem('auth_token_set_at', Date.now().toString());
-                const userWithRoles = { ...user, roles };
-                localStorage.setItem('user', JSON.stringify(userWithRoles));
+            
+            if (response && response.success) {
+                // Determine user data and token structure
+                // Backend AuthController.php returns (UserResource)->additional([... 'data' => ['token' => $token]])
+                // This might cause response.data to be just {token: ...} or it might be merged.
+                // Based on UserResource, the user data is also there.
+                
+                const token = response.data?.token || response.token;
+                
+                if (token) {
+                    // Save token
+                    localStorage.setItem('auth_token', token);
+                    localStorage.setItem('auth_token_set_at', Date.now().toString());
+                    
+                    // The user data might be in response.data or merged into response
+                    // In Laravel resources, the resource is usually in 'data'
+                    // If 'additional' was used, they might be siblings.
+                    
+                    // Let's store the whole response.data for roles check in ProtectedRoute
+                    const userData = {
+                        ...response.data,
+                        ...response // fallback check
+                    };
+                    
+                    // Extract roles properly
+                    const roles = userData.roles || (response.data && response.data.roles) || [];
+                    
+                    localStorage.setItem('user', JSON.stringify({
+                        ...userData,
+                        roles: roles
+                    }));
 
-                if (roles && roles.includes('admin')) {
-                    navigate('/admin');
-                } else if (roles && roles.includes('user')) {
-                    navigate('/user');
+                    toast({
+                        title: "Login berhasil!",
+                        description: `Selamat datang kembali, ${userData.name || 'User'}!`,
+                        variant: "success",
+                        duration: 2000
+                    });
+
+                    setTimeout(() => {
+                        if (roles.includes('admin')) {
+                            navigate('/admin');
+                        } else {
+                            navigate('/user');
+                        }
+                    }, 1000);
                 } else {
-                    navigate('/');
+                    setError("Token tidak ditemukan dalam respon server");
                 }
             } else {
-                setError(response.message || 'Login failed');
+                setError(response.message || "Email atau password salah. Silakan coba lagi.");
             }
         } catch (err: any) {
             console.error('Login error', err);
-            setError(err.response?.data?.message || 'An error occurred during login');
+            setError(err.response?.data?.message || err.message || 'Terjadi kesalahan saat mencoba masuk.');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen relative flex items-center overflow-hidden bg-slate-50">
-            {/* Background gradients matching landing page */}
-            <div className="absolute top-0 right-0 w-1/2 h-full bg-emerald-50/50 rounded-bl-[100px] pointer-events-none" />
-            <div className="absolute -top-24 -right-24 w-96 h-96 bg-emerald-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob pointer-events-none" />
-            <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-rose-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-2000 pointer-events-none" />
+        <div className="min-h-screen bg-slate-50 grid grid-cols-1 lg:grid-cols-2 font-sans">
+            {/* Left Panel (Brand) - Desktop Only */}
+            <div className="hidden lg:flex bg-emerald-600 p-12 flex-col justify-center items-center relative overflow-hidden">
+                {/* Dekorasi Background */}
+                <div className="absolute top-10 left-10 w-40 h-40 bg-emerald-500/30 rounded-bl-full z-0" />
+                <div className="absolute bottom-20 right-10 w-56 h-56 bg-emerald-700/20 rounded-tr-full z-0" />
 
-            {/* Main Container */}
-            <div className="w-full max-w-5xl mx-auto px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-8 lg:gap-16 relative z-10 py-8 lg:py-10">
-
-                {/* Left Side: Logo and Form Card */}
-                <div className="flex flex-col relative h-full">
-                    {/* Logo */}
-                    <Link to="/" className="absolute -top-10 lg:-top-5 -left-2 z-20 group">
-                        <div className="bg-white p-2.5 rounded-xl shadow-md border border-gray-100 group-hover:shadow-lg transition-all flex items-center gap-2">
-                            <Heart className="w-6 h-6 text-primary" />
-                            <span className="font-bold text-slate-900 hidden sm:block">HeartPredict</span>
+                {/* Content */}
+                <div className="relative z-10 flex flex-col items-center">
+                    <div className="flex items-center gap-3 mb-8 animate-in slide-in-from-left duration-500 fade-in">
+                        <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center">
+                            <HeartPulse className="w-7 h-7 text-emerald-600" />
                         </div>
-                    </Link>
-
-                    {/* Card */}
-                    <div className="bg-[#fcfcfc] rounded-lg shadow-xl p-6 sm:p-8 w-full mt-4 lg:mt-8 flex flex-col justify-between">
-                        <div>
-                            <h2 className="text-2xl font-semibold text-gray-900 mb-1.5">Sign In</h2>
-                            <p className="text-gray-500 text-xs mb-5 pb-5 border-b border-gray-200">
-                                Please sign in to your account to access the system and manage your data securely.
-                            </p>
-
-                            {error && (
-                                <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded mb-4 text-sm">
-                                    {error}
-                                </div>
-                            )}
-
-                            <form onSubmit={handleSubmit} className="space-y-4">
-                                <div>
-                                    <label className="block text-gray-700 text-xs font-medium mb-1.5">Email</label>
-                                    <input
-                                        type="text"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        required
-                                        className="w-full bg-[#f4f4f4] border border-gray-200 rounded px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-gray-400 focus:bg-white transition-colors"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-gray-700 text-xs font-medium mb-1.5">Password</label>
-                                    <div className="relative">
-                                        <input
-                                            type={showPassword ? "text" : "password"}
-                                            value={password}
-                                            onChange={(e) => setPassword(e.target.value)}
-                                            required
-                                            className="w-full bg-[#f4f4f4] border border-gray-200 rounded pl-3 pr-9 py-2 text-sm text-gray-900 focus:outline-none focus:border-gray-400 focus:bg-white transition-colors"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 bg-transparent border-none hover:bg-transparent hover:border-transparent focus:outline-none shadow-none"
-                                        >
-                                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                                        </button>
-                                    </div>
-                                    <div className="flex justify-end mt-1.5">
-                                        <Link to="/forgot-password" className="text-[11px] text-[#5294e2] hover:underline">
-                                            Forget Password
-                                        </Link>
-                                    </div>
-                                </div>
-
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    className="w-full bg-primary text-white text-sm font-medium py-2.5 rounded hover:bg-primary/90 transition-colors mt-2"
-                                >
-                                    {loading ? 'Signing In...' : 'Sign In'}
-                                </button>
-                            </form>
-
-                            <div className="mt-8 pt-6 border-t border-gray-300 text-sm text-gray-500">
-                                Don't have an account? <Link to="/register" className="text-[#5294e2] font-medium hover:underline">Register now</Link> to start using the system
-                            </div>
-                        </div>
-
-                        <div className="mt-12 text-center text-xs text-gray-400">
-                            © 2026 HeartPredict Privacy Policy • Terms of Service
-                        </div>
-                    </div>
-                </div>
-
-                {/* Right Side: Text Highlights */}
-                <div className="hidden lg:flex flex-col justify-center text-gray-900 relative">
-                    <div className="mb-6">
-                        <Link to="/" className="text-lg font-medium text-gray-900 hover:underline">Home</Link>
-                        <div className="w-full h-px bg-gray-900 mt-4 mb-16 opacity-80"></div>
+                        <span className="text-2xl font-bold text-white font-display">
+                            HeartPredict
+                        </span>
                     </div>
 
-                    <h1 className="text-4xl lg:text-5xl font-bold leading-tight tracking-tight text-gray-900 mb-6">
-                        Welcome to <br />
-                        <span className="text-primary">HeartPredict</span>
-                    </h1>
-
-                    <div className="w-full h-px bg-gray-900 my-6 opacity-80"></div>
-
-                    <div className="flex justify-between items-center mb-3 transition-all duration-500">
-                        <h3 className="text-2xl font-medium text-gray-900 h-8 flex items-center">{slides[currentSlide].title}</h3>
-                        <div className="flex gap-1.5 opacity-50">
-                            {slides.map((_, idx) => (
-                                <button
-                                    key={idx}
-                                    type="button"
-                                    onClick={() => setCurrentSlide(idx)}
-                                    aria-label={`Go to slide ${idx + 1}`}
-                                    className={`h-2 rounded-full bg-slate-800 transition-all duration-300 ${currentSlide === idx ? 'w-5 opacity-100' : 'w-2 opacity-50 hover:opacity-100'}`}
-                                ></button>
-                            ))}
+                    <div className="mb-8 animate-in slide-in-from-left duration-500 fade-in delay-100 fill-mode-both">
+                        {/* Placeholder for illustration. Reusing HeartPulse as giant visual if no SVG available */}
+                        <div className="w-64 h-64 bg-emerald-500/20 rounded-full flex items-center justify-center">
+                            <HeartPulse className="w-32 h-32 text-emerald-100 opacity-80" />
                         </div>
                     </div>
 
-                    <div className="h-24">
-                        <p className="text-gray-900 text-sm leading-relaxed max-w-xl text-justify font-medium opacity-80 backdrop-blur-sm transition-opacity duration-300 fade-in">
-                            {slides[currentSlide].description}
+                    <div className="text-center max-w-md animate-in slide-in-from-left duration-500 fade-in delay-200 fill-mode-both">
+                        <h2 className="text-3xl font-bold text-white mb-4 font-display">
+                            Jaga Kesehatan Jantung Anda
+                        </h2>
+                        <p className="text-emerald-100 leading-relaxed">
+                            Platform prediksi risiko berbasis AI dengan akurasi tinggi dan konsultasi 24/7
                         </p>
                     </div>
-
-                    <div className="w-full h-px bg-gray-900 mt-8 opacity-80"></div>
                 </div>
+            </div>
+
+            {/* Right Panel (Form) */}
+            <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 lg:bg-transparent p-6 lg:p-12 relative animate-in slide-in-from-right duration-500 fade-in">
+                {/* Logo Mobile */}
+                <div className="flex lg:hidden items-center justify-center gap-3 mb-8">
+                    <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center">
+                        <HeartPulse className="w-6 h-6 text-white" />
+                    </div>
+                    <span className="text-xl font-bold text-slate-900 font-display">HeartPredict</span>
+                </div>
+
+                <Card className="w-full max-w-md shadow-lg border-slate-200">
+                    <div className="p-8">
+                        <h1 className="text-2xl font-bold text-slate-900 mb-2 font-display">
+                            Masuk ke HeartPredict
+                        </h1>
+                        <p className="text-sm text-slate-600 mb-8">
+                            Selamat datang kembali! Silakan masuk untuk melanjutkan.
+                        </p>
+
+                        {error && (
+                            <div className="flex items-start gap-3 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg mb-6 animate-in slide-in-from-top-2 fade-in duration-300">
+                                <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                                <span className="text-sm text-red-700 font-medium">{error}</span>
+                                <button 
+                                    onClick={() => setError(null)}
+                                    className="ml-auto absolute top-4 right-4"
+                                >
+                                    <X className="w-4 h-4 text-red-400 hover:text-red-600 focus:outline-none" />
+                                </button>
+                            </div>
+                        )}
+
+                        <form onSubmit={handleSubmit}>
+                            <div className="mb-4">
+                                <Label htmlFor="email" required>Email</Label>
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    placeholder="nama@email.com"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    iconLeft={<Mail />}
+                                    disabled={loading}
+                                />
+                            </div>
+
+                            <div className="mb-4">
+                                <Label htmlFor="password" required>Password</Label>
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    placeholder="Masukkan password Anda"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    iconLeft={<Lock />}
+                                    passwordToggle
+                                    disabled={loading}
+                                />
+                            </div>
+
+                            <div className="flex items-center justify-between mb-6">
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        id="remember"
+                                        checked={rememberMe}
+                                        onChange={(e) => setRememberMe(e.target.checked)}
+                                        className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-600 focus:ring-offset-0 transition-colors cursor-pointer"
+                                    />
+                                    <Label htmlFor="remember" className="mb-0 text-sm font-normal cursor-pointer select-none">
+                                        Ingat saya
+                                    </Label>
+                                </div>
+                                <Link
+                                    to="/forgot-password"
+                                    className="text-sm font-medium text-emerald-600 hover:text-emerald-700 transition-colors"
+                                >
+                                    Lupa password?
+                                </Link>
+                            </div>
+
+                            <Button
+                                type="submit"
+                                variant="primary"
+                                size="lg"
+                                className="w-full flex items-center justify-center group"
+                                disabled={loading}
+                            >
+                                {loading ? (
+                                    <>
+                                        Memproses...
+                                        <Loader2 className="w-5 h-5 ml-2 animate-spin" />
+                                    </>
+                                ) : (
+                                    <>
+                                        Masuk
+                                        <LogIn className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                                    </>
+                                )}
+                            </Button>
+
+                            <div className="relative flex items-center justify-center my-6">
+                                <div className="border-t border-slate-200 w-full"></div>
+                                <span className="absolute bg-white px-4 text-xs font-semibold text-slate-500 uppercase">
+                                    ATAU
+                                </span>
+                            </div>
+
+                            <div className="text-center text-sm text-slate-600">
+                                Belum punya akun?{' '}
+                                <Link
+                                    to="/register"
+                                    className="font-medium text-emerald-600 hover:text-emerald-700 transition-colors"
+                                >
+                                    Daftar sekarang
+                                </Link>
+                            </div>
+                        </form>
+                    </div>
+                </Card>
             </div>
         </div>
     );
