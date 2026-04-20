@@ -52,4 +52,48 @@ class CategoryController extends Controller
             'message' => 'Category created successfully'
         ])->response()->setStatusCode(201);
     }
+
+    /**
+     * Update category and invalidate cache.
+     */
+    public function update(Request $request, $id)
+    {
+        $category = Category::findOrFail($id);
+
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:50|unique:mongodb.categories,name,' . $id . ',_id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'message' => $validator->errors()->first()], 422);
+        }
+
+        $category->update([
+            'name' => (string) $request->name,
+            'slug' => Str::slug($request->name),
+        ]);
+
+        Cache::forget('all_categories');
+
+        return (new CategoryResource($category))->additional([
+            'success' => true,
+            'message' => 'Category updated successfully'
+        ]);
+    }
+
+    /**
+     * Delete category and invalidate cache.
+     */
+    public function destroy($id)
+    {
+        $category = Category::findOrFail($id);
+        $category->delete();
+
+        Cache::forget('all_categories');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Category deleted successfully'
+        ]);
+    }
 }

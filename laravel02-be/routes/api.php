@@ -30,7 +30,6 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/forgot-password', [ResetPasswordController::class, 'sendResetLinkEmail']);
 Route::post('/verify-token', [ResetPasswordController::class, 'verifyToken']);
 Route::post('/reset-password', [ResetPasswordController::class, 'resetPassword']);
-Route::post('/predict', [PredictionController::class, 'predict']);
 Route::get('/articles', [AdminArticleController::class, 'index']); // Public articles list
 Route::get('/articles/{slug}', [AdminArticleController::class, 'show']); // Public article detail
 Route::get('/categories', [CategoryController::class, 'index']); // Public categories list
@@ -42,6 +41,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/chats', [AiController::class, 'index']);
     Route::post('/chat', [AiController::class, 'chat']);
     Route::post('/profile', [ProfileController::class, 'update']);
+    Route::get('/predictions', [PredictionController::class, 'index']);
+    Route::post('/predict', [PredictionController::class, 'predict']);
 
     // Admin Routes
     Route::middleware(['admin'])->prefix('admin')->group(function () {
@@ -54,7 +55,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
         Route::get('/articles', [AdminArticleController::class, 'index']);
         Route::post('/articles', [AdminArticleController::class, 'store']);
-        Route::put('/articles/{id}', [AdminArticleController::class, 'update']);
+        Route::post('/articles/{id}', [AdminArticleController::class, 'update']);
         Route::delete('/articles/{id}', [AdminArticleController::class, 'destroy']);
 
         Route::get('/datasets', [AdminDatasetController::class, 'index']);
@@ -63,5 +64,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::delete('/datasets/{id}', [AdminDatasetController::class, 'destroy']);
 
         Route::post('/categories', [CategoryController::class, 'store']);
+        Route::put('/categories/{id}', [CategoryController::class, 'update']);
+        Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
     });
 });
