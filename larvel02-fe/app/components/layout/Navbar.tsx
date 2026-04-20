@@ -39,7 +39,7 @@ export function Navbar({ isAuthenticated = false, user }: NavbarProps) {
         <>
           <nav className="hidden md:flex items-center gap-6">
             <Link to="/" className="text-sm font-medium text-slate-700 hover:text-emerald-600 transition-colors duration-150">Beranda</Link>
-            <a href="#fitur" className="text-sm font-medium text-slate-700 hover:text-emerald-600 transition-colors duration-150">Fitur</a>
+            <a href="/#fitur" className="text-sm font-medium text-slate-700 hover:text-emerald-600 transition-colors duration-150">Fitur</a>
             <Link to="/articles" className="text-sm font-medium text-slate-700 hover:text-emerald-600 transition-colors duration-150">Artikel</Link>
           </nav>
           <div className="flex items-center gap-3">

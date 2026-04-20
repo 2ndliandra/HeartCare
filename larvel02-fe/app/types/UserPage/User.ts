@@ -1,28 +1,51 @@
-export interface Course {
-    id: number;
-    title: string;
-    instructor: string;
-    level: string;
-    rating: number;
-    reviews: number;
-    duration: string;
-    lessons: number;
-    price: number | 'Free';
-    image: string;
-    tags?: string[];
-    category: string;
+// ============================================================
+// UserPage types
+// Used by: ChatConsultation, RiwayatPemeriksaan, HasilPrediksi, etc.
+// ============================================================
+
+export interface Message {
+  id: string;
+  text: string;
+  sender: "user" | "ai";
+  timestamp: Date;
 }
 
-export interface FilterState {
-    search: string;
-    levels: string[];
-    topics: string[];
-    skills: string[];
-    sort: 'popular' | 'newest' | 'price-low' | 'price-high';
+export interface Prediction {
+  id: string;
+  user_id: number;
+  result_level: "TINGGI" | "RENDAH";
+  result_score: number;
+  input_data: PredictionInput;
+  created_at: string;
+  updated_at?: string;
 }
 
-export type ProficiencyLevel = 'A1 - Beginner' | 'A2 - Elementary' | 'B1 - Intermediate' | 'B2 - Upper Intermediate' | 'C1 - Advanced';
+export interface PredictionInput {
+  age: number | string;
+  gender: string;
+  systolic_bp: number | string;
+  diastolic_bp: number | string;
+  cholesterol: number | string;
+  heart_rate: number | string;
+  weight: number | string;
+  height: number | string;
+  smoking?: string;
+  exercise?: string;
+  medical_history?: string[];
+  symptoms?: string[];
+  alcohol?: string;
+}
 
-export type Topic = 'Business English' | 'Academic Preparation' | 'Travel & Culture' | 'Exam Prep (IELTS/TOEFL)';
+export interface UserProfile {
+  id: number;
+  name: string;
+  email: string;
+  phone_number?: string;
+  gender?: string;
+  address?: string;
+  birth_date?: string;
+  profile_picture?: string;
+  roles?: string[];
+}
 
-export type SkillFocus = 'Grammar' | 'Speaking' | 'Listening' | 'Writing' | 'Vocabulary';
+export type TabType = "info" | "settings" | "security";

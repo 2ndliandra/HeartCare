@@ -16,12 +16,8 @@ import api from "~/lib/api";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
 
-interface Message {
-  id: string;
-  text: string;
-  sender: "user" | "ai";
-  timestamp: Date;
-}
+import type { Message } from "~/types/UserPage/User";
+
 
 export default function ChatConsultation() {
   const [messages, setMessages] = React.useState<Message[]>([]);

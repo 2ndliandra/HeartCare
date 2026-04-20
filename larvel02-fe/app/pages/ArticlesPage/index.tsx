@@ -11,21 +11,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../../lib/api";
 
-interface Article {
-  _id: string;
-  id: string;
-  title: string;
-  slug: string;
-  content: string;
-  raw_content?: string;
-  category: string;
-  thumbnail: string;
-  status: string;
-  created_at: string;
-  author?: {
-    name: string;
-  };
-}
+import type { Article } from "~/types/shared";
 
 export default function ArticlesPage() {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -133,8 +119,8 @@ export default function ArticlesPage() {
             transition={{ delay: 0.2 }}
             className="max-w-2xl mx-auto relative group"
           >
-            <div className="absolute inset-0 bg-primary/5 rounded-[2.5rem] blur-2xl group-focus-within:bg-primary/10 transition-all"></div>
-            <div className="relative flex items-center bg-white border border-slate-200 p-2 rounded-[2rem] shadow-xl shadow-slate-200/50">
+            <div className="absolute inset-0 bg-primary/5 rounded-3xl blur-2xl group-focus-within:bg-primary/10 transition-all"></div>
+            <div className="relative flex items-center bg-white border border-slate-200 p-2 rounded-2xl shadow-xl shadow-slate-200/50">
                 <div className="p-4 text-slate-400">
                     <Search size={24} />
                 </div>
@@ -145,7 +131,7 @@ export default function ArticlesPage() {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
-                <button className="hidden md:block px-8 py-4 bg-primary text-white font-black rounded-[1.5rem] hover:bg-primary/90 transition-all">Cari</button>
+                <button className="hidden md:block px-8 py-4 bg-primary text-white font-black rounded-xl hover:bg-primary/90 transition-all">Cari</button>
             </div>
           </motion.div>
         </div>
@@ -163,7 +149,7 @@ export default function ArticlesPage() {
                     <button
                         key={cat}
                         onClick={() => setActiveCategory(cat)}
-                        className={`whitespace-nowrap px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ${
+                        className={`whitespace-nowrap px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
                             activeCategory === cat 
                             ? "bg-slate-900 text-white shadow-lg" 
                             : "bg-slate-50 text-slate-400 hover:bg-slate-100"
@@ -189,7 +175,7 @@ export default function ArticlesPage() {
                         transition={{ duration: 0.6, ease: "easeInOut" }}
                         className="overflow-hidden"
                     >
-                        <Link to={`/article/${featuredArticle.slug}`} className="group relative block rounded-[3rem] overflow-hidden bg-slate-100 aspect-[21/9]">
+                        <Link to={`/article/${featuredArticle.slug}`} className="group relative block rounded-[2rem] overflow-hidden bg-slate-100 aspect-[21/9]">
                             <img 
                                 src={featuredArticle.thumbnail || "https://images.unsplash.com/photo-1505751172107-160a0f9b5c2a?auto=format&fit=crop&q=80"} 
                                 className="absolute inset-0 w-full h-full object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700" 
@@ -247,11 +233,11 @@ export default function ArticlesPage() {
                         className="group flex flex-col"
                     >
                     <Link to={`/article/${article.slug}`} className="flex flex-col h-full">
-                        <div className="relative aspect-[4/3] rounded-[2.5rem] overflow-hidden mb-8 bg-slate-50 border border-slate-100">
+                        <div className="relative aspect-[4/3] rounded-3xl overflow-hidden mb-8 bg-slate-50 border border-slate-100">
                             {article.thumbnail ? (
                                 <img 
                                     src={article.thumbnail} 
-                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 rounded-[2.5rem]" 
+                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 rounded-3xl" 
                                     alt={article.title}
                                 />
                             ) : (
@@ -279,7 +265,7 @@ export default function ArticlesPage() {
                                     </div>
                                     <span className="text-xs font-bold text-slate-500">{article.author?.name || "Medical Team"}</span>
                                 </div>
-                                <div className="p-2 bg-slate-50 group-hover:bg-primary group-hover:text-white rounded-xl transition-all">
+                                <div className="p-2 bg-slate-50 group-hover:bg-primary group-hover:text-white rounded-lg transition-all">
                                     <ArrowRight size={18} />
                                 </div>
                             </div>
@@ -301,7 +287,7 @@ export default function ArticlesPage() {
 
         {/* Newsletter / CTA */}
         {!searchTerm && (
-            <section className="mt-32 p-10 md:p-20 bg-slate-900 rounded-[3.5rem] relative overflow-hidden">
+            <section className="mt-32 p-10 md:p-20 bg-slate-900 rounded-[2rem] relative overflow-hidden">
                 <div className="absolute bottom-0 right-0 w-1/2 h-full bg-primary/20 blur-[100px]"></div>
                 <div className="grid lg:grid-cols-2 gap-16 items-center relative z-10">
                     <div>

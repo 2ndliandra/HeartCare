@@ -8,9 +8,7 @@ import {
   Download, 
   ChevronRight, 
   TrendingUp,
-  HeartPulse,
-  Eye,
-  FileText
+  HeartPulse
 } from "lucide-react";
 import { 
   XAxis, 

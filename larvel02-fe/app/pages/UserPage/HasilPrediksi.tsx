@@ -15,7 +15,8 @@ import {
   Brain,
   MinusCircle,
   ShieldCheck,
-  AlertCircle
+  AlertCircle,
+  HeartPulse
 } from "lucide-react";
 import { Card } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
@@ -183,7 +184,7 @@ export default function HasilPrediksiPage() {
            </div>
 
            <p className="max-w-2xl mx-auto text-sm md:text-base font-medium opacity-90 leading-relaxed italic">
-              "{getInterpretation(riskLevel)}"
+              &ldquo;{getInterpretation(riskLevel)}&rdquo;
            </p>
         </div>
       </Card>

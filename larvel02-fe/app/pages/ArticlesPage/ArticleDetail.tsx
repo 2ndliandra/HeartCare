@@ -14,17 +14,8 @@ import {
 import { motion } from "motion/react";
 import api from "../../lib/api";
 
-interface Article {
-  id: string;
-  title: string;
-  category: string;
-  content: string;
-  thumbnail: string;
-  created_at: string;
-  author?: {
-    name: string;
-  };
-}
+import type { Article } from "~/types/shared";
+
 
 export default function ArticleDetail() {
   const { slug } = useParams();

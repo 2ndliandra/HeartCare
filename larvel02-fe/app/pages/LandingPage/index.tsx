@@ -20,17 +20,8 @@ import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { ArticleCard } from "~/components/shared/ArticleCard";
 
-interface Article {
-  id: string;
-  title: string;
-  slug: string;
-  content: string;
-  thumbnail: string;
-  created_at: string;
-  status: string;
-  category?: string;
-  author_name?: string;
-}
+import type { Article } from "~/types/shared";
+
 
 export default function LandingPage() {
   const navigate = useNavigate();

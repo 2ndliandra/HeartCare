@@ -1,28 +1,54 @@
-export interface Course {
-    id: number;
-    title: string;
-    instructor: string;
-    level: string;
-    rating: number;
-    reviews: number;
-    duration: string;
-    lessons: number;
-    price: number | 'Free';
-    image: string;
-    tags?: string[];
-    category: string;
+// ============================================================
+// AdminPage types
+// Used by: AdminUsers, AdminArticles, AdminDatasets, AdminDashboard
+// ============================================================
+
+export interface AdminUser {
+  id: number;
+  name: string;
+  email: string;
+  phone_number?: string;
+  roles?: string[];
+  created_at: string;
 }
 
-export interface FilterState {
-    search: string;
-    levels: string[];
-    topics: string[];
-    skills: string[];
-    sort: 'popular' | 'newest' | 'price-low' | 'price-high';
+export interface AdminArticle {
+  _id?: string;
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  category: string;
+  thumbnail: string;
+  status: "published" | "draft";
+  created_at: string;
+  author?: {
+    name: string;
+  };
 }
 
-export type ProficiencyLevel = 'A1 - Beginner' | 'A2 - Elementary' | 'B1 - Intermediate' | 'B2 - Upper Intermediate' | 'C1 - Advanced';
+export interface Dataset {
+  _id?: string;
+  id: string;
+  name: string;
+  description?: string;
+  file_path?: string;
+  row_count?: number;
+  status: "active" | "inactive" | "training";
+  created_at: string;
+}
 
-export type Topic = 'Business English' | 'Academic Preparation' | 'Travel & Culture' | 'Exam Prep (IELTS/TOEFL)';
+export interface DashboardStats {
+  totalUsers: number;
+  totalArticles: number;
+  totalPredictions: number;
+  totalDatasets: number;
+  recentActivity?: ActivityItem[];
+}
 
-export type SkillFocus = 'Grammar' | 'Speaking' | 'Listening' | 'Writing' | 'Vocabulary';
+export interface ActivityItem {
+  id: string;
+  type: string;
+  message: string;
+  created_at: string;
+}

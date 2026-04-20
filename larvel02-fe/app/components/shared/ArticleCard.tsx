@@ -26,9 +26,9 @@ export function ArticleCard({
 }: ArticleCardProps) {
   return (
     <Link
-      to={`/articles/${slug}`}
+      to={`/article/${slug}`}
       className={cn(
-        "group bg-white border border-slate-200 rounded-2xl shadow transition-all duration-200 overflow-hidden block hover:shadow-lg hover:-translate-y-2 hover:border-emerald-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2",
+        "group bg-white border border-slate-200 rounded-xl shadow transition-all duration-200 overflow-hidden block hover:shadow-lg hover:-translate-y-2 hover:border-emerald-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2",
         className
       )}
     >
