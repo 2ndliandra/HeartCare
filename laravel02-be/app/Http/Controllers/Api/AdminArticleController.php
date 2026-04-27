@@ -43,7 +43,8 @@ class AdminArticleController extends Controller
             'raw_content' => 'nullable',
             'category' => 'required|string',
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'status' => 'required|in:draft,published'
+            'status' => 'required|in:draft,published',
+            'author_id' => 'nullable|exists:users,id'
         ]);
 
         if ($validator->fails()) {
@@ -64,7 +65,7 @@ class AdminArticleController extends Controller
             'category' => (string) $request->category,
             'thumbnail' => $thumbnailUrl,
             'status' => $request->status,
-            'author_id' => auth()->id(),
+            'author_id' => $request->author_id ?? auth()->id(),
         ]);
 
         // Invalidate cache
@@ -79,14 +80,15 @@ class AdminArticleController extends Controller
     public function update(Request $request, $id)
     {
         $article = Article::findOrFail($id);
-        
+
         $validator = Validator::make($request->all(), [
             'title' => 'sometimes|string|max:255',
             'content' => 'sometimes',
             'raw_content' => 'sometimes',
             'category' => 'sometimes',
             'thumbnail' => 'sometimes|nullable',
-            'status' => 'sometimes|in:draft,published'
+            'status' => 'sometimes|in:draft,published',
+            'author_id' => 'sometimes|nullable|exists:users,id'
         ]);
 
         if ($validator->fails()) {
@@ -100,16 +102,17 @@ class AdminArticleController extends Controller
         if ($request->has('content')) $article->content = $request->content;
         if ($request->has('raw_content')) $article->raw_content = $request->raw_content;
         if ($request->has('category')) $article->category = (string) $request->category;
-        
+        if ($request->has('author_id')) $article->author_id = $request->author_id;
+
         if ($request->hasFile('thumbnail')) {
             $path = $request->file('thumbnail')->store('articles', 'public');
             $article->thumbnail = url('storage/' . $path);
         } elseif ($request->has('thumbnail') && is_string($request->thumbnail)) {
-             $article->thumbnail = $request->thumbnail;
+            $article->thumbnail = $request->thumbnail;
         }
 
         if ($request->has('status')) $article->status = $request->status;
-        
+
         $article->save();
 
         // Invalidate cache
@@ -135,7 +138,7 @@ class AdminArticleController extends Controller
         if (!$article) {
             return response()->json(['success' => false, 'message' => 'Artikel tidak ditemukan'], 404);
         }
-        
+
         return (new ArticleResource($article))->additional([
             'success' => true
         ]);
@@ -165,11 +168,11 @@ class AdminArticleController extends Controller
         for ($i = 1; $i <= 5; $i++) {
             Cache::forget("articles_list_page_{$i}");
         }
-        
+
         if ($slug) {
             Cache::forget("article_detail_{$slug}");
         }
-        
+
         // Also clear landing page cache if implemented elsewhere
         Cache::forget('latest_articles_home');
     }

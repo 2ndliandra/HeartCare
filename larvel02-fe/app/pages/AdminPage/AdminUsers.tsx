@@ -83,7 +83,7 @@ const UserModal = ({ isOpen, onClose, onSuccess, user }: any) => {
       <motion.div 
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col"
+        className="bg-white w-full max-w-lg rounded-[2.0rem] shadow-2xl overflow-hidden flex flex-col"
       >
         <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
           <div>
@@ -232,7 +232,7 @@ export default function AdminUsers() {
       </div>
 
       {/* Filters & Search */}
-      <Card className="p-4 border-slate-200 shadow-sm rounded-3xl bg-white flex flex-col md:flex-row gap-4">
+      <Card className="p-4 border-slate-200 shadow-sm rounded-[2.0rem] bg-white flex flex-col md:flex-row gap-4">
         <div className="flex-1 relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
           <input 
@@ -249,7 +249,7 @@ export default function AdminUsers() {
       </Card>
 
       {/* Users Table */}
-      <Card className="border-slate-200 shadow-sm rounded-[2.5rem] bg-white overflow-hidden">
+      <Card className="border-slate-200 shadow-sm rounded-[2.0rem] bg-white overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>

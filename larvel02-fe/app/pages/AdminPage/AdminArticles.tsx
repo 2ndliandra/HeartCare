@@ -1,14 +1,14 @@
 // @ts-nocheck
 import * as React from "react";
 import { motion } from "framer-motion";
-import { 
-  FileText, 
-  Search, 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Eye, 
-  ChevronLeft, 
+import {
+  FileText,
+  Search,
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  ChevronLeft,
   ChevronRight,
   Filter,
   X,
@@ -46,9 +46,11 @@ const ArticleModal = ({ isOpen, onClose, onSuccess, article }: any) => {
     title: '',
     category: '',
     thumbnail: '',
-    status: 'published'
+    status: 'published',
+    author_id: ''
   });
   const [categories, setCategories] = React.useState<any[]>([]);
+  const [users, setUsers] = React.useState<any[]>([]);
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
@@ -58,6 +60,7 @@ const ArticleModal = ({ isOpen, onClose, onSuccess, article }: any) => {
     if (isOpen) {
       initEditor();
       fetchCategories();
+      fetchUsers();
     }
     return () => {
       if (editorInstance.current) {
@@ -73,7 +76,8 @@ const ArticleModal = ({ isOpen, onClose, onSuccess, article }: any) => {
         title: article.title || '',
         category: article.category || '',
         thumbnail: article.thumbnail || '',
-        status: article.status || 'published'
+        status: article.status || 'published',
+        author_id: article.author?.id || article.author_id || ''
       });
       setPreviewUrl(article.thumbnail || null);
     } else {
@@ -81,7 +85,8 @@ const ArticleModal = ({ isOpen, onClose, onSuccess, article }: any) => {
         title: '',
         category: '',
         thumbnail: '',
-        status: 'published'
+        status: 'published',
+        author_id: ''
       });
       setPreviewUrl(null);
       setSelectedFile(null);
@@ -110,6 +115,15 @@ const ArticleModal = ({ isOpen, onClose, onSuccess, article }: any) => {
       setCategories(res.data.data);
     } catch (err) {
       console.error('Fetch categories error:', err);
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const res = await api.get('/admin/users');
+      setUsers(res.data.data);
+    } catch (err) {
+      console.error('Fetch users error:', err);
     }
   };
 
@@ -144,6 +158,10 @@ const ArticleModal = ({ isOpen, onClose, onSuccess, article }: any) => {
       data.append('content', htmlContent || '');
       data.append('raw_content', JSON.stringify(savedData));
 
+      if (formData.author_id) {
+        data.append('author_id', formData.author_id);
+      }
+
       if (selectedFile) {
         data.append('thumbnail', selectedFile);
       } else if (formData.thumbnail) {
@@ -173,10 +191,10 @@ const ArticleModal = ({ isOpen, onClose, onSuccess, article }: any) => {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="bg-white w-full max-w-6xl max-h-[92vh] rounded-[3rem] shadow-2xl overflow-hidden flex flex-col"
+        className="bg-white w-full max-w-6xl max-h-[92vh] rounded-[2.0rem] shadow-2xl overflow-hidden flex flex-col"
       >
         <div className="px-10 py-7 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
           <div>
@@ -187,81 +205,93 @@ const ArticleModal = ({ isOpen, onClose, onSuccess, article }: any) => {
         </div>
 
         <div className="flex-1 overflow-y-auto p-10 flex flex-col lg:flex-row gap-12 no-scrollbar">
-           <div className="flex-1 space-y-8">
-              {error && <div className="p-4 bg-rose-50 text-rose-600 text-[10px] font-black uppercase tracking-widest rounded-2xl border border-rose-100">{error}</div>}
-              
+          <div className="flex-1 space-y-8">
+            {error && <div className="p-4 bg-rose-50 text-rose-600 text-[10px] font-black uppercase tracking-widest rounded-2xl border border-rose-100">{error}</div>}
+
+            <div className="space-y-4">
+              <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 ml-1 flex items-center gap-2 italic"> <Type size={14} /> Paper Title </label>
+              <input
+                required
+                className="w-full px-0 py-2 bg-transparent border-b-2 border-slate-100 text-3xl font-black text-slate-900 focus:outline-none focus:border-emerald-600 transition-all placeholder:text-slate-200"
+                placeholder="Ex: Hubungan Diet Garam dengan Hipertensi..."
+                value={formData.title}
+                onChange={e => setFormData({ ...formData, title: e.target.value })}
+              />
+            </div>
+
+            <div className="prose prose-slate max-w-none">
+              <div id="editorjs-admin" className="bg-slate-50/30 p-8 rounded-[2.0rem] border border-slate-100 min-h-[500px]"></div>
+            </div>
+          </div>
+
+          <div className="w-full lg:w-80 space-y-8 shrink-0">
+            <div className="p-8 bg-slate-50 rounded-[2.0rem] border border-slate-100 space-y-8 sticky top-0">
               <div className="space-y-4">
-                <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 ml-1 flex items-center gap-2 italic"> <Type size={14} /> Paper Title </label>
-                <input
-                  required
-                  className="w-full px-0 py-2 bg-transparent border-b-2 border-slate-100 text-3xl font-black text-slate-900 focus:outline-none focus:border-emerald-600 transition-all placeholder:text-slate-200"
-                  placeholder="Ex: Hubungan Diet Garam dengan Hipertensi..."
-                  value={formData.title}
-                  onChange={e => setFormData({ ...formData, title: e.target.value })}
-                />
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2"> <Tag size={14} /> Kategori </label>
+                <select
+                  className="w-full h-12 px-4 bg-white border border-slate-200 rounded-2xl text-xs font-black uppercase tracking-wider outline-none focus:border-emerald-500 appearance-none"
+                  value={formData.category}
+                  onChange={e => setFormData({ ...formData, category: e.target.value })}
+                >
+                  <option value="">Pilih Kategori</option>
+                  {categories.map(cat => <option key={cat.id} value={cat.name}>{cat.name}</option>)}
+                </select>
               </div>
 
-              <div className="prose prose-slate max-w-none">
-                 <div id="editorjs-admin" className="bg-slate-50/30 p-8 rounded-[2rem] border border-slate-100 min-h-[500px]"></div>
+              <div className="space-y-4">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2"> <AlertCircle size={14} /> Status Publikasi </label>
+                <select
+                  className="w-full h-12 px-4 bg-white border border-slate-200 rounded-2xl text-xs font-black uppercase tracking-wider outline-none focus:border-emerald-500 appearance-none"
+                  value={formData.status}
+                  onChange={e => setFormData({ ...formData, status: e.target.value })}
+                >
+                  <option value="draft">Draft (Simpan Internal)</option>
+                  <option value="published">Published (Publikasikan)</option>
+                </select>
               </div>
-           </div>
 
-           <div className="w-full lg:w-80 space-y-8 shrink-0">
-              <div className="p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100 space-y-8 sticky top-0">
-                 <div className="space-y-4">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2"> <Tag size={14} /> Kategori </label>
-                    <select 
-                      className="w-full h-12 px-4 bg-white border border-slate-200 rounded-2xl text-xs font-black uppercase tracking-wider outline-none focus:border-emerald-500 appearance-none"
-                      value={formData.category}
-                      onChange={e => setFormData({ ...formData, category: e.target.value })}
-                    >
-                      <option value="">Pilih Kategori</option>
-                      {categories.map(cat => <option key={cat.id} value={cat.name}>{cat.name}</option>)}
-                    </select>
-                 </div>
+              <div className="space-y-4">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2"> <Search size={14} /> Author </label>
+                <select
+                  className="w-full h-12 px-4 bg-white border border-slate-200 rounded-2xl text-xs font-black uppercase tracking-wider outline-none focus:border-emerald-500 appearance-none"
+                  value={formData.author_id}
+                  onChange={e => setFormData({ ...formData, author_id: e.target.value })}
+                >
+                  <option value="">Default (Anda)</option>
+                  {users.map(user => <option key={user.id} value={user.id}>{user.name}</option>)}
+                </select>
+              </div>
 
-                 <div className="space-y-4">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2"> <AlertCircle size={14} /> Status Publikasi </label>
-                    <select 
-                      className="w-full h-12 px-4 bg-white border border-slate-200 rounded-2xl text-xs font-black uppercase tracking-wider outline-none focus:border-emerald-500 appearance-none"
-                      value={formData.status}
-                      onChange={e => setFormData({ ...formData, status: e.target.value })}
-                    >
-                      <option value="draft">Draft (Simpan Internal)</option>
-                      <option value="published">Published (Publikasikan)</option>
-                    </select>
-                 </div>
-
-                 <div className="space-y-4">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2"> <ImageIcon size={14} /> Thumbnail </label>
-                    <div 
-                      onClick={() => fileInputRef.current?.click()}
-                      className="aspect-video w-full rounded-[1.5rem] border-2 border-dashed border-slate-200 hover:border-emerald-500 bg-white flex flex-col items-center justify-center cursor-pointer overflow-hidden transition-all group"
-                    >
-                      {previewUrl ? (
-                         <img src={previewUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                      ) : (
-                         <div className="flex flex-col items-center text-slate-300">
-                            <Upload className="w-8 h-8 mb-2" />
-                            <span className="text-[10px] font-black uppercase">Click to upload</span>
-                         </div>
-                      )}
-                      <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileChange} accept="image/*" />
+              <div className="space-y-4">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2"> <ImageIcon size={14} /> Thumbnail </label>
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="aspect-video w-full rounded-[1.5rem] border-2 border-dashed border-slate-200 hover:border-emerald-500 bg-white flex flex-col items-center justify-center cursor-pointer overflow-hidden transition-all group"
+                >
+                  {previewUrl ? (
+                    <img src={previewUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                  ) : (
+                    <div className="flex flex-col items-center text-slate-300">
+                      <Upload className="w-8 h-8 mb-2" />
+                      <span className="text-[10px] font-black uppercase">Click to upload</span>
                     </div>
-                 </div>
-
-                 <div className="pt-4 space-y-3">
-                    <Button 
-                      onClick={handleSubmit} 
-                      disabled={loading}
-                      className="w-full h-14 rounded-2xl shadow-xl shadow-emerald-100 font-black text-xs uppercase tracking-[0.2em]"
-                    >
-                      {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (article ? 'Update Artikel' : 'Publish Artikel')}
-                    </Button>
-                    <Button variant="ghost" onClick={onClose} className="w-full h-10 rounded-xl text-slate-400 font-bold text-xs uppercase">Batal</Button>
-                 </div>
+                  )}
+                  <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileChange} accept="image/*" />
+                </div>
               </div>
-           </div>
+
+              <div className="pt-4 space-y-3">
+                <Button
+                  onClick={handleSubmit}
+                  disabled={loading}
+                  className="w-full h-14 rounded-2xl shadow-xl shadow-emerald-100 font-black text-xs uppercase tracking-[0.2em]"
+                >
+                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (article ? 'Update Artikel' : 'Publish Artikel')}
+                </Button>
+                <Button variant="ghost" onClick={onClose} className="w-full h-10 rounded-xl text-slate-400 font-bold text-xs uppercase">Batal</Button>
+              </div>
+            </div>
+          </div>
         </div>
       </motion.div>
     </div>
@@ -322,9 +352,9 @@ export default function AdminArticles() {
       {/* Grid of Articles */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {loading ? (
-           Array.from({ length: 3 }).map((_, i) => (
-             <div key={i} className="h-80 bg-slate-50 rounded-[2.5rem] animate-pulse" />
-           ))
+          Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-80 bg-slate-50 rounded-[2.0rem] animate-pulse" />
+          ))
         ) : articles.length > 0 ? (
           articles.map((article) => (
             <motion.div
@@ -333,61 +363,61 @@ export default function AdminArticles() {
               animate={{ opacity: 1, scale: 1 }}
               className="group"
             >
-              <Card className="rounded-[2.5rem] border-slate-100 overflow-hidden bg-white shadow-sm hover:shadow-2xl transition-all duration-500 flex flex-col h-full relative">
+              <Card className="rounded-[2.0rem] border-slate-100 overflow-hidden bg-white shadow-sm hover:shadow-2xl transition-all duration-500 flex flex-col h-full relative">
                 <div className="h-48 overflow-hidden relative">
-                   <img 
-                    src={article.thumbnail || "https://images.unsplash.com/photo-1505751172107-573225a912bb?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"} 
+                  <img
+                    src={article.thumbnail || "https://images.unsplash.com/photo-1505751172107-573225a912bb?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"}
                     alt={article.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
-                   />
-                   <div className="absolute top-4 left-4">
-                      <Badge className="bg-white/90 backdrop-blur-md rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-900 border-none shadow-lg">
-                        {article.category}
-                      </Badge>
-                   </div>
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  />
+                  <div className="absolute top-4 left-4">
+                    <Badge className="bg-white/90 backdrop-blur-md rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-900 border-none shadow-lg">
+                      {article.category}
+                    </Badge>
+                  </div>
                 </div>
-                
-                <div className="p-8 flex-1 flex flex-col">
-                   <h3 className="text-lg font-black text-slate-900 mb-4 font-display leading-tight group-hover:text-purple-600 transition-colors line-clamp-2">
-                     {article.title}
-                   </h3>
-                   
-                   <div className="flex items-center gap-4 mb-6">
-                      <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
-                         <Clock className="w-3 h-3" /> {new Date(article.created_at).toLocaleDateString('id-ID')}
-                      </div>
-                      <div className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-500 uppercase tracking-tighter">
-                         <CheckCircle2 className="w-3 h-3" /> {article.status}
-                      </div>
-                   </div>
 
-                   <div className="mt-auto pt-6 border-t border-slate-50 flex items-center justify-between">
-                      <div className="flex gap-2">
-                         <Button 
-                           variant="ghost" 
-                           size="icon" 
-                           onClick={() => { setSelectedArticle(article); setIsModalOpen(true); }}
-                           className="w-9 h-9 rounded-xl hover:bg-slate-50 text-slate-400 group-hover:text-slate-600 transition-all"
-                         >
-                            <Edit className="w-4 h-4" />
-                         </Button>
-                         <Button 
-                           variant="ghost" 
-                           size="icon" 
-                           onClick={() => handleDelete(article)}
-                           className="w-9 h-9 rounded-xl hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-all"
-                         >
-                            <Trash2 className="w-4 h-4" />
-                         </Button>
-                      </div>
-                      <Button 
-                        variant="outline" 
-                        onClick={() => window.open(`/article/${article.slug}`, '_blank')}
-                        className="h-9 px-4 rounded-xl border-slate-100 text-[10px] font-black uppercase tracking-widest"
+                <div className="p-8 flex-1 flex flex-col">
+                  <h3 className="text-lg font-black text-slate-900 mb-4 font-display leading-tight group-hover:text-purple-600 transition-colors line-clamp-2">
+                    {article.title}
+                  </h3>
+
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                      <Clock className="w-3 h-3" /> {new Date(article.created_at).toLocaleDateString('id-ID')}
+                    </div>
+                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-500 uppercase tracking-tighter">
+                      <CheckCircle2 className="w-3 h-3" /> {article.status}
+                    </div>
+                  </div>
+
+                  <div className="mt-auto pt-6 border-t border-slate-50 flex items-center justify-between">
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => { setSelectedArticle(article); setIsModalOpen(true); }}
+                        className="w-9 h-9 rounded-xl hover:bg-slate-50 text-slate-400 group-hover:text-slate-600 transition-all"
                       >
-                         Preview <Eye className="w-3.5 h-3.5 ml-2" />
+                        <Edit className="w-4 h-4" />
                       </Button>
-                   </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(article)}
+                        className="w-9 h-9 rounded-xl hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-all"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={() => window.open(`/article/${article.slug}`, '_blank')}
+                      className="h-9 px-4 rounded-xl border-slate-100 text-[10px] font-black uppercase tracking-widest"
+                    >
+                      Preview <Eye className="w-3.5 h-3.5 ml-2" />
+                    </Button>
+                  </div>
                 </div>
               </Card>
             </motion.div>
@@ -402,38 +432,38 @@ export default function AdminArticles() {
       {/* Pagination */}
       {pagination && pagination.last_page > 1 && (
         <div className="flex items-center justify-center gap-4 pt-12">
-            <Button 
-              disabled={page === 1}
-              onClick={() => setPage(page - 1)}
-              variant="outline" className="rounded-2xl h-12 w-12 p-0 border-slate-100 shadow-sm"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </Button>
-            <div className="flex items-center gap-2">
-               {Array.from({ length: pagination.last_page }, (_, i) => i + 1).map(p => (
-                 <button 
-                   key={p}
-                   onClick={() => setPage(p)}
-                   className={cn(
-                     "w-12 h-12 rounded-2xl text-sm font-black transition-all",
-                     page === p ? "bg-purple-600 text-white shadow-xl shadow-purple-200 scale-110" : "text-slate-400 hover:bg-white hover:shadow-md border border-transparent hover:border-slate-100"
-                   )}
-                 >
-                   {p}
-                 </button>
-               ))}
-            </div>
-            <Button 
-               disabled={page === pagination.last_page}
-               onClick={() => setPage(page + 1)}
-               variant="outline" className="rounded-2xl h-12 w-12 p-0 border-slate-100 shadow-sm"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </Button>
+          <Button
+            disabled={page === 1}
+            onClick={() => setPage(page - 1)}
+            variant="outline" className="rounded-2xl h-12 w-12 p-0 border-slate-100 shadow-sm"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </Button>
+          <div className="flex items-center gap-2">
+            {Array.from({ length: pagination.last_page }, (_, i) => i + 1).map(p => (
+              <button
+                key={p}
+                onClick={() => setPage(p)}
+                className={cn(
+                  "w-12 h-12 rounded-2xl text-sm font-black transition-all",
+                  page === p ? "bg-purple-600 text-white shadow-xl shadow-purple-200 scale-110" : "text-slate-400 hover:bg-white hover:shadow-md border border-transparent hover:border-slate-100"
+                )}
+              >
+                {p}
+              </button>
+            ))}
+          </div>
+          <Button
+            disabled={page === pagination.last_page}
+            onClick={() => setPage(page + 1)}
+            variant="outline" className="rounded-2xl h-12 w-12 p-0 border-slate-100 shadow-sm"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </Button>
         </div>
       )}
 
-      <ArticleModal 
+      <ArticleModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSuccess={() => fetchArticles(page)}

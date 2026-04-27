@@ -104,7 +104,7 @@ export default function HistoryPage() {
       </div>
 
       {/* Trend Chart Card */}
-      <Card className="p-8 border-slate-200 shadow-sm rounded-3xl overflow-hidden">
+      <Card className="p-8 border-slate-200 shadow-sm rounded-[2.0rem] overflow-hidden">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-600">
@@ -207,7 +207,7 @@ export default function HistoryPage() {
                         } 
                       })}
                     >
-                      <Card className="p-6 border-slate-200 hover:border-emerald-200 hover:shadow-md transition-all cursor-pointer group rounded-3xl bg-white">
+                      <Card className="p-6 border-slate-200 hover:border-emerald-200 hover:shadow-md transition-all cursor-pointer group rounded-[2.0rem] bg-white">
                         <div className="flex items-center gap-6">
                           {/* Date Badge */}
                           <div className="w-16 h-16 bg-slate-50 border border-slate-100 rounded-2xl flex flex-col items-center justify-center shrink-0">
@@ -251,7 +251,7 @@ export default function HistoryPage() {
             </div>
           ))
         ) : (
-          <div className="py-20 flex flex-col items-center justify-center bg-white border border-dashed border-slate-300 rounded-[2.5rem]">
+          <div className="py-20 flex flex-col items-center justify-center bg-white border border-dashed border-slate-300 rounded-[2.0rem]">
             <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mb-4">
               <History className="w-10 h-10" />
             </div>

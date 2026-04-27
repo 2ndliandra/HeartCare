@@ -37,7 +37,7 @@ const StatCard = ({ title, value, icon: Icon, trend, colorClass, delay = 0 }: an
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.4, delay }}
   >
-    <Card className="p-6 border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group rounded-[2rem] bg-white overflow-hidden relative">
+    <Card className="p-6 border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group rounded-[2.0rem] bg-white overflow-hidden relative">
       <div className={cn("absolute top-0 right-0 w-24 h-24 rounded-full -mr-12 -mt-12 opacity-[0.03]", colorClass)} />
       
       <div className="flex items-center justify-between mb-4">
@@ -164,7 +164,7 @@ export default function AdminDashboard() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.5 }}
         >
-          <Card className="p-8 border-slate-200 shadow-sm rounded-[2.5rem] bg-white h-[400px] flex flex-col">
+          <Card className="p-8 border-slate-200 shadow-sm rounded-[2.0rem] bg-white h-[400px] flex flex-col">
             <div className="flex items-center justify-between mb-8">
               <div>
                 <h3 className="text-lg font-black text-slate-900 font-display">Pertumbuhan Pengguna</h3>
@@ -221,7 +221,7 @@ export default function AdminDashboard() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.6 }}
         >
-          <Card className="p-8 border-slate-200 shadow-sm rounded-[2.5rem] bg-white h-[400px] flex flex-col">
+          <Card className="p-8 border-slate-200 shadow-sm rounded-[2.0rem] bg-white h-[400px] flex flex-col">
             <h3 className="text-lg font-black text-slate-900 font-display mb-8">Hasil Prediksi Terbaru</h3>
             <div className="flex-1 w-full">
               <ResponsiveContainer width="100%" height="100%">
@@ -265,7 +265,7 @@ export default function AdminDashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7 }}
         >
-          <Card className="p-8 border-slate-200 shadow-sm rounded-[2.5rem] bg-white overflow-hidden relative">
+          <Card className="p-8 border-slate-200 shadow-sm rounded-[2.0rem] bg-white overflow-hidden relative">
             <div className="flex items-center justify-between mb-8">
               <h3 className="text-lg font-black text-slate-900 font-display">System Activities</h3>
               <ArrowUpRight className="w-5 h-5 text-slate-300" />
@@ -304,7 +304,7 @@ export default function AdminDashboard() {
            animate={{ opacity: 1, y: 0 }}
            transition={{ delay: 0.8 }}
         >
-           <Card className="p-8 border-none bg-slate-900 text-white rounded-[2.5rem] shadow-xl h-full flex flex-col justify-between group overflow-hidden relative">
+           <Card className="p-8 border-none bg-slate-900 text-white rounded-[2.0rem] shadow-xl h-full flex flex-col justify-between group overflow-hidden relative">
               <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full -mr-32 -mt-32 blur-3xl transition-transform duration-700 group-hover:scale-110" />
               
               <div>

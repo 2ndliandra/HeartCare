@@ -140,7 +140,7 @@ export default function ChatConsultation() {
     <div className="h-full flex flex-col bg-white">
       <div className="p-8 space-y-8 overflow-y-auto flex-1 no-scrollbar">
         {/* AI Brand Card */}
-        <div className="relative group p-6 rounded-[2rem] bg-gradient-to-br from-emerald-500 to-emerald-700 text-white shadow-xl shadow-emerald-100 overflow-hidden">
+        <div className="relative group p-6 rounded-[2.0rem] bg-gradient-to-br from-emerald-500 to-emerald-700 text-white shadow-xl shadow-emerald-100 overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
           <Bot className="w-12 h-12 text-emerald-100 mb-4" />
           <h3 className="text-xl font-black font-display mb-1 flex items-center gap-2">
@@ -174,7 +174,7 @@ export default function ChatConsultation() {
         </div>
 
         {/* Healthcare Tips Card */}
-        <div className="p-6 rounded-[2rem] bg-blue-50 border border-blue-100 relative group overflow-hidden">
+        <div className="p-6 rounded-[2.0rem] bg-blue-50 border border-blue-100 relative group overflow-hidden">
           <div className="absolute -top-4 -right-4 w-16 h-16 bg-blue-100/50 rounded-full blur-xl" />
           <Lightbulb className="w-8 h-8 text-blue-500 mb-3" />
           <h5 className="text-sm font-black text-slate-900 mb-2">Tips Kardiovaskular</h5>
@@ -232,7 +232,7 @@ export default function ChatConsultation() {
                 >
                   <div className="relative">
                     <div className="absolute inset-0 bg-emerald-200 rounded-full blur-3xl opacity-30 animate-pulse" />
-                    <div className="relative w-32 h-32 bg-white rounded-[3rem] shadow-2xl flex items-center justify-center border-8 border-emerald-50 ring-1 ring-emerald-100">
+                    <div className="relative w-32 h-32 bg-white rounded-[2.0rem] shadow-2xl flex items-center justify-center border-8 border-emerald-50 ring-1 ring-emerald-100">
                       <Bot className="w-16 h-16 text-emerald-600" />
                     </div>
                   </div>

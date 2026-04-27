@@ -130,7 +130,7 @@ export default function Register() {
           <img 
             src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
             alt="Register Illustration" 
-            className="w-full h-auto rounded-3xl shadow-2xl mb-12 border-4 border-emerald-500/30"
+            className="w-full h-auto rounded-[2.0rem] shadow-2xl mb-12 border-4 border-emerald-500/30"
           />
 
           <div className="text-center">
@@ -158,7 +158,7 @@ export default function Register() {
             <span className="text-2xl font-bold text-slate-900 font-display">HeartPredict</span>
           </div>
 
-          <Card className="p-8 sm:p-10 border-slate-200 shadow-xl rounded-3xl bg-white">
+          <Card className="p-8 sm:p-10 border-slate-200 shadow-xl rounded-[2.0rem] bg-white">
             <div className="mb-8">
               <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2 font-display">Daftar HeartPredict</h1>
               <p className="text-slate-500 text-sm">Buat akun baru dan mulai prediksi kesehatan jantung Anda.</p>

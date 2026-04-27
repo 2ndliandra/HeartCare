@@ -163,7 +163,7 @@ export default function HasilPrediksiPage() {
 
       {/* Main Analysis Card */}
       <Card className={cn(
-        "p-12 mb-8 border-none shadow-2xl rounded-[3rem] relative overflow-hidden flex flex-col items-center justify-center text-center transition-all duration-500",
+        "p-12 mb-8 border-none shadow-2xl rounded-[2.0rem] relative overflow-hidden flex flex-col items-center justify-center text-center transition-all duration-500",
         riskLevel === "RENDAH" ? "bg-gradient-to-br from-emerald-500 to-emerald-600 text-white" : 
         "bg-gradient-to-br from-rose-500 to-rose-600 text-white"
       )}>
@@ -172,7 +172,7 @@ export default function HasilPrediksiPage() {
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/10 rounded-full -ml-24 -mb-24 blur-2xl opacity-20" />
         
         <div className="relative z-10 space-y-6">
-           <div className="w-24 h-24 bg-white/20 backdrop-blur-md rounded-3xl flex items-center justify-center mx-auto shadow-inner border border-white/30">
+           <div className="w-24 h-24 bg-white/20 backdrop-blur-md rounded-[2.0rem] flex items-center justify-center mx-auto shadow-inner border border-white/30">
               {riskLevel === "RENDAH" ? <ShieldCheck className="w-12 h-12" /> : <AlertCircle className="w-12 h-12" />}
            </div>
            

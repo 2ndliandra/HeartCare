@@ -27,7 +27,7 @@ const StatCard = ({ title, value, icon: Icon, trend, colorClass, delay = 0 }: an
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.4, delay }}
   >
-    <Card className="p-6 border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group rounded-[2rem] bg-white overflow-hidden relative">
+    <Card className="p-6 border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group rounded-[2.0rem] bg-white overflow-hidden relative">
       <div className={cn("absolute top-0 right-0 w-24 h-24 rounded-full -mr-12 -mt-12 opacity-[0.03]", colorClass)} />
       
       <div className="flex items-center justify-between mb-4">
@@ -122,7 +122,7 @@ export default function UserDashboard() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.5 }}
         >
-          <Card className="p-8 border-slate-200 shadow-sm rounded-[2.5rem] bg-white h-full flex flex-col relative overflow-hidden">
+          <Card className="p-8 border-slate-200 shadow-sm rounded-[2.0rem] bg-white h-full flex flex-col relative overflow-hidden">
             <div className="absolute top-0 left-0 w-2 h-full bg-emerald-500" />
             
             <div className="flex items-center justify-between mb-8">
@@ -167,7 +167,7 @@ export default function UserDashboard() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.6 }}
         >
-          <Card className="p-8 border-slate-200 shadow-sm rounded-[2.5rem] bg-white h-full flex flex-col">
+          <Card className="p-8 border-slate-200 shadow-sm rounded-[2.0rem] bg-white h-full flex flex-col">
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-xl font-black text-slate-900 font-display">Konsultasi Terakhir</h2>
               <Link to="/user/konsultasi" className="text-xs font-black text-emerald-600 uppercase tracking-widest hover:underline px-3 py-1 bg-emerald-50 rounded-lg transition-all">
@@ -181,7 +181,7 @@ export default function UserDashboard() {
                   <motion.div 
                     key={chat.id || idx}
                     whileHover={{ x: 4 }}
-                    className="p-4 rounded-3xl border border-slate-50 hover:border-emerald-100 bg-slate-50/50 hover:bg-white transition-all cursor-pointer flex gap-4 items-start"
+                    className="p-4 rounded-[2.0rem] border border-slate-50 hover:border-emerald-100 bg-slate-50/50 hover:bg-white transition-all cursor-pointer flex gap-4 items-start"
                   >
                     <div className="w-10 h-10 rounded-2xl bg-white shadow-sm flex items-center justify-center text-emerald-600 shrink-0">
                       <MessageSquare className="w-5 h-5" />
@@ -221,12 +221,12 @@ export default function UserDashboard() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.7 }}
       >
-        <Card className="p-8 border-none bg-gradient-to-br from-emerald-600 to-emerald-700 text-white rounded-[2.5rem] shadow-xl relative overflow-hidden group">
+        <Card className="p-8 border-none bg-gradient-to-br from-emerald-600 to-emerald-700 text-white rounded-[2.0rem] shadow-xl relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 transition-transform duration-700 group-hover:scale-125" />
           <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full -ml-16 -mb-16" />
           
           <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
-            <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-3xl flex items-center justify-center shrink-0 shadow-lg">
+            <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-[2.0rem] flex items-center justify-center shrink-0 shadow-lg">
               <Lightbulb className="w-10 h-10 text-white" />
             </div>
             <div className="flex-1 text-center md:text-left">

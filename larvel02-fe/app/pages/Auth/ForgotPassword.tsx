@@ -8,7 +8,7 @@ import {
   ArrowLeft, 
   Send, 
   CheckCircle, 
-  ExternalLink, 
+  KeyRound,
   RefreshCw,
   AlertCircle,
   Loader2
@@ -21,11 +21,13 @@ import { cn } from "~/lib/utils";
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
-  const [step, setStep] = React.useState<1 | 2>(1); // 1: Input Email, 2: Success/Sent
+  const [step, setStep] = React.useState<1 | 2 | 3>(1); // 1: Input Email, 2: Input OTP, 3: Success
   const [email, setEmail] = React.useState("");
+  const [otp, setOtp] = React.useState(["", "", "", "", "", ""]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [cooldown, setCooldown] = React.useState(0);
+  const otpRefs = React.useRef<(HTMLInputElement | null)[]>([]);
 
   React.useEffect(() => {
     let timer: any;
@@ -47,6 +49,8 @@ export default function ForgotPassword() {
       if (res.success) {
         setStep(2);
         setCooldown(60);
+        // Focus on first OTP input after transition
+        setTimeout(() => otpRefs.current[0]?.focus(), 400);
       } else {
         setError(res.message || "Gagal mengirim email reset.");
       }
@@ -57,6 +61,69 @@ export default function ForgotPassword() {
       setLoading(false);
     }
   };
+
+  const handleOtpChange = (index: number, value: string) => {
+    if (!/^\d*$/.test(value)) return; // Only allow digits
+    
+    const newOtp = [...otp];
+    newOtp[index] = value.slice(-1); // Only keep last digit
+    setOtp(newOtp);
+
+    // Auto-focus next input
+    if (value && index < 5) {
+      otpRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      otpRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (pastedData.length === 6) {
+      const newOtp = pastedData.split("");
+      setOtp(newOtp);
+      otpRefs.current[5]?.focus();
+    }
+  };
+
+  const handleVerifyOtp = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const otpValue = otp.join("");
+    if (otpValue.length !== 6) {
+      setError("Masukkan kode OTP 6 digit.");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await authService.verifyToken({ email, token: otpValue });
+      if (res.success) {
+        // Navigate to reset password page with email and token
+        navigate(`/reset-password?token=${otpValue}&email=${encodeURIComponent(email)}`);
+      } else {
+        setError(res.message || "Kode OTP tidak valid.");
+      }
+    } catch (err: any) {
+      console.error("Verify OTP error:", err);
+      setError(err.response?.data?.message || "Kode OTP tidak valid atau sudah kedaluwarsa.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Auto-submit when all 6 digits are filled
+  React.useEffect(() => {
+    if (step === 2 && otp.every(d => d !== "")) {
+      handleVerifyOtp();
+    }
+  }, [otp, step]);
 
   return (
     <div className="min-h-screen bg-slate-50 grid grid-cols-1 lg:grid-cols-2 font-sans overflow-hidden">
@@ -81,7 +148,7 @@ export default function ForgotPassword() {
           <img 
             src="https://images.unsplash.com/photo-1581056316614-4235218d6ee9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
             alt="Forgot Password Illustration" 
-            className="w-full h-auto rounded-3xl shadow-2xl mb-12 border-4 border-emerald-500/30"
+            className="w-full h-auto rounded-[2.0rem] shadow-2xl mb-12 border-4 border-emerald-500/30"
           />
 
           <div className="text-center">
@@ -109,9 +176,9 @@ export default function ForgotPassword() {
             <span className="text-2xl font-bold text-slate-900 font-display">HeartPredict</span>
           </div>
 
-          <Card className="p-8 sm:p-10 border-slate-200 shadow-xl rounded-3xl bg-white overflow-hidden">
+          <Card className="p-8 sm:p-10 border-slate-200 shadow-xl rounded-[2.0rem] bg-white overflow-hidden">
             <AnimatePresence mode="wait">
-              {step === 1 ? (
+              {step === 1 && (
                 <motion.div
                   key="form"
                   initial={{ opacity: 0, x: -20 }}
@@ -123,7 +190,7 @@ export default function ForgotPassword() {
                   
                   <div className="text-center mb-8">
                     <h1 className="text-2xl font-bold text-slate-900 mb-2 font-display">Lupa Password?</h1>
-                    <p className="text-slate-500 text-sm">Masukkan email Anda dan kami akan mengirimkan link untuk mereset password.</p>
+                    <p className="text-slate-500 text-sm">Masukkan email Anda dan kami akan mengirimkan kode OTP untuk mereset password.</p>
                   </div>
 
                   {error && (
@@ -159,7 +226,7 @@ export default function ForgotPassword() {
                         </>
                       ) : (
                         <>
-                          Kirim Link Reset <Send className="w-4 h-4 ml-2" />
+                          Kirim Kode OTP <Send className="w-4 h-4 ml-2" />
                         </>
                       )}
                     </Button>
@@ -174,33 +241,75 @@ export default function ForgotPassword() {
                     </div>
                   </form>
                 </motion.div>
-              ) : (
+              )}
+
+              {step === 2 && (
                 <motion.div
-                  key="success"
+                  key="otp"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.3 }}
                   className="text-center"
                 >
-                  <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6 text-emerald-600 shadow-inner">
-                    <CheckCircle className="w-10 h-10" />
-                  </div>
+                  <KeyRound className="w-16 h-16 text-emerald-600 mx-auto mb-6 opacity-80" />
                   
-                  <h1 className="text-2xl font-bold text-slate-900 mb-2 font-display">Email Terkirim!</h1>
+                  <h1 className="text-2xl font-bold text-slate-900 mb-2 font-display">Masukkan Kode OTP</h1>
                   <p className="text-slate-500 text-sm mb-8 leading-relaxed px-2">
-                    Kami telah mengirimkan instruksi reset password ke <span className="text-slate-900 font-bold">{email}</span>. Silakan cek inbox atau folder spam Anda.
+                    Kami telah mengirimkan kode 6 digit ke <span className="text-slate-900 font-bold">{email}</span>. Cek inbox atau folder spam Anda.
                   </p>
 
-                  <div className="space-y-3">
+                  {error && (
+                    <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg mb-6 flex items-start gap-3 text-left">
+                      <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
+                      <p className="text-xs font-semibold text-red-700 leading-normal">{error}</p>
+                    </div>
+                  )}
+
+                  {/* OTP Input */}
+                  <form onSubmit={handleVerifyOtp}>
+                    <div className="flex justify-center gap-3 mb-8" onPaste={handleOtpPaste}>
+                      {otp.map((digit, index) => (
+                        <input
+                          key={index}
+                          ref={(el) => { otpRefs.current[index] = el; }}
+                          type="text"
+                          inputMode="numeric"
+                          maxLength={1}
+                          value={digit}
+                          onChange={(e) => handleOtpChange(index, e.target.value)}
+                          onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                          className={cn(
+                            "w-12 h-14 text-center text-xl font-black rounded-xl border-2 outline-none transition-all",
+                            digit 
+                              ? "border-emerald-500 bg-emerald-50 text-emerald-700" 
+                              : "border-slate-200 bg-slate-50 text-slate-900",
+                            "focus:border-emerald-600 focus:ring-4 focus:ring-emerald-500/10"
+                          )}
+                        />
+                      ))}
+                    </div>
+
                     <Button 
-                      variant="outline" 
-                      className="w-full h-12 rounded-xl border-slate-200"
-                      onClick={() => navigate(`/reset-password?token=dummy-token-123&email=${email}`)}
+                      type="submit" 
+                      size="lg" 
+                      className="w-full h-12 font-bold rounded-xl shadow-lg shadow-emerald-200 transition-all hover:scale-[1.02] mb-4"
+                      disabled={loading || otp.join("").length !== 6}
                     >
-                      Buka Email <ExternalLink className="w-4 h-4 ml-2" />
+                      {loading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Memverifikasi...
+                        </>
+                      ) : (
+                        <>
+                          Verifikasi Kode <CheckCircle className="w-4 h-4 ml-2" />
+                        </>
+                      )}
                     </Button>
-                    
+                  </form>
+
+                  <div className="space-y-3">
                     <Button 
                       variant="ghost" 
                       className="w-full h-12 rounded-xl text-slate-600"
@@ -212,7 +321,7 @@ export default function ForgotPassword() {
                       ) : (
                         <>
                           <RefreshCw className={cn("w-4 h-4 mr-2", loading && "animate-spin")} />
-                          Kirim Ulang Email
+                          Kirim Ulang Kode
                         </>
                       )}
                     </Button>
@@ -220,12 +329,12 @@ export default function ForgotPassword() {
 
                   <hr className="my-8 border-slate-100" />
 
-                  <Link 
-                    to="/login" 
+                  <button 
+                    onClick={() => { setStep(1); setError(null); setOtp(["", "", "", "", "", ""]); }}
                     className="text-sm font-bold text-emerald-600 hover:underline"
                   >
-                    Kembali ke halaman login
-                  </Link>
+                    Ganti email
+                  </button>
                 </motion.div>
               )}
             </AnimatePresence>

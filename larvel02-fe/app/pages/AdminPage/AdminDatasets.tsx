@@ -69,7 +69,7 @@ const TrainingModal = ({ isOpen, onClose, dataset }: any) => {
       <motion.div 
         initial={{ opacity: 0, scale: 0.9, y: 30 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-[3rem] shadow-2xl overflow-hidden flex flex-col text-white"
+        className="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-[2.0rem] shadow-2xl overflow-hidden flex flex-col text-white"
       >
         <div className="p-8 border-b border-slate-800 flex items-center justify-between bg-slate-900/50">
            <div className="flex items-center gap-4">
@@ -87,7 +87,7 @@ const TrainingModal = ({ isOpen, onClose, dataset }: any) => {
         <div className="p-10">
           {step === 1 && (
              <div className="space-y-8">
-                <div className="p-6 rounded-[2rem] bg-slate-800/50 border border-slate-800">
+                <div className="p-6 rounded-[2.0rem] bg-slate-800/50 border border-slate-800">
                    <h4 className="text-sm font-black uppercase tracking-widest text-emerald-400 mb-4">Parameter Konfigurasi</h4>
                    <div className="grid grid-cols-2 gap-6">
                       <div className="space-y-2">
@@ -101,7 +101,7 @@ const TrainingModal = ({ isOpen, onClose, dataset }: any) => {
                    </div>
                 </div>
                 
-                <div className="flex items-start gap-4 p-4 rounded-3xl bg-amber-500/5 border border-amber-500/20">
+                <div className="flex items-start gap-4 p-4 rounded-[2.0rem] bg-amber-500/5 border border-amber-500/20">
                    <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
                    <p className="text-xs text-amber-200/70 leading-relaxed font-medium">
                      Training model memerlukan resource komputasi tinggi. Pastikan dataset sudah divalidasi sebelum memulai proses.
@@ -142,7 +142,7 @@ const TrainingModal = ({ isOpen, onClose, dataset }: any) => {
 
           {step === 3 && (
              <div className="text-center py-8 space-y-6">
-                <div className="w-20 h-20 bg-emerald-500 rounded-[2rem] flex items-center justify-center mx-auto shadow-2xl shadow-emerald-500/20 animate-bounce">
+                <div className="w-20 h-20 bg-emerald-500 rounded-[2.0rem] flex items-center justify-center mx-auto shadow-2xl shadow-emerald-500/20 animate-bounce">
                    <CheckCircle2 className="w-10 h-10 text-white" />
                 </div>
                 <div>
@@ -239,7 +239,7 @@ export default function AdminDatasets() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((item, i) => (
-          <Card key={i} className="p-6 border-slate-200 rounded-[2rem] bg-white group hover:shadow-md transition-all">
+          <Card key={i} className="p-6 border-slate-200 rounded-[2.0rem] bg-white group hover:shadow-md transition-all">
              <div className="flex items-center gap-4">
                 <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-inner", item.bgClass)}>
                    <item.icon className={cn("w-6 h-6", item.colorClass)} />
@@ -254,7 +254,7 @@ export default function AdminDatasets() {
       </div>
 
       {/* Dataset Table */}
-      <Card className="border-slate-200 shadow-sm rounded-[2.5rem] bg-white overflow-hidden">
+      <Card className="border-slate-200 shadow-sm rounded-[2.0rem] bg-white overflow-hidden">
         <div className="p-8 border-b border-slate-100 flex items-center justify-between">
            <h3 className="text-lg font-black text-slate-900 font-display uppercase tracking-tight">Dataset Inventory</h3>
            <div className="relative w-64 lg:w-80">

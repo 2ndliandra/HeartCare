@@ -83,7 +83,7 @@ export default function RekomendasiMedis() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <Card className="border-none bg-gradient-to-br from-indigo-900 via-slate-900 to-black text-white rounded-[3rem] shadow-2xl overflow-hidden relative">
+        <Card className="border-none bg-gradient-to-br from-indigo-900 via-slate-900 to-black text-white rounded-[2.0rem] shadow-2xl overflow-hidden relative">
           <div className="absolute top-0 right-0 w-full h-full bg-[url('https://images.unsplash.com/photo-1576091160550-217359f4ecf8?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80')] bg-cover bg-center opacity-20" />
           <div className="absolute inset-0 bg-gradient-to-r from-slate-900/90 to-transparent" />
           
@@ -106,7 +106,7 @@ export default function RekomendasiMedis() {
               </div>
             </div>
             
-            <div className="w-full md:w-72 aspect-square bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2.5rem] flex flex-col items-center justify-center p-8 text-center gap-4">
+            <div className="w-full md:w-72 aspect-square bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2.0rem] flex flex-col items-center justify-center p-8 text-center gap-4">
               <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center shadow-inner">
                 <Stethoscope size={40} className="text-emerald-400" />
               </div>
@@ -141,7 +141,7 @@ export default function RekomendasiMedis() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 * idx }}
             >
-              <Card className="p-8 border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 rounded-[2rem] bg-white h-full flex flex-col group">
+              <Card className="p-8 border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 rounded-[2.0rem] bg-white h-full flex flex-col group">
                 <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center mb-6 shadow-inner", item.colorClass.split(' ')[0])}>
                   <item.icon className={cn("w-7 h-7", item.colorClass.split(' ')[1])} />
                 </div>
@@ -173,7 +173,7 @@ export default function RekomendasiMedis() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {loading ? (
              Array.from({ length: 3 }).map((_, i) => (
-               <div key={i} className="bg-slate-50 h-80 rounded-[2.5rem] animate-pulse" />
+               <div key={i} className="bg-slate-50 h-80 rounded-[2.0rem] animate-pulse" />
              ))
           ) : (
             articles.map((article, idx) => (
@@ -183,7 +183,7 @@ export default function RekomendasiMedis() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.1 * idx }}
               >
-                <Card className="rounded-[2.5rem] border-slate-100 overflow-hidden bg-white shadow-sm hover:shadow-2xl transition-all duration-500 flex flex-col group h-full">
+                <Card className="rounded-[2.0rem] border-slate-100 overflow-hidden bg-white shadow-sm hover:shadow-2xl transition-all duration-500 flex flex-col group h-full">
                   <div className="h-52 overflow-hidden relative">
                     <img 
                       src={article.thumbnail || "https://images.unsplash.com/photo-1505751172107-573225a912bb?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"} 
@@ -223,8 +223,8 @@ export default function RekomendasiMedis() {
         animate={{ opacity: 1 }}
         transition={{ delay: 1 }}
       >
-        <div className="p-8 rounded-[2.5rem] bg-indigo-50/50 border border-indigo-100 flex items-start sm:items-center gap-6">
-          <div className="w-14 h-14 bg-indigo-100 rounded-3xl flex items-center justify-center text-indigo-600 shrink-0 shadow-inner">
+        <div className="p-8 rounded-[2.0rem] bg-indigo-50/50 border border-indigo-100 flex items-start sm:items-center gap-6">
+          <div className="w-14 h-14 bg-indigo-100 rounded-[2.0rem] flex items-center justify-center text-indigo-600 shrink-0 shadow-inner">
             <ShieldCheck className="w-7 h-7" />
           </div>
           <div>

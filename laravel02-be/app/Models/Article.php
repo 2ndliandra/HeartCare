@@ -9,6 +9,8 @@ class Article extends Model
 {
     use HasFactory;
 
+    #scope modifier protected
+
     protected $connection = 'mongodb';
     protected $collection = 'articles';
 

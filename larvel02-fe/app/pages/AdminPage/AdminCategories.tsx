@@ -76,7 +76,7 @@ export default function AdminCategories() {
         </Button>
       </div>
 
-      <Card className="border-slate-200 shadow-sm rounded-[2.5rem] bg-white overflow-hidden">
+      <Card className="border-slate-200 shadow-sm rounded-[2.0rem] bg-white overflow-hidden">
         <div className="p-8 border-b border-slate-100">
            <div className="relative w-full">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
@@ -136,7 +136,7 @@ export default function AdminCategories() {
            <motion.div 
              initial={{ opacity: 0, scale: 0.95, y: 20 }}
              animate={{ opacity: 1, scale: 1, y: 0 }}
-             className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden"
+             className="bg-white w-full max-w-md rounded-[2.0rem] shadow-2xl overflow-hidden"
            >
               <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between">
                  <h3 className="font-black text-slate-900 font-display uppercase tracking-tight">{selectedCategory ? 'Edit Kategori' : 'Kategori Baru'}</h3>

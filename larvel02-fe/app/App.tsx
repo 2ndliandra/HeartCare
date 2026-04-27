@@ -52,6 +52,7 @@ function App() {
                         <Route path="/admin/articles" element={<AdminArticles />} />
                         <Route path="/admin/categories" element={<AdminCategories />} />
                         <Route path="/admin/datasets" element={<AdminDatasets />} />
+                        <Route path="/admin/profile" element={<ProfilePage />} />
                     </Route>
                 </Route>
                 <Route element={<ProtectedRoute allowedRoles={['user']} />}>

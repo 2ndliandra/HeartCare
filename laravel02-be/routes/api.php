@@ -40,7 +40,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::get('/chats', [AiController::class, 'index']);
     Route::post('/chat', [AiController::class, 'chat']);
+    Route::get('/profile', [ProfileController::class, 'show']);
     Route::post('/profile', [ProfileController::class, 'update']);
+    Route::delete('/profile', [ProfileController::class, 'destroy']);
     Route::get('/predictions', [PredictionController::class, 'index']);
     Route::post('/predict', [PredictionController::class, 'predict']);
 

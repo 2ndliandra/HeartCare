@@ -118,7 +118,7 @@ export default function ArticleDetail() {
                initial={{ opacity: 0, scale: 0.95 }}
                animate={{ opacity: 1, scale: 1 }}
                transition={{ duration: 0.8, delay: 0.2 }}
-               className="aspect-video rounded-[3rem] overflow-hidden shadow-2xl shadow-primary/10"
+               className="aspect-video rounded-[2.0rem] overflow-hidden shadow-2xl shadow-primary/10"
             >
                 <img src={article.thumbnail} alt={article.title} className="w-full h-full object-cover" />
             </motion.div>
@@ -127,7 +127,7 @@ export default function ArticleDetail() {
 
       {/* Article Content */}
       <main className="max-w-4xl mx-auto px-6 mb-32">
-        <article className="prose prose-slate prose-lg md:prose-xl max-w-none prose-headings:font-black prose-headings:tracking-tight prose-a:text-primary prose-img:rounded-[2rem] prose-strong:text-slate-900 prose-p:leading-relaxed prose-p:text-slate-600">
+        <article className="prose prose-slate prose-lg md:prose-xl max-w-none prose-headings:font-black prose-headings:tracking-tight prose-a:text-primary prose-img:rounded-[2.0rem] prose-strong:text-slate-900 prose-p:leading-relaxed prose-p:text-slate-600">
             <div dangerouslySetInnerHTML={{ __html: article.content }} />
         </article>
 
@@ -159,7 +159,7 @@ export default function ArticleDetail() {
 
             <div className="grid md:grid-cols-3 gap-8">
                 {related.map((item) => (
-                    <Link key={item.id} to={`/article/${(item as any).slug}`} className="bg-white rounded-[2rem] p-4 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-500 group">
+                    <Link key={item.id} to={`/article/${(item as any).slug}`} className="bg-white rounded-[2.0rem] p-4 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-500 group">
                         <div className="h-48 rounded-[1.5rem] overflow-hidden mb-6 relative">
                             <img src={item.thumbnail} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                             <div className="absolute top-4 left-4">

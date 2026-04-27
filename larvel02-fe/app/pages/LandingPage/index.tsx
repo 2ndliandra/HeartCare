@@ -1,17 +1,17 @@
 import * as React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { 
-  HeartPulse, 
-  Activity, 
-  Users, 
-  Target, 
-  MessageSquare, 
-  Brain, 
-  FileText, 
-  ShieldCheck, 
-  BookOpen, 
-  TrendingUp, 
+import {
+  HeartPulse,
+  Activity,
+  Users,
+  Target,
+  MessageSquare,
+  Brain,
+  FileText,
+  ShieldCheck,
+  BookOpen,
+  TrendingUp,
   ArrowRight,
   MessageSquareText
 } from "lucide-react";
@@ -54,10 +54,10 @@ export default function LandingPage() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('id-ID', { 
-      day: 'numeric', 
-      month: 'long', 
-      year: 'numeric' 
+    return new Date(dateString).toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
     });
   };
 
@@ -68,13 +68,13 @@ export default function LandingPage() {
         try {
           const user = JSON.parse(userStr);
           // If admin, go to admin dashboard, if user, go to their module
-          const route = user.roles?.includes('admin') ? '/admin/dashboard' : '/user/dashboard';
+          const route = user.roles?.includes('admin') ? '/admin/dashboard' : '/user';
           navigate(route);
         } catch (e) {
-          navigate('/user/dashboard');
+          navigate('/user');
         }
       } else {
-        navigate('/user/dashboard');
+        navigate('/user');
       }
     } else {
       navigate('/register');
@@ -88,9 +88,9 @@ export default function LandingPage() {
         {/* Decorations */}
         <div className="absolute top-20 right-10 w-64 h-64 bg-emerald-100/30 rounded-bl-full -z-10 animate-pulse" />
         <div className="absolute bottom-10 left-10 w-48 h-48 bg-emerald-50/50 rounded-tr-full -z-10" />
-        
+
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
@@ -105,17 +105,17 @@ export default function LandingPage() {
               HeartPredict membantu Anda mendeteksi risiko penyakit jantung secara dini menggunakan kecerdasan buatan. Dapatkan prediksi akurat dan konsultasi AI kapan saja.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button 
-                size="lg" 
-                className="rounded-xl px-8" 
+              <Button
+                size="lg"
+                className="rounded-xl px-8"
                 onClick={handleCtaClick}
               >
                 <HeartPulse className="w-5 h-5 mr-2" />
-                Mulai Cek Kesehatan
+                {isAuthenticated ? 'Buka Dashboard' : 'Mulai Cek Kesehatan'}
               </Button>
-              <Button 
-                variant="outline" 
-                size="lg" 
+              <Button
+                variant="outline"
+                size="lg"
                 className="rounded-xl px-8"
                 onClick={() => document.getElementById('fitur')?.scrollIntoView({ behavior: 'smooth' })}
               >
@@ -124,26 +124,26 @@ export default function LandingPage() {
               </Button>
             </div>
           </motion.div>
-          
-          <motion.div 
+
+          <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.2 }}
             className="relative"
           >
-            <img 
-              src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?ixlib=rb-4.1.0&auto=format&fit=crop&w=1350&q=80" 
-              alt="Medical Dashboard" 
-              className="rounded-3xl shadow-2xl relative z-10 w-full"
+            <img
+              src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?ixlib=rb-4.1.0&auto=format&fit=crop&w=1350&q=80"
+              alt="Medical Dashboard"
+              className="rounded-[2.0rem] shadow-2xl relative z-10 w-full"
             />
             {/* Clinical Trust Badge */}
-            <div className="absolute -bottom-6 -left-6 bg-white/95 backdrop-blur-md p-5 rounded-3xl shadow-2xl flex items-center gap-4 z-20 border border-slate-100/50 group hover:shadow-emerald-200/50 transition-all">
+            <div className="absolute -bottom-6 -left-6 bg-white/95 backdrop-blur-md p-5 rounded-[2.0rem] shadow-2xl flex items-center gap-4 z-20 border border-slate-100/50 group hover:shadow-emerald-200/50 transition-all">
               <div className="w-14 h-14 bg-emerald-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-200">
                 <ShieldCheck className="w-8 h-8" />
               </div>
               <div>
                 <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Teknologi Terverifikasi</p>
-                <p className="text-sm font-bold text-slate-800 leading-tight">Dukungan Keputusan<br/>Klinis Digital</p>
+                <p className="text-sm font-bold text-slate-800 leading-tight">Dukungan Keputusan<br />Klinis Digital</p>
               </div>
             </div>
           </motion.div>
@@ -153,32 +153,32 @@ export default function LandingPage() {
       {/* Clinical Focus Section (Replacement for Stats) */}
       <section className="bg-emerald-600 py-12 px-6 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-           <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-              <defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="1"/></pattern></defs>
-              <rect width="100%" height="100%" fill="url(#grid)" />
-           </svg>
+          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="1" /></pattern></defs>
+            <rect width="100%" height="100%" fill="url(#grid)" />
+          </svg>
         </div>
-        
+
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
-           <div className="text-white md:max-w-xs text-center md:text-left">
-              <h4 className="text-2xl font-black font-display leading-tight">Fokus Kami Untuk Kesehatan Anda</h4>
-           </div>
-           
-           <div className="flex-1 grid grid-cols-2 lg:grid-cols-4 gap-4 w-full">
-              {[
-                { label: "Tekanan Darah", icon: Activity },
-                { label: "Kadar Kolesterol", icon: TrendingUp },
-                { label: "Gaya Hidup", icon: HeartPulse },
-                { label: "Deteksi Dini", icon: ShieldCheck }
-              ].map((item, i) => (
-                <div key={i} className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 flex items-center gap-3 group hover:bg-white/20 transition-all">
-                   <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-white">
-                      <item.icon className="w-5 h-5" />
-                   </div>
-                   <span className="text-sm font-bold text-white tracking-wide">{item.label}</span>
+          <div className="text-white md:max-w-xs text-center md:text-left">
+            <h4 className="text-2xl font-black font-display leading-tight">Fokus Kami Untuk Kesehatan Anda</h4>
+          </div>
+
+          <div className="flex-1 grid grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+            {[
+              { label: "Tekanan Darah", icon: Activity },
+              { label: "Kadar Kolesterol", icon: TrendingUp },
+              { label: "Gaya Hidup", icon: HeartPulse },
+              { label: "Deteksi Dini", icon: ShieldCheck }
+            ].map((item, i) => (
+              <div key={i} className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 flex items-center gap-3 group hover:bg-white/20 transition-all">
+                <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-white">
+                  <item.icon className="w-5 h-5" />
                 </div>
-              ))}
-           </div>
+                <span className="text-sm font-bold text-white tracking-wide">{item.label}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -245,7 +245,7 @@ export default function LandingPage() {
               { step: 2, title: "Isi Data Kesehatan", desc: "Masukkan data vital seperti tekanan darah dan kolesterol." },
               { step: 3, title: "Dapatkan Hasil", desc: "AI menganalisis dan memberikan hasil prediksi serta saran." }
             ].map((item, i) => (
-              <motion.div 
+              <motion.div
                 key={i}
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
@@ -272,7 +272,7 @@ export default function LandingPage() {
               <p className="text-slate-600 mt-2">Dapatkan wawasan seputar kesehatan jantung dari para ahli</p>
             </div>
             <Link to="/articles" className="text-emerald-600 font-bold hover:text-emerald-700 transition-colors flex items-center gap-2 group">
-              Lihat Semua Artikel 
+              Lihat Semua Artikel
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
@@ -308,7 +308,7 @@ export default function LandingPage() {
       <section className="bg-emerald-600 py-16 px-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500 rounded-full -mr-48 -mt-48 blur-3xl opacity-50" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-500 rounded-full -ml-48 -mb-48 blur-3xl opacity-50" />
-        
+
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-6 font-display">
             Mulai Jaga Kesehatan Jantung Anda Hari Ini
@@ -316,12 +316,12 @@ export default function LandingPage() {
           <p className="text-emerald-100 text-lg mb-10 max-w-2xl mx-auto">
             Bergabunglah dengan ribuan pengguna yang telah mempercayai HeartPredict untuk kesehatan jantung mereka.
           </p>
-          <Button 
-            size="lg" 
+          <Button
+            size="lg"
             className="bg-white text-emerald-600 hover:bg-emerald-50 px-10 py-6 text-lg rounded-2xl shadow-xl hover:shadow-2xl transition-all"
             onClick={handleCtaClick}
           >
-            Daftar Sekarang Gratis
+            {isAuthenticated ? 'Buka Dashboard' : 'Daftar Sekarang Gratis'}
             <ArrowRight className="w-6 h-6 ml-3" />
           </Button>
         </div>

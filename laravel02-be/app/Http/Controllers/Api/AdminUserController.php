@@ -14,7 +14,18 @@ class AdminUserController extends Controller
     {
         $users = User::paginate(10);
         
-        $transformedUsers = collect($users->items())->map(function($user) {
+        // $transformedUsers = collect($users->items())->map(function($user) {
+        //     return [
+        //         'id' => $user->id,
+        //         'name' => $user->name,
+        //         'email' => $user->email,
+        //         'phone_number' => $user->phone_number,
+        //         'roles' => $user->roles->pluck('name'),
+        //         'created_at' => $user->created_at,
+        //     ];
+        // });
+
+        $transformedUsers = $users->getCollection()->map(function($user) {
             return [
                 'id' => $user->id,
                 'name' => $user->name,
