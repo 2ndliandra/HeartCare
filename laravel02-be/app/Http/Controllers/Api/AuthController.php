@@ -41,13 +41,12 @@ class AuthController extends Controller
         $user->assignRole('user');
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return (new UserResource($user))->additional([
+        return response()->json([
             'success' => true,
             'message' => 'Registrasi berhasil',
-            'data' => [
-                'token' => $token
-            ]
-        ])->response()->setStatusCode(201);
+            'access_token' => $token,
+            'user' => new UserResource($user)
+        ], 201);
     }
 
     /**
@@ -83,12 +82,11 @@ class AuthController extends Controller
         RateLimiter::clear($throttleKey);
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return (new UserResource($user))->additional([
+        return response()->json([
             'success' => true,
             'message' => 'Login berhasil',
-            'data' => [
-                'token' => $token
-            ]
+            'access_token' => $token,
+            'user' => new UserResource($user)
         ]);
     }
 
