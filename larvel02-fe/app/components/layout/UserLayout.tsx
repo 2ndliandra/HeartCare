@@ -76,10 +76,6 @@ export function UserLayout() {
           </div>
           
           <div className="flex items-center gap-3 sm:gap-6">
-            <button className="relative p-2.5 rounded-xl hover:bg-slate-100 transition-colors text-slate-600">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white" />
-            </button>
             
             <div className="flex items-center gap-3 pl-3 border-l border-slate-100" ref={dropdownRef}>
               <button onClick={toggleDropdown} className="flex items-center gap-3 focus:outline-none">

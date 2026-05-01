@@ -87,7 +87,7 @@ const ResetPassword: React.FC = () => {
                     <Link to="/" className="group flex items-center justify-center">
                         <div className="bg-white p-2.5 rounded-xl shadow-md border border-gray-100 group-hover:shadow-lg transition-all flex items-center justify-center gap-2">
                             <Heart className="w-6 h-6 text-primary" />
-                            <span className="font-bold text-lg text-slate-900 hidden sm:block">HeartPredict</span>
+                            <span className="font-bold text-lg text-slate-900 hidden sm:block">HeartCare</span>
                         </div>
                     </Link>
                 </div>
@@ -165,7 +165,7 @@ const ResetPassword: React.FC = () => {
                             <Link to="/login" className="text-primary hover:underline font-medium block mb-2">
                                 Return to Login
                             </Link>
-                            © 2026 HeartPredict
+                            © 2026 HeartCare
                         </div>
                     </CardContent>
                 </Card>

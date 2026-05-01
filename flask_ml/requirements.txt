@@ -1,0 +1,6 @@
+Flask
+waitress
+numpy
+pandas
+scikit-learn
+joblib

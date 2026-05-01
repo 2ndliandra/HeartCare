@@ -379,7 +379,7 @@ export default function ProfilePage() {
                       "Email untuk hasil prediksi baru",
                       "Email untuk jadwal konsultasi mendatang",
                       "Notifikasi tips kesehatan harian",
-                      "Newsletter bulanan HeartPredict"
+                      "Newsletter bulanan HeartCare"
                     ].map((item, idx) => (
                       <div key={idx} className="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-2xl">
                         <span className="text-sm font-bold text-slate-600">{item}</span>

@@ -230,7 +230,7 @@ export default function RekomendasiMedis() {
           <div>
             <h4 className="text-sm font-black text-indigo-900 uppercase tracking-widest mb-1">Informasi & Penyangkalan</h4>
             <p className="text-xs font-medium text-indigo-700/70 leading-relaxed">
-              Rekomendasi ini disusun secara otomatis oleh HeartPredict AI berdasarkan dataset medis global. Harap selalu konsultasikan hasil diagnosa dan panduan edukasi ini dengan dokter spesialis jantung Anda untuk penanganan yang tepat dan akurat sesuai riwayat klinis Anda.
+              Rekomendasi ini disusun secara otomatis oleh HeartCare AI berdasarkan dataset medis global. Harap selalu konsultasikan hasil diagnosa dan panduan edukasi ini dengan dokter spesialis jantung Anda untuk penanganan yang tepat dan akurat sesuai riwayat klinis Anda.
             </p>
           </div>
         </div>

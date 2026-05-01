@@ -155,9 +155,6 @@ export default function HasilPrediksiPage() {
           <Button variant="outline" size="sm" onClick={() => window.print()}>
             <Download className="w-4 h-4 mr-2" /> PDF Hasil
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => window.print()}>
-            <Printer className="w-4 h-4 mr-2" /> Cetak
-          </Button>
         </div>
       </div>
 

@@ -34,45 +34,60 @@ class PredictionController extends Controller
             'heart_rate' => 'required|numeric',
             'weight' => 'required|numeric',
             'height' => 'required|numeric',
-            'smoking' => 'string',
-            'exercise' => 'string',
-            'history' => 'array',
+            'blood_sugar' => 'numeric|nullable',
+            'smoking' => 'string|nullable',
+            'exercise' => 'string|nullable',
+            'alcohol' => 'string|nullable',
+            'history' => 'array|nullable',
         ]);
 
-        $input = json_encode($validated);
-        
-        // Execute python script
-        $process = Process::input($input)->run('python ' . base_path('predict_heart.py'));
+        // Send request to Flask API
+        try {
+            $response = \Illuminate\Support\Facades\Http::timeout(30)->post('http://localhost:5000/predict', $validated);
 
-        if ($process->successful()) {
-            $result = json_decode($process->output(), true);
-            
-            // Apply binary logic: SEDANG -> TINGGI
-            $level = strtoupper($result['risk_level'] ?? 'RENDAH');
-            if ($level === 'SEDANG') $level = 'TINGGI';
+            if ($response->successful()) {
+                $result = $response->json();
+                
+                if (isset($result['error'])) {
+                    return response()->json([
+                        'error' => 'Gagal menjalankan pemrosesan AI.',
+                        'details' => $result['error']
+                    ], 500);
+                }
+                
+                // Apply binary logic: SEDANG -> TINGGI
+                $level = strtoupper($result['risk_level'] ?? 'RENDAH');
+                if ($level === 'SEDANG') $level = 'TINGGI';
 
-            // Persist to MongoDB
-            $prediction = Prediction::create([
-                'user_id' => Auth::id(),
-                'input_data' => $validated,
-                'result_level' => $level,
-                'result_score' => $result['risk_score'] ?? 0,
-            ]);
+                // Persist to MongoDB
+                $prediction = Prediction::create([
+                    'user_id' => Auth::id(),
+                    'input_data' => $validated,
+                    'result_level' => $level,
+                    'result_score' => $result['risk_score'] ?? 0,
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'prediction' => [
+                        'id' => $prediction->id,
+                        'risk_level' => $level,
+                        'risk_score' => $prediction->result_score,
+                        'created_at' => $prediction->created_at
+                    ]
+                ]);
+            }
 
             return response()->json([
-                'success' => true,
-                'prediction' => [
-                    'id' => $prediction->id,
-                    'risk_level' => $level,
-                    'risk_score' => $prediction->result_score,
-                    'created_at' => $prediction->created_at
-                ]
-            ]);
-        }
+                'error' => 'Gagal menghubungi server AI.',
+                'details' => $response->body()
+            ], 500);
 
-        return response()->json([
-            'error' => 'Gagal menjalankan pemrosesan AI.',
-            'details' => $process->errorOutput()
-        ], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Gagal menghubungi server AI.',
+                'details' => $e->getMessage()
+            ], 500);
+        }
     }
 }

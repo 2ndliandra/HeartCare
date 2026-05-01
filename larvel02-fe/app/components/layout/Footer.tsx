@@ -14,7 +14,7 @@ export function Footer() {
                 <HeartPulse className="w-5 h-5" />
               </div>
               <span className="text-xl font-bold font-display">
-                HeartPredict
+                HeartCare
               </span>
             </div>
             <p className="text-sm text-slate-400 max-w-xs">
@@ -60,7 +60,7 @@ export function Footer() {
 
         <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-slate-500">
-            © 2026 HeartPredict. All rights reserved.
+            © 2026 HeartCare. All rights reserved.
           </p>
           <div className="flex gap-6 text-sm text-slate-500">
             <Link to="/privacy" className="hover:text-emerald-400 transition-colors">Privacy</Link>

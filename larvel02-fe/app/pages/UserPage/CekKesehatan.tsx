@@ -96,10 +96,23 @@ export default function CekKesehatanPage() {
     try {
       // Simulate AI Processing
       await new Promise(resolve => setTimeout(resolve, 2000));
-      const res = await api.post("/predict", {
-        ...formData,
-        bmi: bmi ? parseFloat(bmi) : null
-      });
+      const payload = {
+        age: Number(formData.age),
+        gender: formData.gender,
+        systolic_bp: Number(formData.systolic_bp),
+        diastolic_bp: Number(formData.diastolic_bp),
+        cholesterol: Number(formData.cholesterol),
+        blood_sugar: Number(formData.blood_sugar || 90),
+        heart_rate: Number(formData.heart_rate),
+        weight: Number(formData.weight),
+        height: Number(formData.height),
+        smoking: formData.smoking,
+        alcohol: formData.alcohol,
+        exercise: formData.exercise,
+        history: formData.medical_history
+      };
+
+      const res = await api.post("/predict", payload);
       
       const predictionData = { 
         prediction: res.data.prediction,

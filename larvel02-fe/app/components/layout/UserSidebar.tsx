@@ -43,7 +43,7 @@ export function UserSidebar({ user, isMobileOpen, onMobileClose }: UserSidebarPr
           <Heart className="w-5 h-5" />
         </div>
         <span className="text-lg font-bold text-white ml-3 font-display">
-          HeartPredict
+          HeartCare
         </span>
       </div>
 
@@ -70,25 +70,7 @@ export function UserSidebar({ user, isMobileOpen, onMobileClose }: UserSidebarPr
         </div>
       </div>
 
-      <div className="px-3 mt-auto mb-4 border-t border-slate-800 pt-4">
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-rose-400 font-medium hover:bg-rose-500/10 hover:text-rose-300 transition-all duration-150 w-full text-left"
-        >
-          <LogOut className="w-5 h-5" />
-          <span className="text-sm">Keluar Sesi</span>
-        </button>
-      </div>
 
-      <div className="p-6 border-t border-slate-800 flex items-center gap-3 bg-slate-900/50">
-        <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 text-sm font-semibold flex-shrink-0">
-          {user?.initials || "U"}
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-white truncate">{user?.name || "User User"}</p>
-          <p className="text-xs text-slate-400 truncate">{user?.email || "user@example.com"}</p>
-        </div>
-      </div>
     </div>
   )
 

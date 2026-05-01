@@ -142,7 +142,7 @@ export default function ForgotPassword() {
             <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg">
               <HeartPulse className="w-7 h-7 text-emerald-600" />
             </div>
-            <span className="text-3xl font-bold text-white font-display">HeartPredict</span>
+            <span className="text-3xl font-bold text-white font-display">HeartCare</span>
           </div>
 
           <img 
@@ -173,7 +173,7 @@ export default function ForgotPassword() {
             <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center text-white">
               <HeartPulse className="w-6 h-6" />
             </div>
-            <span className="text-2xl font-bold text-slate-900 font-display">HeartPredict</span>
+            <span className="text-2xl font-bold text-slate-900 font-display">HeartCare</span>
           </div>
 
           <Card className="p-8 sm:p-10 border-slate-200 shadow-xl rounded-[2.0rem] bg-white overflow-hidden">

@@ -144,7 +144,7 @@ export default function ChatConsultation() {
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
           <Bot className="w-12 h-12 text-emerald-100 mb-4" />
           <h3 className="text-xl font-black font-display mb-1 flex items-center gap-2">
-            HeartPredict AI <ShieldCheck className="w-4 h-4" />
+            HeartCare AI <ShieldCheck className="w-4 h-4" />
           </h3>
           <p className="text-xs text-emerald-50/80 font-medium leading-relaxed mb-4">
             Didukung oleh dataset medis terpercaya untuk asisten kesehatan jantung Anda 24/7.

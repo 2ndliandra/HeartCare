@@ -50,29 +50,26 @@ const Login: React.FC = () => {
             
             if (response && response.success) {
                 // Determine user data and token structure
-                // Backend AuthController.php returns (UserResource)->additional([... 'data' => ['token' => $token]])
-                // This might cause response.data to be just {token: ...} or it might be merged.
-                // Based on UserResource, the user data is also there.
+                // Backend AuthController.php returns { success, message, access_token, user }
                 
-                const token = response.data?.token || response.token;
+                const token = response.access_token || response.token || response.data?.token || response.data?.access_token;
                 
                 if (token) {
                     // Save token
                     localStorage.setItem('auth_token', token);
                     localStorage.setItem('auth_token_set_at', Date.now().toString());
                     
-                    // The user data might be in response.data or merged into response
-                    // In Laravel resources, the resource is usually in 'data'
-                    // If 'additional' was used, they might be siblings.
+                    // The user data might be in response.user, response.data, or merged into response
                     
-                    // Let's store the whole response.data for roles check in ProtectedRoute
                     const userData = {
                         ...response.data,
+                        ...response.user,
+                        ...(response.user?.data || {}),
                         ...response // fallback check
                     };
                     
                     // Extract roles properly
-                    const roles = userData.roles || (response.data && response.data.roles) || [];
+                    const roles = userData.roles || [];
                     
                     localStorage.setItem('user', JSON.stringify({
                         ...userData,
@@ -122,7 +119,7 @@ const Login: React.FC = () => {
                             <HeartPulse className="w-7 h-7 text-emerald-600" />
                         </div>
                         <span className="text-2xl font-bold text-white font-display">
-                            HeartPredict
+                            HeartCare
                         </span>
                     </div>
 
@@ -151,13 +148,13 @@ const Login: React.FC = () => {
                     <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center">
                         <HeartPulse className="w-6 h-6 text-white" />
                     </div>
-                    <span className="text-xl font-bold text-slate-900 font-display">HeartPredict</span>
+                    <span className="text-xl font-bold text-slate-900 font-display">HeartCare</span>
                 </div>
 
                 <Card className="w-full max-w-md shadow-lg border-slate-200">
                     <div className="p-8">
                         <h1 className="text-2xl font-bold text-slate-900 mb-2 font-display">
-                            Masuk ke HeartPredict
+                            Masuk ke HeartCare
                         </h1>
                         <p className="text-sm text-slate-600 mb-8">
                             Selamat datang kembali! Silakan masuk untuk melanjutkan.

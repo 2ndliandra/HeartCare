@@ -37,7 +37,7 @@ class ResetPasswordNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-                    ->subject('Kode Keamanan Reset Password - HeartPredict')
+                    ->subject('Kode Keamanan Reset Password - HeartCare')
                     ->greeting('Halo, ' . $notifiable->name . '!')
                     ->line('Kami menerima permintaan untuk mengatur ulang kata sandi akun medis Anda.')
                     ->line('Gunakan kode verifikasi berikut untuk melanjutkan:')

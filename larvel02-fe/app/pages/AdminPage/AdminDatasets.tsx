@@ -133,7 +133,7 @@ const TrainingModal = ({ isOpen, onClose, dataset }: any) => {
                 <div className="bg-black/40 rounded-[1.5rem] p-6 font-mono text-[10px] text-emerald-400/80 border border-slate-800 h-32 overflow-hidden">
                    {logs.map((log, i) => (
                       <div key={i} className="mb-1">
-                        <span className="text-slate-600">[admin@heartpredict ~]$</span> <span className="text-emerald-500 animate-pulse">{log}</span>
+                        <span className="text-slate-600">[admin@HeartCare ~]$</span> <span className="text-emerald-500 animate-pulse">{log}</span>
                       </div>
                    ))}
                 </div>
@@ -147,7 +147,7 @@ const TrainingModal = ({ isOpen, onClose, dataset }: any) => {
                 </div>
                 <div>
                    <h4 className="text-2xl font-black text-white font-display">Optimization Complete</h4>
-                   <p className="text-sm text-slate-400 mt-2 font-medium">Model HeartPredict_V2 has been successfully trained and localized.</p>
+                   <p className="text-sm text-slate-400 mt-2 font-medium">Model HeartCare_V2 has been successfully trained and localized.</p>
                 </div>
                 <div className="grid grid-cols-2 gap-4 max-w-md mx-auto pt-4">
                    <div className="p-4 rounded-2xl bg-white/5 border border-white/5">

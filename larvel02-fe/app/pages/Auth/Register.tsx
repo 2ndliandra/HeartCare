@@ -123,7 +123,7 @@ export default function Register() {
               <HeartPulse className="w-7 h-7 text-emerald-600" />
             </div>
             <span className="text-3xl font-bold text-white tracking-tight font-display">
-              HeartPredict
+              HeartCare
             </span>
           </div>
 
@@ -155,12 +155,12 @@ export default function Register() {
             <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center text-white">
               <HeartPulse className="w-6 h-6" />
             </div>
-            <span className="text-2xl font-bold text-slate-900 font-display">HeartPredict</span>
+            <span className="text-2xl font-bold text-slate-900 font-display">HeartCare</span>
           </div>
 
           <Card className="p-8 sm:p-10 border-slate-200 shadow-xl rounded-[2.0rem] bg-white">
             <div className="mb-8">
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2 font-display">Daftar HeartPredict</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2 font-display">Daftar HeartCare</h1>
               <p className="text-slate-500 text-sm">Buat akun baru dan mulai prediksi kesehatan jantung Anda.</p>
             </div>
 
@@ -271,7 +271,7 @@ export default function Register() {
                   />
                 </div>
                 <label htmlFor="agreeTerms" className="text-xs text-slate-500 leading-normal cursor-pointer">
-                  Saya setuju dengan <Link to="/terms" className="text-emerald-600 font-bold hover:underline">Syarat & Ketentuan</Link> dan <Link to="/privacy" className="text-emerald-600 font-bold hover:underline">Kebijakan Privasi</Link> HeartPredict.
+                  Saya setuju dengan <Link to="/terms" className="text-emerald-600 font-bold hover:underline">Syarat & Ketentuan</Link> dan <Link to="/privacy" className="text-emerald-600 font-bold hover:underline">Kebijakan Privasi</Link> HeartCare.
                 </label>
               </div>
 
@@ -308,7 +308,7 @@ export default function Register() {
           </Card>
 
           <footer className="mt-12 text-center text-[11px] text-slate-400 font-medium">
-            © 2026 HeartPredict. All rights reserved. <br/>
+            © 2026 HeartCare. All rights reserved. <br/>
             Secure AES-256 Medical Data Encryption System.
           </footer>
         </motion.div>

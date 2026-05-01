@@ -94,7 +94,7 @@ export default function ArticleDetail() {
                         <UserIcon size={24} />
                     </div>
                     <div>
-                        <p className="text-xs font-black text-slate-900 uppercase tracking-wider">{article.author?.name || 'HeartPredict Team'}</p>
+                        <p className="text-xs font-black text-slate-900 uppercase tracking-wider">{article.author?.name || 'HeartCare Team'}</p>
                         <div className="flex items-center gap-4 text-[10px] text-slate-400 font-bold mt-1">
                             <span className="flex items-center gap-1"><Calendar size={12} className="text-primary" /> {new Date(article.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                             <span className="flex items-center gap-1"><Clock size={12} className="text-primary" /> 6 Menit Baca</span>
@@ -185,9 +185,9 @@ export default function ArticleDetail() {
             <div className="bg-primary/5 p-2 rounded-xl">
                 <Heart className="w-7 h-7 text-primary" />
             </div>
-            <span className="text-xl font-black text-slate-900 tracking-tight">HeartPredict</span>
+            <span className="text-xl font-black text-slate-900 tracking-tight">HeartCare</span>
           </div>
-          <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest text-center mt-2">© 2026 HeartPredict. Dedicated to your heart's future.</p>
+          <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest text-center mt-2">© 2026 HeartCare. Dedicated to your heart's future.</p>
         </div>
       </footer>
     </div>

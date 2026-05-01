@@ -57,7 +57,7 @@ export function Navbar({ isAuthenticated = false, user }: NavbarProps) {
           <HeartPulse className="w-5 h-5" />
         </div>
         <span className="text-xl font-bold text-slate-900 font-display hidden sm:block">
-          HeartPredict
+          HeartCare
         </span>
       </div>
 
