@@ -19,10 +19,10 @@ use App\Http\Controllers\Api\ResetPasswordController;
 use App\Http\Controllers\Api\PredictionController;
 use App\Http\Controllers\Api\AdminUserController;
 use App\Http\Controllers\Api\AdminArticleController;
-use App\Http\Controllers\Api\AdminDatasetController;
 use App\Http\Controllers\Api\AdminDashboardController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\AdminPredictionController;
 use App\Http\Controllers\AiController;
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -49,6 +49,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Admin Routes
     Route::middleware(['admin'])->prefix('admin')->group(function () {
         Route::get('/stats', [AdminDashboardController::class, 'stats']);
+        Route::get('/predictions/stats', [AdminPredictionController::class, 'stats']);
         
         Route::get('/users', [AdminUserController::class, 'index']);
         Route::post('/users', [AdminUserController::class, 'store']);
@@ -60,10 +61,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/articles/{id}', [AdminArticleController::class, 'update']);
         Route::delete('/articles/{id}', [AdminArticleController::class, 'destroy']);
 
-        Route::get('/datasets', [AdminDatasetController::class, 'index']);
-        Route::post('/datasets', [AdminDatasetController::class, 'store']);
-        Route::put('/datasets/{id}', [AdminDatasetController::class, 'update']);
-        Route::delete('/datasets/{id}', [AdminDatasetController::class, 'destroy']);
 
         Route::post('/categories', [CategoryController::class, 'store']);
         Route::put('/categories/{id}', [CategoryController::class, 'update']);

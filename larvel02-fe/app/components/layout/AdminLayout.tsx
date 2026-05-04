@@ -76,13 +76,6 @@ export function AdminLayout() {
           </div>
           
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3 pr-4 border-r border-slate-100 hidden sm:flex">
-              <div className="flex flex-col items-end">
-                <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest leading-none">System Status</span>
-                <span className="text-[9px] font-bold text-slate-400 uppercase mt-1">All Nodes Operational</span>
-              </div>
-              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-            </div>
 
             
             <div className="flex items-center gap-3 pl-3" ref={dropdownRef}>

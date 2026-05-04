@@ -60,18 +60,31 @@ const StatCard = ({ title, value, icon: Icon, trend, colorClass, delay = 0 }: an
 export default function UserDashboard() {
   const navigate = useNavigate();
   const [chats, setChats] = React.useState<any[]>([]);
+  const [predictions, setPredictions] = React.useState<any[]>([]);
 
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        const chatRes = await api.get('chats');
-        if (chatRes.data?.success) setChats(chatRes.data.data);
+        const [chatRes, predRes] = await Promise.all([
+            api.get('chats').catch(() => null),
+            api.get('predictions').catch(() => null)
+        ]);
+        if (chatRes?.data?.success) setChats(chatRes.data.data);
+        if (predRes?.data?.success) setPredictions(predRes.data.data);
       } catch (e) {
         console.error("Dashboard fetch error:", e);
       }
     };
     fetchData();
   }, []);
+
+  const latestPrediction = predictions.length > 0 ? predictions[0] : null;
+
+  const getRiskDescription = (level: string) => {
+    if (level === 'TINGGI') return "Hasil analisis menunjukkan Indikasi Risiko Tinggi. Segera konsultasikan dengan dokter untuk pemeriksaan lebih lanjut.";
+    if (level === 'SEDANG') return "Hasil analisis menunjukkan Indikasi Risiko Sedang. Perhatikan pola makan dan mulailah rutinitas olahraga ringan.";
+    return "Hasil analisis menunjukkan Kondisi Terpantau Baik. Anda berada dalam kondisi optimal, pertahankan pola hidup sehat.";
+  };
 
   return (
     <div className="space-y-8 relative">
@@ -83,15 +96,14 @@ export default function UserDashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard 
           title="Total Prediksi" 
-          value="12" 
+          value={predictions.length > 0 ? predictions.length.toString() : "0"} 
           icon={HeartPulse} 
-          trend="+2" 
           colorClass="bg-emerald-600" 
           delay={0.1}
         />
         <StatCard 
           title="Status Risiko" 
-          value="RENDAH" 
+          value={latestPrediction ? latestPrediction.result_level : "-"} 
           icon={Heart} 
           colorClass="bg-purple-600" 
           delay={0.2}
@@ -130,16 +142,28 @@ export default function UserDashboard() {
                 <h2 className="text-xl font-black text-slate-900 font-display">Prediksi Terakhir</h2>
                 <div className="flex items-center gap-2 text-slate-400 mt-1">
                   <Clock className="w-3.5 h-3.5" />
-                  <span className="text-xs font-bold uppercase tracking-widest">15 April 2026 • 10:30 WIB</span>
+                  <span className="text-xs font-bold uppercase tracking-widest">
+                    {latestPrediction ? new Date(latestPrediction.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }).replace('.', ':') + ' WIB' : 'Belum ada data'}
+                  </span>
                 </div>
               </div>
-              <RiskBadge level="RENDAH" className="scale-110" />
+              {latestPrediction && <RiskBadge level={latestPrediction.result_level} className="scale-110" />}
             </div>
             <div className="flex-1 flex flex-col items-center justify-center py-10">
                <div className="w-full max-w-md text-center">
-                 <p className="text-slate-600 text-base leading-relaxed font-semibold italic">
-                   "Hasil analisis menunjukkan Kondisi Terpantau Baik. Anda berada dalam kondisi optimal, pertahankan pola hidup sehat."
-                 </p>
+                 {latestPrediction ? (
+                   <p className="text-slate-600 text-base leading-relaxed font-semibold italic">
+                     "{getRiskDescription(latestPrediction.result_level)}"
+                   </p>
+                 ) : (
+                   <div className="flex flex-col items-center justify-center">
+                     <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mb-4">
+                       <HeartPulse className="w-8 h-8" />
+                     </div>
+                     <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Belum ada prediksi</p>
+                     <Button variant="ghost" className="mt-2 text-emerald-600 font-bold" onClick={() => navigate('/user/cek-kesehatan')}>Mulai Cek Kesehatan</Button>
+                   </div>
+                 )}
                </div>
             </div>
 
