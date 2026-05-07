@@ -48,4 +48,4 @@ export interface UserProfile {
   roles?: string[];
 }
 
-export type TabType = "info" | "settings" | "security";
+export type TabType = "info" | "security";

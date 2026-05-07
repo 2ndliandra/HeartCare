@@ -1,14 +1,14 @@
 import * as React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { 
-  Heart, 
-  MessageSquare, 
-  BookOpen, 
-  TrendingUp, 
-  ArrowRight, 
-  Plus, 
-  Lightbulb, 
+import {
+  Heart,
+  MessageSquare,
+  BookOpen,
+  TrendingUp,
+  ArrowRight,
+  Plus,
+  Lightbulb,
   ChevronRight,
   Clock,
   MoreVertical,
@@ -29,7 +29,7 @@ const StatCard = ({ title, value, icon: Icon, trend, colorClass, delay = 0 }: an
   >
     <Card className="p-6 border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group rounded-[2.0rem] bg-white overflow-hidden relative">
       <div className={cn("absolute top-0 right-0 w-24 h-24 rounded-full -mr-12 -mt-12 opacity-[0.03]", colorClass)} />
-      
+
       <div className="flex items-center justify-between mb-4">
         <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center shadow-inner", colorClass.replace('bg-', 'bg-').replace('-600', '-100'))}>
           <Icon className={cn("w-6 h-6", colorClass.replace('bg-', 'text-'))} />
@@ -38,7 +38,7 @@ const StatCard = ({ title, value, icon: Icon, trend, colorClass, delay = 0 }: an
           <MoreVertical className="w-4 h-4" />
         </button>
       </div>
-      
+
       <div className="space-y-1">
         <h3 className="text-3xl font-black text-slate-900 font-display">{value}</h3>
         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{title}</p>
@@ -66,8 +66,8 @@ export default function UserDashboard() {
     const fetchData = async () => {
       try {
         const [chatRes, predRes] = await Promise.all([
-            api.get('chats').catch(() => null),
-            api.get('predictions').catch(() => null)
+          api.get('chats').catch(() => null),
+          api.get('predictions').catch(() => null)
         ]);
         if (chatRes?.data?.success) setChats(chatRes.data.data);
         if (predRes?.data?.success) setPredictions(predRes.data.data);
@@ -94,34 +94,34 @@ export default function UserDashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard 
-          title="Total Prediksi" 
-          value={predictions.length > 0 ? predictions.length.toString() : "0"} 
-          icon={HeartPulse} 
-          colorClass="bg-emerald-600" 
+        <StatCard
+          title="Total Prediksi"
+          value={predictions.length > 0 ? predictions.length.toString() : "0"}
+          icon={HeartPulse}
+          colorClass="bg-emerald-600"
           delay={0.1}
         />
-        <StatCard 
-          title="Status Risiko" 
-          value={latestPrediction ? latestPrediction.result_level : "-"} 
-          icon={Heart} 
-          colorClass="bg-purple-600" 
+        <StatCard
+          title="Status Risiko"
+          value={latestPrediction ? latestPrediction.result_level : "-"}
+          icon={Heart}
+          colorClass="bg-purple-600"
           delay={0.2}
         />
-        <StatCard 
-          title="Konsultasi AI" 
-          value={chats.length > 0 ? chats.length : "8"} 
-          icon={MessageSquare} 
-          trend="+3" 
-          colorClass="bg-blue-600" 
+        <StatCard
+          title="Konsultasi AI"
+          value={chats.length > 0 ? chats.length : "8"}
+          icon={MessageSquare}
+          trend="+3"
+          colorClass="bg-blue-600"
           delay={0.3}
         />
-        <StatCard 
-          title="Artikel Dibaca" 
-          value="15" 
-          icon={BookOpen} 
-          trend="+5" 
-          colorClass="bg-amber-600" 
+        <StatCard
+          title="Artikel Dibaca"
+          value="15"
+          icon={BookOpen}
+          trend="+5"
+          colorClass="bg-amber-600"
           delay={0.4}
         />
       </div>
@@ -134,13 +134,14 @@ export default function UserDashboard() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.5 }}
         >
-          <Card className="p-8 border-slate-200 shadow-sm rounded-[2.0rem] bg-white h-full flex flex-col relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-2 h-full bg-emerald-500" />
-            
-            <div className="flex items-center justify-between mb-8">
+          <Card className="p-8 border-none shadow-xl rounded-[2.0rem] bg-gradient-to-br from-emerald-600 to-emerald-700 text-white h-full flex flex-col relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 transition-transform duration-700 group-hover:scale-125" />
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full -ml-16 -mb-16" />
+
+            <div className="relative z-10 flex items-center justify-between mb-8">
               <div>
-                <h2 className="text-xl font-black text-slate-900 font-display">Prediksi Terakhir</h2>
-                <div className="flex items-center gap-2 text-slate-400 mt-1">
+                <h2 className="text-xl font-black text-white font-display">Prediksi Terakhir</h2>
+                <div className="flex items-center gap-2 text-emerald-100 mt-1">
                   <Clock className="w-3.5 h-3.5" />
                   <span className="text-xs font-bold uppercase tracking-widest">
                     {latestPrediction ? new Date(latestPrediction.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }).replace('.', ':') + ' WIB' : 'Belum ada data'}
@@ -149,34 +150,34 @@ export default function UserDashboard() {
               </div>
               {latestPrediction && <RiskBadge level={latestPrediction.result_level} className="scale-110" />}
             </div>
-            <div className="flex-1 flex flex-col items-center justify-center py-10">
-               <div className="w-full max-w-md text-center">
-                 {latestPrediction ? (
-                   <p className="text-slate-600 text-base leading-relaxed font-semibold italic">
-                     "{getRiskDescription(latestPrediction.result_level)}"
-                   </p>
-                 ) : (
-                   <div className="flex flex-col items-center justify-center">
-                     <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mb-4">
-                       <HeartPulse className="w-8 h-8" />
-                     </div>
-                     <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Belum ada prediksi</p>
-                     <Button variant="ghost" className="mt-2 text-emerald-600 font-bold" onClick={() => navigate('/user/cek-kesehatan')}>Mulai Cek Kesehatan</Button>
-                   </div>
-                 )}
-               </div>
+            <div className="relative z-10 flex-1 flex flex-col items-center justify-center py-10">
+              <div className="w-full max-w-md text-center">
+                {latestPrediction ? (
+                  <p className="text-emerald-50 text-base leading-relaxed font-semibold italic">
+                    "{getRiskDescription(latestPrediction.result_level)}"
+                  </p>
+                ) : (
+                  <div className="flex flex-col items-center justify-center">
+                    <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center text-white mb-4">
+                      <HeartPulse className="w-8 h-8" />
+                    </div>
+                    <p className="text-sm font-bold text-emerald-100 uppercase tracking-widest">Belum ada prediksi</p>
+                    <Button variant="ghost" className="mt-2 text-white font-bold hover:bg-white/10" onClick={() => navigate('/user/cek-kesehatan')}>Mulai Cek Kesehatan</Button>
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="mt-8 pt-8 border-t border-slate-50 flex gap-3">
-              <Button 
-                variant="outline" 
-                className="flex-1 h-12 rounded-2xl border-slate-200 font-bold"
+            <div className="relative z-10 mt-8 pt-8 border-t border-emerald-500/50 flex gap-3">
+              <Button
+                variant="outline"
+                className="flex-1 h-12 rounded-2xl border-white/20 bg-transparent text-white hover:bg-white/10 font-bold"
                 onClick={() => navigate('/user/riwayat')}
               >
                 Lihat Riwayat
               </Button>
-              <Button 
-                className="flex-1 h-12 rounded-2xl shadow-xl shadow-emerald-100 font-bold"
+              <Button
+                className="flex-1 h-12 rounded-2xl border-none bg-white text-emerald-700 hover:bg-emerald-50 font-bold shadow-lg"
                 onClick={() => navigate('/user/hasil-prediksi')}
               >
                 Detail Hasil <ArrowRight className="w-4 h-4 ml-2" />
@@ -202,7 +203,7 @@ export default function UserDashboard() {
             <div className="flex-1 space-y-4">
               {chats.length > 0 ? (
                 chats.slice(0, 3).map((chat: any, idx: number) => (
-                  <motion.div 
+                  <motion.div
                     key={chat.id || idx}
                     whileHover={{ x: 4 }}
                     className="p-4 rounded-[2.0rem] border border-slate-50 hover:border-emerald-100 bg-slate-50/50 hover:bg-white transition-all cursor-pointer flex gap-4 items-start"
@@ -228,8 +229,8 @@ export default function UserDashboard() {
               )}
             </div>
 
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="w-full h-14 rounded-2xl mt-8 border-dashed border-2 border-slate-200 hover:border-emerald-300 text-slate-500 hover:text-emerald-600 transition-all font-bold"
               onClick={() => navigate('/user/konsultasi')}
             >
@@ -248,7 +249,7 @@ export default function UserDashboard() {
         <Card className="p-8 border-none bg-gradient-to-br from-emerald-600 to-emerald-700 text-white rounded-[2.0rem] shadow-xl relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 transition-transform duration-700 group-hover:scale-125" />
           <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full -ml-16 -mb-16" />
-          
+
           <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
             <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-[2.0rem] flex items-center justify-center shrink-0 shadow-lg">
               <Lightbulb className="w-10 h-10 text-white" />
@@ -260,9 +261,9 @@ export default function UserDashboard() {
                 Pastikan Anda minum minimal 8 gelas air putih dan tidur 7-8 jam per hari. Hidrasi yang baik dan istirahat yang cukup sangat krusial untuk menjaga kerja jantung tetap stabil dan sirkulasi darah yang optimal.
               </p>
             </div>
-            <Button 
+            <Button
               className="bg-white text-emerald-700 hover:bg-emerald-50 rounded-2xl h-14 px-8 font-black shadow-xl shrink-0"
-              onClick={() => navigate('/user/artikel')}
+              onClick={() => navigate('/articles')}
             >
               Pelajari Lebih Lanjut
             </Button>

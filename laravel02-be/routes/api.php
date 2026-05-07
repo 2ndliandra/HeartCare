@@ -33,7 +33,7 @@ Route::post('/reset-password', [ResetPasswordController::class, 'resetPassword']
 Route::get('/articles', [AdminArticleController::class, 'index']); // Public articles list
 Route::get('/articles/{slug}', [AdminArticleController::class, 'show']); // Public article detail
 Route::get('/categories', [CategoryController::class, 'index']); // Public categories list
-Route::post('/test-ai', [AiController::class, 'test']);  
+Route::post('/test-ai', [AiController::class, 'test']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -50,7 +50,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::middleware(['admin'])->prefix('admin')->group(function () {
         Route::get('/stats', [AdminDashboardController::class, 'stats']);
         Route::get('/predictions/stats', [AdminPredictionController::class, 'stats']);
-        
+
         Route::get('/users', [AdminUserController::class, 'index']);
         Route::post('/users', [AdminUserController::class, 'store']);
         Route::put('/users/{id}', [AdminUserController::class, 'update']);
@@ -58,7 +58,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
         Route::get('/articles', [AdminArticleController::class, 'index']);
         Route::post('/articles', [AdminArticleController::class, 'store']);
-        Route::post('/articles/{id}', [AdminArticleController::class, 'update']);
+        Route::put('/articles/{id}', [AdminArticleController::class, 'update']);
         Route::delete('/articles/{id}', [AdminArticleController::class, 'destroy']);
 
 

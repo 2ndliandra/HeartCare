@@ -15,9 +15,17 @@ class ProfileController extends Controller
      */
     public function show()
     {
+        $user = Auth::user();
+        if ($user) {
+            $user->load('roles'); // Ensure roles are loaded
+        }
+
+        $userData = $user->toArray();
+        $userData['roles'] = $user->roles->pluck('name');
+
         return response()->json([
             'success' => true,
-            'data' => Auth::user()
+            'data' => $userData
         ]);
     }
 
@@ -67,10 +75,18 @@ class ProfileController extends Controller
 
         $user->save();
 
+        $userData = $user->toArray();
+        if ($user->roles) {
+            $userData['roles'] = $user->roles->pluck('name');
+        } else {
+            $user->load('roles');
+            $userData['roles'] = $user->roles->pluck('name');
+        }
+
         return response()->json([
             'success' => true,
-            'message' => 'Profil berhasil diperbarui',
-            'data' => $user
+            'message' => 'Profile updated successfully',
+            'data' => $userData
         ]);
     }
 

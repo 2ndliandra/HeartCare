@@ -9,6 +9,7 @@ export interface NavbarProps {
   user?: {
     name: string
     initials: string
+    profile_picture?: string
   }
 }
 
@@ -49,7 +50,7 @@ export function Navbar({ isAuthenticated = false, user }: NavbarProps) {
     }
     setDropdownOpen(!dropdownOpen)
   }
-  
+
   return (
     <header className="sticky top-0 z-50 h-16 bg-white border-b border-slate-200 px-4 md:px-8 flex items-center justify-between w-full">
       <div className="flex items-center gap-3">
@@ -78,18 +79,17 @@ export function Navbar({ isAuthenticated = false, user }: NavbarProps) {
         </div>
       ) : (
         <div className="flex items-center gap-4">
-          <button className="relative p-2 rounded-lg hover:bg-slate-100 transition-colors">
-            <Bell className="w-5 h-5 text-slate-600" />
-            <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full" />
-          </button>
-
           <div ref={dropdownRef}>
             <button
               onClick={toggleDropdown}
               className="flex items-center focus:outline-none"
             >
-              <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-semibold">
-                {user?.initials || "U"}
+              <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-semibold overflow-hidden">
+                {user?.profile_picture ? (
+                  <img src={`http://localhost:8000/storage/${user.profile_picture}`} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  user?.initials || "U"
+                )}
               </div>
               <span className="text-sm font-medium text-slate-700 ml-3 hidden md:block">
                 {user?.name || "User"}
@@ -100,12 +100,12 @@ export function Navbar({ isAuthenticated = false, user }: NavbarProps) {
 
           {dropdownOpen && (
             <>
-              <div 
+              <div
                 className="fixed inset-0"
                 style={{ zIndex: 9998 }}
-                onClick={() => setDropdownOpen(false)} 
+                onClick={() => setDropdownOpen(false)}
               />
-              <div 
+              <div
                 className="fixed w-56 bg-white rounded-xl shadow-2xl border border-slate-200 py-2"
                 style={{ zIndex: 9999, top: dropdownPos.top, right: dropdownPos.right }}
               >
@@ -115,13 +115,6 @@ export function Navbar({ isAuthenticated = false, user }: NavbarProps) {
                   className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
                 >
                   <User className="w-4 h-4" /> Profil Saya
-                </Link>
-                <Link
-                  to="/user/profile"
-                  onClick={() => setDropdownOpen(false)}
-                  className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-                >
-                  <Settings className="w-4 h-4" /> Pengaturan
                 </Link>
                 <div className="border-t border-slate-200 my-2" />
                 <button
