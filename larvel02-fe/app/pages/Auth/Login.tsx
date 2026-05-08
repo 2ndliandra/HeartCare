@@ -226,7 +226,7 @@ const Login: React.FC = () => {
                                 type="submit"
                                 variant="primary"
                                 size="lg"
-                                className="w-full flex items-center justify-center group"
+                                className="w-full flex items-center justify-center group shadow-none hover:shadow-none"
                                 disabled={loading}
                             >
                                 {loading ? (

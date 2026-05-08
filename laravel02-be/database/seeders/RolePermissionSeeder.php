@@ -35,21 +35,21 @@ class RolePermissionSeeder extends Seeder
         $adminRole->givePermissionTo(Permission::all());
 
         // Create admin user
-        $admin = User::firstOrCreate(
+        $admin = User::updateOrCreate(
             ['email' => 'admin@example.com'],
             [
                 'name' => 'Admin User',
-                'password' => Hash::make('password'),
+                'password' => Hash::make('12345678'),
             ]
         );
         $admin->assignRole('admin');
 
         // Create regular user
-        $user = User::firstOrCreate(
+        $user = User::updateOrCreate(
             ['email' => 'user@example.com'],
             [
                 'name' => 'Regular User',
-                'password' => Hash::make('password'),
+                'password' => Hash::make('12345678'),
             ]
         );
         $user->assignRole('user');

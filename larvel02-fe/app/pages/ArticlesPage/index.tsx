@@ -6,7 +6,6 @@ import {
     Clock,
     Filter,
     Heart as HeartIcon,
-    Zap,
     ChevronLeft,
     ChevronRight
 } from "lucide-react";
@@ -14,12 +13,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import api from "../../lib/api";
 import { Button } from "~/components/ui/button";
 
-import type { Article } from "~/types/shared";
+import type { Article, Category } from "~/types/shared";
 
 export default function ArticlesPage() {
     const [articles, setArticles] = useState<Article[]>([]);
     const [categories, setCategories] = useState<string[]>(["Semua"]);
     const [loading, setLoading] = useState(true);
+    const [currentUser, setCurrentUser] = useState<{
+        name: string;
+        initial: string;
+        profile_picture?: string;
+    } | null>(null);
     const [activeCategory, setActiveCategory] = useState("Semua");
     const [searchTerm, setSearchTerm] = useState("");
     const [featuredIndex, setFeaturedIndex] = useState(0);
@@ -32,6 +36,39 @@ export default function ArticlesPage() {
 
     useEffect(() => {
         fetchData();
+    }, []);
+
+    useEffect(() => {
+        const loadCurrentUser = () => {
+            const userStr = localStorage.getItem("user");
+            if (!userStr) {
+                setCurrentUser(null);
+                return;
+            }
+
+            try {
+                const user = JSON.parse(userStr);
+                const userName = user.name || "HeartCare Team";
+
+                setCurrentUser({
+                    name: userName,
+                    initial: user.initial || userName.substring(0, 1).toUpperCase(),
+                    profile_picture: user.profile_picture || "",
+                });
+            } catch (error) {
+                console.error("Failed to parse current user", error);
+                setCurrentUser(null);
+            }
+        };
+
+        loadCurrentUser();
+        window.addEventListener("storage", loadCurrentUser);
+        window.addEventListener("profileUpdated", loadCurrentUser);
+
+        return () => {
+            window.removeEventListener("storage", loadCurrentUser);
+            window.removeEventListener("profileUpdated", loadCurrentUser);
+        };
     }, []);
 
     const publishedArticles = useMemo(() => {
@@ -57,9 +94,9 @@ export default function ArticlesPage() {
                 api.get('/categories')
             ]);
 
-            setArticles(articlesRes.data.data);
+            setArticles(articlesRes.data.data as Article[]);
 
-            const dynamicCats = categoriesRes.data.data.map((c: any) => c.name);
+            const dynamicCats = (categoriesRes.data.data as Category[]).map((category) => category.name);
             setCategories(["Semua", ...dynamicCats]);
         } catch (err) {
             console.error('Fetch health data error:', err);
@@ -90,6 +127,10 @@ export default function ArticlesPage() {
         if (publishedArticles.length === 0) return null;
         return publishedArticles[featuredIndex % publishedArticles.length];
     }, [publishedArticles, featuredIndex]);
+
+    const displayUserName = currentUser?.name || "HeartCare Team";
+    const displayUserInitial = currentUser?.initial || displayUserName.substring(0, 1).toUpperCase();
+    const displayUserProfilePicture = currentUser?.profile_picture;
 
     if (loading) {
         return (
@@ -204,11 +245,19 @@ export default function ArticlesPage() {
                                         </h2>
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white border border-white/30 font-bold uppercase transition-transform group-hover:scale-110">
-                                                    {featuredArticle.author?.name?.substring(0, 1) || "A"}
+                                                <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white border border-white/30 font-bold uppercase transition-transform group-hover:scale-110 overflow-hidden">
+                                                    {displayUserProfilePicture ? (
+                                                        <img
+                                                            src={`http://localhost:8000/storage/${displayUserProfilePicture}`}
+                                                            alt={displayUserName}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        displayUserInitial
+                                                    )}
                                                 </div>
                                                 <div>
-                                                    <p className="text-white font-bold text-sm tracking-wide">{featuredArticle.author?.name || "Medical Team"}</p>
+                                                    <p className="text-white font-bold text-sm tracking-wide">{displayUserName}</p>
                                                     <p className="text-white/50 text-[10px] uppercase font-black">{new Date(featuredArticle.created_at).toLocaleDateString()}</p>
                                                 </div>
                                             </div>
@@ -272,10 +321,18 @@ export default function ArticlesPage() {
                                             </h3>
                                             <div className="mt-auto pt-6 border-t border-slate-50 flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 font-black text-xs">
-                                                        {article.author?.name?.substring(0, 1) || "H"}
+                                                    <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 font-black text-xs overflow-hidden">
+                                                        {displayUserProfilePicture ? (
+                                                            <img
+                                                                src={`http://localhost:8000/storage/${displayUserProfilePicture}`}
+                                                                alt={displayUserName}
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                        ) : (
+                                                            displayUserInitial
+                                                        )}
                                                     </div>
-                                                    <span className="text-xs font-bold text-slate-500">{article.author?.name || "Medical Team"}</span>
+                                                    <span className="text-xs font-bold text-slate-500">{displayUserName}</span>
                                                 </div>
                                                 <div className="p-2 bg-slate-50 group-hover:bg-primary group-hover:text-white rounded-lg transition-all">
                                                     <ArrowRight size={18} />

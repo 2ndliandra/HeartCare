@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { 
   Heart, 
@@ -8,7 +8,6 @@ import {
   Share2, 
   MessageCircle, 
   Bookmark,
-  User as UserIcon,
   ChevronRight
 } from "lucide-react";
 import { motion } from "motion/react";
@@ -22,27 +21,93 @@ export default function ArticleDetail() {
   const [article, setArticle] = useState<Article | null>(null);
   const [related, setRelated] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<{
+    name: string;
+    initial: string;
+    profile_picture?: string;
+  } | null>(null);
 
   useEffect(() => {
-    window.scrollTo(0, 0);
-    fetchArticle();
-  }, [slug]);
+    const loadCurrentUser = () => {
+      const userStr = localStorage.getItem("user");
+      if (!userStr) {
+        setCurrentUser(null);
+        return;
+      }
 
-  const fetchArticle = async () => {
+      try {
+        const user = JSON.parse(userStr);
+        const userName = user.name || "HeartCare Team";
+
+        setCurrentUser({
+          name: userName,
+          initial: user.initial || userName.substring(0, 1).toUpperCase(),
+          profile_picture: user.profile_picture || "",
+        });
+      } catch (error) {
+        console.error("Failed to parse current user", error);
+        setCurrentUser(null);
+      }
+    };
+
+    loadCurrentUser();
+    window.addEventListener("storage", loadCurrentUser);
+    window.addEventListener("profileUpdated", loadCurrentUser);
+
+    return () => {
+      window.removeEventListener("storage", loadCurrentUser);
+      window.removeEventListener("profileUpdated", loadCurrentUser);
+    };
+  }, []);
+
+  const fetchArticle = useCallback(async () => {
+    if (!slug) {
+      setArticle(null);
+      setRelated([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await api.get(`/articles/${slug}`);
-      setArticle(res.data.data);
+      const fetchedArticle = res.data.data as Article;
+      setArticle(fetchedArticle);
+
+      const token = localStorage.getItem('auth_token');
+      if (token && fetchedArticle.id) {
+        try {
+          const readResponse = await api.post(`/articles/${fetchedArticle.id}/read`);
+          const userStr = localStorage.getItem('user');
+          if (userStr) {
+            const user = JSON.parse(userStr);
+            localStorage.setItem('user', JSON.stringify({
+              ...user,
+              read_article: readResponse.data?.data?.read_article ?? user.read_article ?? [],
+            }));
+          }
+        } catch (readError) {
+          console.error('Mark article as read error:', readError);
+        }
+      }
       
       // Fetch related (random articles for now)
       const relatedRes = await api.get('/articles');
-      setRelated(relatedRes.data.data.filter((a: any) => a.slug !== slug).slice(0, 3));
+      const relatedArticles = (relatedRes.data.data as Article[])
+        .filter((relatedArticle) => relatedArticle.slug !== slug)
+        .slice(0, 3);
+      setRelated(relatedArticles);
     } catch (err) {
       console.error('Fetch error:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [slug]);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    fetchArticle();
+  }, [fetchArticle]);
 
   if (loading) return (
     <div className="min-h-screen bg-white flex items-center justify-center">
@@ -58,6 +123,11 @@ export default function ArticleDetail() {
         </Link>
     </div>
   );
+
+  const authorName = currentUser?.name || article.author?.name || "HeartCare Team";
+  const authorInitial = currentUser?.initial || article.author?.initial || authorName.substring(0, 1).toUpperCase();
+  const authorProfilePicture = currentUser?.profile_picture || article.author?.profile_picture;
+  const readingTimeLabel = `${article.reading_time || 1} Menit Baca`;
 
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900">
@@ -90,14 +160,22 @@ export default function ArticleDetail() {
 
             <div className="flex items-center justify-between py-8 border-y border-slate-50 mb-12">
                 <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-primary border border-slate-200 shadow-sm">
-                        <UserIcon size={24} />
+                    <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-primary border border-slate-200 shadow-sm overflow-hidden">
+                        {authorProfilePicture ? (
+                          <img
+                            src={`http://localhost:8000/storage/${authorProfilePicture}`}
+                            alt={authorName}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-sm font-black uppercase">{authorInitial}</span>
+                        )}
                     </div>
                     <div>
-                        <p className="text-xs font-black text-slate-900 uppercase tracking-wider">{article.author?.name || 'HeartCare Team'}</p>
+                        <p className="text-xs font-black text-slate-900 uppercase tracking-wider">{authorName}</p>
                         <div className="flex items-center gap-4 text-[10px] text-slate-400 font-bold mt-1">
                             <span className="flex items-center gap-1"><Calendar size={12} className="text-primary" /> {new Date(article.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                            <span className="flex items-center gap-1"><Clock size={12} className="text-primary" /> 6 Menit Baca</span>
+                            <span className="flex items-center gap-1"><Clock size={12} className="text-primary" /> {readingTimeLabel}</span>
                         </div>
                     </div>
                 </div>
@@ -159,7 +237,7 @@ export default function ArticleDetail() {
 
             <div className="grid md:grid-cols-3 gap-8">
                 {related.map((item) => (
-                    <Link key={item.id} to={`/article/${(item as any).slug}`} className="bg-white rounded-[2.0rem] p-4 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-500 group">
+                    <Link key={item.id} to={`/article/${item.slug}`} className="bg-white rounded-[2.0rem] p-4 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-500 group">
                         <div className="h-48 rounded-[1.5rem] overflow-hidden mb-6 relative">
                             <img src={item.thumbnail} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                             <div className="absolute top-4 left-4">

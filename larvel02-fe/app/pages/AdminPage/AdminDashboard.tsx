@@ -120,7 +120,7 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <StatCard 
           title="Total Pengguna" 
-          value={stats?.total_users || "1.247"} 
+          value={stats?.total_users ?? "1.247"} 
           icon={Users} 
           trend="+12%" 
           colorClass="text-emerald-600" 
@@ -136,7 +136,7 @@ export default function AdminDashboard() {
         />
         <StatCard 
           title="Artikel Published" 
-          value={stats?.total_articles || "89"} 
+          value={stats?.total_articles ?? "89"} 
           icon={FileText} 
           trend="+3" 
           colorClass="text-purple-600" 

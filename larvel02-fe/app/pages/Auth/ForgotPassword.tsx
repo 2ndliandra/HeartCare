@@ -146,7 +146,7 @@ export default function ForgotPassword() {
           </div>
 
           <img 
-            src="https://images.unsplash.com/photo-1581056316614-4235218d6ee9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
+            src="https://images.unsplash.com/photo-1576091160550-2173ff9e5ee5?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
             alt="Forgot Password Illustration" 
             className="w-full h-auto rounded-[2.0rem] shadow-2xl mb-12 border-4 border-emerald-500/30"
           />
@@ -216,7 +216,7 @@ export default function ForgotPassword() {
                     <Button 
                       type="submit" 
                       size="lg" 
-                      className="w-full h-12 font-bold rounded-xl shadow-lg shadow-emerald-200 transition-all hover:scale-[1.02]"
+                      className="w-full h-12 font-bold rounded-xl shadow-none hover:shadow-none transition-all hover:scale-[1.02]"
                       disabled={loading}
                     >
                       {loading ? (
@@ -293,7 +293,7 @@ export default function ForgotPassword() {
                     <Button 
                       type="submit" 
                       size="lg" 
-                      className="w-full h-12 font-bold rounded-xl shadow-lg shadow-emerald-200 transition-all hover:scale-[1.02] mb-4"
+                      className="w-full h-12 font-bold rounded-xl shadow-none hover:shadow-none transition-all hover:scale-[1.02] mb-4"
                       disabled={loading || otp.join("").length !== 6}
                     >
                       {loading ? (

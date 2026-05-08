@@ -25,6 +25,7 @@ class UserResource extends JsonResource
             'profile_picture' => $this->profile_picture,
             'initial' => strtoupper(substr($this->name, 0, 1)),
             'roles' => $this->roles ? $this->roles->pluck('name') : [],
+            'read_article' => $this->read_article ?? [],
             'created_at' => $this->created_at ? $this->created_at->toISOString() : null,
         ];
     }
