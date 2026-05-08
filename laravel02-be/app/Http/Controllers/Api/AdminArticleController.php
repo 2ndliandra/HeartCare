@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Http\Resources\ArticleResource;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
@@ -141,6 +142,35 @@ class AdminArticleController extends Controller
 
         return (new ArticleResource($article))->additional([
             'success' => true
+        ]);
+    }
+
+    public function markAsRead($id)
+    {
+        $article = Article::find($id);
+        if (!$article) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Artikel tidak ditemukan',
+            ], 404);
+        }
+
+        $user = Auth::user();
+        $readArticles = is_array($user->read_article ?? null) ? $user->read_article : [];
+        $articleId = (string) ($article->_id ?? $article->id);
+
+        if (!in_array($articleId, $readArticles, true)) {
+            $readArticles[] = $articleId;
+            $user->read_article = $readArticles;
+            $user->save();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Artikel ditandai sudah dibaca',
+            'data' => [
+                'read_article' => $user->read_article ?? [],
+            ],
         ]);
     }
 

@@ -1,6 +1,6 @@
 import * as React from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { Bell, ChevronDown, User, Settings, LogOut, HeartPulse } from "lucide-react"
+import { ChevronDown, User, LogOut, HeartPulse } from "lucide-react"
 
 import { Button } from "~/components/ui/button"
 
@@ -18,25 +18,26 @@ export function Navbar({ isAuthenticated = false, user }: NavbarProps) {
   const dropdownRef = React.useRef<HTMLDivElement>(null)
   const [dropdownPos, setDropdownPos] = React.useState({ top: 0, right: 0 })
 
+  const getDashboardRoute = () => {
+    const userStr = localStorage.getItem('user');
+    if (!userStr) {
+      return '/user';
+    }
+
+    try {
+      const userData = JSON.parse(userStr);
+      return userData.roles?.includes('admin') ? '/admin/dashboard' : '/user';
+    } catch {
+      return '/user';
+    }
+  }
+
   const handleLogout = () => {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user');
     setDropdownOpen(false);
     navigate('/');
     window.location.reload();
-  }
-
-  const getDashboardRoute = () => {
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      try {
-        const userData = JSON.parse(userStr);
-        return userData.roles?.includes('admin') ? '/admin/dashboard' : '/user';
-      } catch (e) {
-        return '/user';
-      }
-    }
-    return '/user';
   }
 
   const toggleDropdown = () => {
@@ -64,6 +65,7 @@ export function Navbar({ isAuthenticated = false, user }: NavbarProps) {
       <nav className="hidden md:flex items-center gap-6">
         <Link to="/" className="text-sm font-medium text-slate-700 hover:text-emerald-600 transition-colors duration-150">Home</Link>
         <a href="/#fitur" className="text-sm font-medium text-slate-700 hover:text-emerald-600 transition-colors duration-150">Feature</a>
+        <Link to="/articles" className="text-sm font-medium text-slate-700 hover:text-emerald-600 transition-colors duration-150">Artikel</Link>
         <a href="/#articles" className="text-sm font-medium text-slate-700 hover:text-emerald-600 transition-colors duration-150">About</a>
       </nav>
 
@@ -110,7 +112,7 @@ export function Navbar({ isAuthenticated = false, user }: NavbarProps) {
                 style={{ zIndex: 9999, top: dropdownPos.top, right: dropdownPos.right }}
               >
                 <Link
-                  to="/user/profile"
+                  to={getDashboardRoute()}
                   onClick={() => setDropdownOpen(false)}
                   className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
                 >

@@ -43,6 +43,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'show']);
     Route::post('/profile', [ProfileController::class, 'update']);
     Route::delete('/profile', [ProfileController::class, 'destroy']);
+    Route::post('/articles/{id}/read', [AdminArticleController::class, 'markAsRead']);
     Route::get('/predictions', [PredictionController::class, 'index']);
     Route::post('/predict', [PredictionController::class, 'predict']);
 
