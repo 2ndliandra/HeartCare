@@ -11,12 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::connection('mongodb')->create('chats', function (Blueprint $table) {
+        Schema::connection('mongodb')->create('predictions', function (Blueprint $table) {
             $table->id();
             $table->string('user_id');
             $table->index('user_id');
-            $table->text('message');
-            $table->text('response');
+            $table->json('input_data');
+            $table->string('result_level');
+            $table->double('result_score')->default(0);
+            $table->json('recommendations')->nullable();
             $table->timestamps();
         });
     }
@@ -26,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::connection('mongodb')->dropIfExists('chats');
+        Schema::connection('mongodb')->dropIfExists('predictions');
     }
 };

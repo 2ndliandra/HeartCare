@@ -226,12 +226,12 @@ export default function ArticlesPage() {
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -20 }}
                                 transition={{ duration: 0.6, ease: "easeInOut" }}
-                                className="overflow-hidden rounded-3xl"
+                                className="overflow-hidden rounded-xl"
                             >
-                                <Link to={`/article/${featuredArticle.slug}`} className="group relative block overflow-hidden bg-slate-100 aspect-[21/9]">
+                                <Link to={`/article/${featuredArticle.slug}`} className="relative block overflow-hidden bg-slate-100 aspect-[21/9]">
                                     <img
                                         src={featuredArticle.thumbnail || "https://images.unsplash.com/photo-1505751172107-160a0f9b5c2a?auto=format&fit=crop&q=80"}
-                                        className="absolute inset-0 w-full h-full object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700"
+                                        className="absolute inset-0 w-full h-full object-cover grayscale opacity-80"
                                         alt="Featured"
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent"></div>
@@ -240,12 +240,12 @@ export default function ArticlesPage() {
                                             <span className="px-4 py-2 bg-primary text-white text-[10px] font-black uppercase tracking-widest rounded-xl">Highlight Terbaru</span>
                                             <span className="px-3 py-1 bg-white/10 backdrop-blur-md text-white text-[10px] font-bold rounded-lg border border-white/20">{featuredArticle.category}</span>
                                         </div>
-                                        <h2 className="text-3xl md:text-5xl font-black text-white mb-6 leading-tight tracking-tight group-hover:text-primary transition-colors">
+                                        <h2 className="text-3xl md:text-5xl font-black text-white mb-6 leading-tight tracking-tight">
                                             {featuredArticle.title}
                                         </h2>
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white border border-white/30 font-bold uppercase transition-transform group-hover:scale-110 overflow-hidden">
+                                                <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white border border-white/30 font-bold uppercase overflow-hidden">
                                                     {displayUserProfilePicture ? (
                                                         <img
                                                             src={`http://localhost:8000/storage/${displayUserProfilePicture}`}
@@ -294,11 +294,11 @@ export default function ArticlesPage() {
                                     className="group flex flex-col"
                                 >
                                     <Link to={`/article/${article.slug}`} className="flex flex-col h-full">
-                                        <div className="relative aspect-[4/3] rounded-[2.0rem] overflow-hidden mb-8 bg-slate-50 border border-slate-100">
+                                        <div className="relative aspect-[4/3] rounded-xl overflow-hidden mb-6 bg-slate-50 border border-slate-200">
                                             {article.thumbnail ? (
                                                 <img
                                                     src={article.thumbnail}
-                                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 rounded-[2.0rem]"
+                                                    className="w-full h-full object-cover rounded-xl"
                                                     alt={article.title}
                                                 />
                                             ) : (
@@ -307,7 +307,7 @@ export default function ArticlesPage() {
                                                 </div>
                                             )}
                                             <div className="absolute top-6 left-6">
-                                                <span className="px-4 py-2 bg-white/95 backdrop-blur-md text-[10px] font-black uppercase text-slate-900 rounded-xl shadow-lg border border-slate-100">{article.category}</span>
+                                                <span className="px-3 py-1.5 bg-white text-[10px] font-black uppercase text-slate-900 rounded-md border border-slate-200">{article.category}</span>
                                             </div>
                                         </div>
                                         <div className="flex flex-col flex-1">
@@ -316,7 +316,7 @@ export default function ArticlesPage() {
                                                 <span className="w-1 h-1 rounded-full bg-slate-200"></span>
                                                 <span>5 Menit Baca</span>
                                             </div>
-                                            <h3 className="text-2xl font-black text-slate-900 mb-4 line-clamp-3 leading-tight group-hover:text-primary transition-colors">
+                                            <h3 className="text-2xl font-black text-slate-900 mb-4 line-clamp-3 leading-tight">
                                                 {article.title}
                                             </h3>
                                             <div className="mt-auto pt-6 border-t border-slate-50 flex items-center justify-between">
@@ -334,7 +334,7 @@ export default function ArticlesPage() {
                                                     </div>
                                                     <span className="text-xs font-bold text-slate-500">{displayUserName}</span>
                                                 </div>
-                                                <div className="p-2 bg-slate-50 group-hover:bg-primary group-hover:text-white rounded-lg transition-all">
+                                                <div className="p-2 bg-slate-50 text-slate-500 rounded-md border border-slate-200">
                                                     <ArrowRight size={18} />
                                                 </div>
                                             </div>

@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
+        Schema::connection('mongodb')->table('users', function (Blueprint $table) {
             $table->json('read_article')->nullable();
         });
     }
@@ -21,7 +21,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
+        Schema::connection('mongodb')->table('users', function (Blueprint $table) {
             $table->dropColumn('read_article');
         });
     }

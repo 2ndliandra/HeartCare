@@ -1,25 +1,20 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
-import { 
-  Heart, 
-  ArrowLeft, 
-  Calendar, 
-  Clock, 
-  Share2, 
-  MessageCircle, 
-  Bookmark,
-  ChevronRight
+import {
+  Heart,
+  ArrowLeft,
+  Calendar,
+  Clock,
+  MessageCircle,
 } from "lucide-react";
 import { motion } from "motion/react";
 import api from "../../lib/api";
 
 import type { Article } from "~/types/shared";
 
-
 export default function ArticleDetail() {
   const { slug } = useParams();
   const [article, setArticle] = useState<Article | null>(null);
-  const [related, setRelated] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<{
     name: string;
@@ -63,7 +58,6 @@ export default function ArticleDetail() {
   const fetchArticle = useCallback(async () => {
     if (!slug) {
       setArticle(null);
-      setRelated([]);
       setLoading(false);
       return;
     }
@@ -90,13 +84,6 @@ export default function ArticleDetail() {
           console.error('Mark article as read error:', readError);
         }
       }
-      
-      // Fetch related (random articles for now)
-      const relatedRes = await api.get('/articles');
-      const relatedArticles = (relatedRes.data.data as Article[])
-        .filter((relatedArticle) => relatedArticle.slug !== slug)
-        .slice(0, 3);
-      setRelated(relatedArticles);
     } catch (err) {
       console.error('Fetch error:', err);
     } finally {
@@ -131,36 +118,27 @@ export default function ArticleDetail() {
 
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900">
-      {/* Navigation */}
-      <nav className="sticky top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100">
-        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-            <Link to="/articles" className="flex items-center gap-2 text-slate-500 hover:text-primary transition-colors text-sm font-bold uppercase tracking-widest">
-                <ArrowLeft size={16} /> Kembali
-            </Link>
-            <div className="flex items-center gap-4">
-                <button className="p-2 text-slate-400 hover:text-primary transition-all"><Share2 size={20}/></button>
-                <button className="p-2 text-slate-400 hover:text-primary transition-all"><Bookmark size={20}/></button>
-            </div>
-        </div>
-      </nav>
-
       {/* Hero Section */}
-      <header className="max-w-4xl mx-auto px-6 pt-12 md:pt-20">
+      <header className="max-w-4xl mx-auto px-6 pt-10 md:pt-14">
+        <Link to="/articles" className="inline-flex items-center gap-2 text-slate-500 text-sm font-bold uppercase tracking-widest mb-8">
+            <ArrowLeft size={16} /> Kembali
+        </Link>
+
         <motion.div
            initial={{ opacity: 0, y: 20 }}
            animate={{ opacity: 1, y: 0 }}
            transition={{ duration: 0.6 }}
         >
-            <span className="inline-block px-4 py-1.5 bg-primary/5 text-primary text-[10px] font-black uppercase tracking-[0.2em] rounded-lg mb-8 border border-primary/10">
+            <span className="inline-block px-4 py-1.5 bg-primary/5 text-primary text-[10px] font-black uppercase tracking-[0.2em] rounded-md mb-8 border border-primary/10">
                 {article.category}
             </span>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 mb-10 leading-[1.1] tracking-tight">
                 {article.title}
             </h1>
 
-            <div className="flex items-center justify-between py-8 border-y border-slate-50 mb-12">
+            <div className="flex items-center justify-between py-8 border-y border-slate-200 mb-12">
                 <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-primary border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center text-primary border border-slate-200 overflow-hidden">
                         {authorProfilePicture ? (
                           <img
                             src={`http://localhost:8000/storage/${authorProfilePicture}`}
@@ -196,7 +174,7 @@ export default function ArticleDetail() {
                initial={{ opacity: 0, scale: 0.95 }}
                animate={{ opacity: 1, scale: 1 }}
                transition={{ duration: 0.8, delay: 0.2 }}
-               className="aspect-video rounded-[2.0rem] overflow-hidden shadow-2xl shadow-primary/10"
+               className="aspect-video rounded-xl overflow-hidden border border-slate-200"
             >
                 <img src={article.thumbnail} alt={article.title} className="w-full h-full object-cover" />
             </motion.div>
@@ -205,56 +183,23 @@ export default function ArticleDetail() {
 
       {/* Article Content */}
       <main className="max-w-4xl mx-auto px-6 mb-32">
-        <article className="prose prose-slate prose-lg md:prose-xl max-w-none prose-headings:font-black prose-headings:tracking-tight prose-a:text-primary prose-img:rounded-[2.0rem] prose-strong:text-slate-900 prose-p:leading-relaxed prose-p:text-slate-600">
+        <article className="prose prose-slate prose-lg md:prose-xl max-w-none border border-slate-200 rounded-xl px-6 py-8 md:px-10 md:py-12 prose-headings:font-black prose-headings:tracking-tight prose-a:text-primary prose-img:rounded-xl prose-strong:text-slate-900 prose-p:leading-8 prose-p:text-slate-700 prose-li:text-slate-700">
             <div dangerouslySetInnerHTML={{ __html: article.content }} />
         </article>
 
-        {/* Tags / Interactions */}
-        <div className="mt-20 pt-10 border-t border-slate-100 flex flex-wrap items-center justify-between gap-6">
-            <div className="flex items-center gap-2">
+        <div className="mt-16 pt-8 border-t border-slate-200 flex flex-wrap items-center justify-between gap-6">
+            <div className="flex items-center gap-2 flex-wrap">
                 {['Kesehatan', 'Jantung', 'Lifestyle'].map(tag => (
-                    <span key={tag} className="px-4 py-2 bg-slate-50 text-slate-500 text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-slate-100 cursor-pointer transition-all">#{tag}</span>
+                    <span key={tag} className="px-3 py-1.5 bg-slate-100 text-slate-600 text-[10px] font-bold uppercase tracking-widest rounded-md">
+                      #{tag}
+                    </span>
                 ))}
             </div>
-            <div className="flex items-center gap-6">
-                <button className="flex items-center gap-2 text-slate-400 hover:text-primary transition-colors text-sm font-bold">
-                    <MessageCircle size={20} /> <span className="text-xs uppercase tracking-widest">24 Komentar</span>
-                </button>
+            <div className="flex items-center gap-2 text-slate-500 text-sm font-bold">
+                <MessageCircle size={18} /> <span className="text-xs uppercase tracking-widest">24 Komentar</span>
             </div>
         </div>
       </main>
-
-      {/* Related Articles */}
-      <section className="bg-slate-50 py-24">
-        <div className="max-w-6xl mx-auto px-6">
-            <div className="flex flex-col md:flex-row items-end justify-between mb-16 gap-4">
-                <div>
-                    <span className="text-primary text-[10px] font-black uppercase tracking-[0.3em] mb-4 inline-block">Rekomendasi</span>
-                    <h2 className="text-4xl font-black text-slate-900 tracking-tight">Mungkin Anda Suka.</h2>
-                </div>
-                <Link to="/articles" className="text-xs font-black uppercase tracking-widest text-slate-400 hover:text-primary transition-all flex items-center gap-2 mb-2">Lihat Semua <ChevronRight size={16} /></Link>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-8">
-                {related.map((item) => (
-                    <Link key={item.id} to={`/article/${item.slug}`} className="bg-white rounded-[2.0rem] p-4 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-500 group">
-                        <div className="h-48 rounded-[1.5rem] overflow-hidden mb-6 relative">
-                            <img src={item.thumbnail} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                            <div className="absolute top-4 left-4">
-                                <span className="px-3 py-1 bg-white/90 backdrop-blur-sm shadow-sm text-[10px] font-black uppercase text-primary rounded-lg">{item.category}</span>
-                            </div>
-                        </div>
-                        <div className="px-2 pb-2">
-                            <h4 className="text-lg font-black text-slate-900 leading-tight mb-4 group-hover:text-primary transition-colors line-clamp-2">{item.title}</h4>
-                            <div className="flex items-center gap-3 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                                <Calendar size={12} /> {new Date(item.created_at).toLocaleDateString()}
-                            </div>
-                        </div>
-                    </Link>
-                ))}
-            </div>
-        </div>
-      </section>
 
       {/* Footer */}
       <footer className="bg-white border-t border-slate-100 py-16">
