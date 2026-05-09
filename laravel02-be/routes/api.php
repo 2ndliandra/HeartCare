@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\AdminDatasetController;
 use App\Http\Controllers\Api\AdminDashboardController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\UserDashboardController;
 use App\Http\Controllers\AiController;
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -46,6 +47,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/articles/{id}/read', [AdminArticleController::class, 'markAsRead']);
     Route::get('/predictions', [PredictionController::class, 'index']);
     Route::post('/predict', [PredictionController::class, 'predict']);
+    Route::get('/user/dashboard', [UserDashboardController::class, 'get']);
 
     // Admin Routes
     Route::middleware(['admin'])->prefix('admin')->group(function () {
