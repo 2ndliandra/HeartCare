@@ -5,56 +5,36 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Article;
-use Carbon\Carbon;
+use App\Models\Dataset;
+use Illuminate\Http\Request;
 
 class AdminDashboardController extends Controller
 {
     public function stats()
     {
         $totalUsers = User::count();
-        $publishedArticles = Article::where('status', 'published')->count();
-        $dayLabels = [
-            1 => 'Sen',
-            2 => 'Sel',
-            3 => 'Rab',
-            4 => 'Kam',
-            5 => 'Jum',
-            6 => 'Sab',
-            7 => 'Min',
+        $totalArticles = Article::count();
+        $avgAccuracy = Dataset::where('status', 'active')->avg('accuracy_score') ?: 0;
+        $activeDatasets = Dataset::where('status', 'active')->count();
+
+        // Weekly user growth (mock for visualization)
+        $growthData = [
+            ['day' => 'Mon', 'users' => 12],
+            ['day' => 'Tue', 'users' => 19],
+            ['day' => 'Wed', 'users' => 15],
+            ['day' => 'Thu', 'users' => 22],
+            ['day' => 'Fri', 'users' => 30],
+            ['day' => 'Sat', 'users' => 25],
+            ['day' => 'Sun', 'users' => 35],
         ];
-
-        $startDate = Carbon::now()->startOfDay()->subDays(6);
-
-        $users = User::where('created_at', '>=', $startDate)
-            ->get(['created_at']);
-
-        $dailyCounts = [];
-        foreach ($users as $user) {
-            if (!$user->created_at) {
-                continue;
-            }
-
-            $dateKey = Carbon::parse($user->created_at)->startOfDay()->toDateString();
-            $dailyCounts[$dateKey] = ($dailyCounts[$dateKey] ?? 0) + 1;
-        }
-
-        $growthData = [];
-        for ($offset = 6; $offset >= 0; $offset--) {
-            $date = Carbon::now()->startOfDay()->subDays($offset);
-            $dateKey = $date->toDateString();
-
-            $growthData[] = [
-                'day' => $dayLabels[$date->dayOfWeekIso],
-                'users' => $dailyCounts[$dateKey] ?? 0,
-                'date' => $dateKey,
-            ];
-        }
 
         return response()->json([
             'success' => true,
             'data' => [
                 'total_users' => $totalUsers,
-                'total_articles' => $publishedArticles,
+                'total_articles' => $totalArticles,
+                'avg_accuracy' => round($avgAccuracy, 2),
+                'active_datasets' => $activeDatasets,
                 'growth' => $growthData
             ]
         ]);

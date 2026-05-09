@@ -278,7 +278,7 @@ export default function Register() {
               <Button 
                 type="submit" 
                 size="lg" 
-                className="w-full h-12 text-sm font-bold rounded-xl shadow-none hover:shadow-none ring-offset-2 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                className="w-full h-12 text-sm font-bold rounded-xl shadow-lg shadow-emerald-200 ring-offset-2 transition-all hover:scale-[1.02] active:scale-[0.98]"
                 disabled={loading}
               >
                 {loading ? (

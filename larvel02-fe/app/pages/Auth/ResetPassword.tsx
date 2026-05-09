@@ -155,7 +155,7 @@ const ResetPassword: React.FC = () => {
                                 type="submit"
                                 disabled={loading || !token || !email || !!success}
                                 isLoading={loading}
-                                className="w-full mt-4 shadow-none hover:shadow-none"
+                                className="w-full mt-4"
                             >
                                 {loading ? 'Resetting...' : 'Reset Password'}
                             </Button>

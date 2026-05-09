@@ -4,6 +4,9 @@ import { motion } from "framer-motion";
 import {
   HeartPulse,
   Activity,
+  Users,
+  Target,
+  MessageSquare,
   Brain,
   FileText,
   ShieldCheck,
@@ -67,7 +70,7 @@ export default function LandingPage() {
           // If admin, go to admin dashboard, if user, go to their module
           const route = user.roles?.includes('admin') ? '/admin/dashboard' : '/user';
           navigate(route);
-        } catch {
+        } catch (e) {
           navigate('/user');
         }
       } else {
@@ -139,8 +142,8 @@ export default function LandingPage() {
                 <ShieldCheck className="w-8 h-8" />
               </div>
               <div>
-                <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Platform Informasi Digital</p>
-                <p className="text-sm font-bold text-slate-800 leading-tight">Bantu Pahami Risiko<br />Kesehatan Jantung</p>
+                <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Teknologi Terverifikasi</p>
+                <p className="text-sm font-bold text-slate-800 leading-tight">Dukungan Keputusan<br />Klinis Digital</p>
               </div>
             </div>
           </motion.div>
@@ -196,14 +199,20 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
-              { icon: Brain, title: "Analisis Risiko Berbasis AI", desc: "Bantu pahami faktor risiko kesehatan jantung Anda melalui analisis data yang cepat dan mudah dipahami." },
+              { icon: Brain, title: "Prediksi AI Akurat", desc: "Algoritma machine learning terlatih dengan ribuan data medis untuk hasil prediksi yang presisi." },
               { icon: MessageSquareText, title: "Konsultasi AI 24/7", desc: "Tanyakan apapun seputar kesehatan jantung Anda kepada chatbot AI yang responsif." },
               { icon: FileText, title: "Riwayat Lengkap", desc: "Simpan dan pantau semua hasil prediksi dan konsultasi Anda dalam satu dashboard." },
-              { icon: ShieldCheck, title: "Pengelolaan Data Pribadi", desc: "Akses dan perbarui informasi kesehatan Anda dengan lebih teratur dalam satu tempat." },
-              { icon: BookOpen, title: "Artikel Kesehatan", desc: "Akses ratusan artikel tentang kesehatan jantung yang ditulis oleh ahli kesehatan.", href: "/articles" },
+              { icon: ShieldCheck, title: "Data Aman & Privat", desc: "Semua data kesehatan Anda terenkripsi dan dijamin kerahasiaannya." },
+              { icon: BookOpen, title: "Artikel Kesehatan", desc: "Akses ratusan artikel tentang kesehatan jantung yang ditulis oleh ahli kesehatan." },
               { icon: TrendingUp, title: "Rekomendasi Personal", desc: "Dapatkan saran gaya hidup sehat yang disesuaikan dengan kondisi medis Anda." }
-            ].map((feature, i) => {
-              const featureCard = (
+            ].map((feature, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.05 }}
+              >
                 <Card className="p-8 h-full border-slate-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                   <div className="w-14 h-14 bg-emerald-100 rounded-2xl flex items-center justify-center mb-6">
                     <feature.icon className="w-7 h-7 text-emerald-600" />
@@ -213,26 +222,8 @@ export default function LandingPage() {
                     {feature.desc}
                   </p>
                 </Card>
-              );
-
-              return (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.05 }}
-                >
-                  {feature.href ? (
-                    <Link to={feature.href} className="block h-full">
-                      {featureCard}
-                    </Link>
-                  ) : (
-                    featureCard
-                  )}
-                </motion.div>
-              );
-            })}
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
@@ -325,16 +316,14 @@ export default function LandingPage() {
           <p className="text-emerald-100 text-lg mb-10 max-w-2xl mx-auto">
             Bergabunglah dengan ribuan pengguna yang telah mempercayai HeartCare untuk kesehatan jantung mereka.
           </p>
-          {!isAuthenticated && (
-            <Button
-              size="lg"
-              className="bg-white text-emerald-600 hover:bg-emerald-50 px-10 py-6 text-lg rounded-2xl shadow-xl hover:shadow-2xl transition-all"
-              onClick={handleCtaClick}
-            >
-              Daftar Sekarang Gratis
-              <ArrowRight className="w-6 h-6 ml-3" />
-            </Button>
-          )}
+          <Button
+            size="lg"
+            className="bg-white text-emerald-600 hover:bg-emerald-50 px-10 py-6 text-lg rounded-2xl shadow-xl hover:shadow-2xl transition-all"
+            onClick={handleCtaClick}
+          >
+            {isAuthenticated ? 'Buka Dashboard' : 'Daftar Sekarang Gratis'}
+            <ArrowRight className="w-6 h-6 ml-3" />
+          </Button>
         </div>
       </section>
     </div>
