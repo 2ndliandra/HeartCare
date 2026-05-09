@@ -12,7 +12,7 @@ export interface Message {
 
 export interface Prediction {
   id: string;
-  user_id: number | string;
+  user_id: number;
   result_level: "TINGGI" | "RENDAH";
   result_score: number;
   input_data: PredictionInput;
@@ -29,13 +29,11 @@ export interface PredictionInput {
   heart_rate: number | string;
   weight: number | string;
   height: number | string;
-  blood_sugar?: number | string;
   smoking?: string;
   exercise?: string;
-  history?: string[];
   medical_history?: string[];
   symptoms?: string[];
-  alcohol?: string | null;
+  alcohol?: string;
 }
 
 export interface UserProfile {
@@ -50,4 +48,4 @@ export interface UserProfile {
   roles?: string[];
 }
 
-export type TabType = "info" | "security";
+export type TabType = "info" | "settings" | "security";

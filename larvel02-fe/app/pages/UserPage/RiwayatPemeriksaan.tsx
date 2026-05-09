@@ -1,22 +1,20 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import {
-  History,
-  Search,
-  Filter,
-  Download,
-  ChevronRight,
-  ChevronLeft,
-  CalendarDays,
+import { 
+  History, 
+  Search, 
+  Filter, 
+  Download, 
+  ChevronRight, 
   TrendingUp,
   HeartPulse
 } from "lucide-react";
-import {
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
+import { 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
   ResponsiveContainer,
   AreaChart,
   Area
@@ -34,15 +32,8 @@ export default function HistoryPage() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = React.useState("");
   const [filterLevel, setFilterLevel] = React.useState("ALL");
-  const [filterMonth, setFilterMonth] = React.useState("ALL");
-  const [currentPage, setCurrentPage] = React.useState(1);
   const [predictions, setPredictions] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
-  const ITEMS_PER_PAGE = 5;
-
-  React.useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, filterLevel, filterMonth]);
 
   React.useEffect(() => {
     const fetchHistory = async () => {
@@ -71,34 +62,21 @@ export default function HistoryPage() {
     };
   };
 
-  const availableMonths = React.useMemo(() => {
-    const months = new Set<string>();
-    predictions.forEach(item => {
-      if (item.created_at) months.add(formatDate(item.created_at).fullMonth);
-    });
-    return Array.from(months);
-  }, [predictions]);
-
   const filteredHistory = predictions.filter(item => {
     const dateStr = item.created_at;
     const matchesSearch = dateStr.includes(searchTerm);
     const matchesLevel = filterLevel === "ALL" || item.result_level === filterLevel;
-    const matchesMonth = filterMonth === "ALL" || formatDate(item.created_at).fullMonth === filterMonth;
-    return matchesSearch && matchesLevel && matchesMonth;
+    return matchesSearch && matchesLevel;
   });
 
-  const chartData = [...filteredHistory].reverse().map(item => ({
+  const chartData = [...predictions].reverse().map(item => ({
     date: formatDate(item.created_at).chart,
-    score: (item.result_level?.toUpperCase() === "TINGGI" || item.result_level?.toUpperCase() === "PERLU PERHATIAN MEDIS") ? 80 : 20,
+    score: item.result_level === "TINGGI" ? 80 : 20,
     level: item.result_level
   }));
 
-  const totalPages = Math.ceil(filteredHistory.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const paginatedHistory = filteredHistory.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-
-  // Group by Month (Only for the current page items)
-  const groupedHistory = paginatedHistory.reduce((acc: any, item) => {
+  // Group by Month
+  const groupedHistory = filteredHistory.reduce((acc: any, item) => {
     const { fullMonth } = formatDate(item.created_at);
     if (!acc[fullMonth]) acc[fullMonth] = [];
     acc[fullMonth].push(item);
@@ -142,31 +120,30 @@ export default function HistoryPage() {
               <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.1} />
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.1}/>
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis
-                  dataKey="date"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 12, fill: '#64748b' }}
+                <XAxis 
+                  dataKey="date" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{fontSize: 12, fill: '#64748b'}}
                   dy={10}
                 />
                 <YAxis hide domain={[0, 100]} />
-                <Tooltip
+                <Tooltip 
                   contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                   cursor={{ stroke: '#10b981', strokeWidth: 2 }}
-                  formatter={(value: any, name: any, props: any) => [props.payload.level, 'Status']}
                 />
-                <Area
-                  type="monotone"
-                  dataKey="score"
-                  stroke="#10b981"
+                <Area 
+                  type="monotone" 
+                  dataKey="score" 
+                  stroke="#10b981" 
                   strokeWidth={3}
-                  fillOpacity={1}
-                  fill="url(#colorScore)"
+                  fillOpacity={1} 
+                  fill="url(#colorScore)" 
                   animationBegin={300}
                   animationDuration={1500}
                 />
@@ -179,10 +156,10 @@ export default function HistoryPage() {
       </Card>
 
       {/* Filters Bar */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="md:col-span-2 relative">
-          <Input
-            placeholder="Cari riwayat..."
+          <Input 
+            placeholder="Cari riwayat..." 
             iconLeft={<Search className="w-4 h-4" />}
             className="rounded-2xl bg-white border-slate-200"
             value={searchTerm}
@@ -190,7 +167,7 @@ export default function HistoryPage() {
           />
         </div>
         <div className="relative">
-          <select
+          <select 
             className="w-full h-11 pl-10 pr-4 bg-white border border-slate-200 rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600 appearance-none transition-all"
             value={filterLevel}
             onChange={(e) => setFilterLevel(e.target.value)}
@@ -200,19 +177,6 @@ export default function HistoryPage() {
             <option value="TINGGI">Perlu Atensi Medis</option>
           </select>
           <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-        </div>
-        <div className="relative">
-          <select
-            className="w-full h-11 pl-10 pr-4 bg-white border border-slate-200 rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600 appearance-none transition-all"
-            value={filterMonth}
-            onChange={(e) => setFilterMonth(e.target.value)}
-          >
-            <option value="ALL">Semua Bulan</option>
-            {availableMonths.map((m) => (
-              <option key={m} value={m}>{m}</option>
-            ))}
-          </select>
-          <CalendarDays className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
         </div>
       </div>
 
@@ -235,12 +199,12 @@ export default function HistoryPage() {
                       key={item.id}
                       whileHover={{ y: -2 }}
                       transition={{ duration: 0.2 }}
-                      onClick={() => navigate(`/user/hasil-prediksi`, {
-                        state: {
-                          prediction: { risk_level: item.result_level, risk_score: item.result_score },
-                          formData: input,
-                          timestamp: item.created_at
-                        }
+                      onClick={() => navigate(`/user/hasil-prediksi`, { 
+                        state: { 
+                           prediction: { risk_level: item.result_level, risk_score: item.result_score }, 
+                           formData: input,
+                           timestamp: item.created_at 
+                        } 
                       })}
                     >
                       <Card className="p-6 border-slate-200 hover:border-emerald-200 hover:shadow-md transition-all cursor-pointer group rounded-[2.0rem] bg-white">
@@ -296,33 +260,6 @@ export default function HistoryPage() {
           </div>
         )}
       </div>
-
-      {/* Pagination Controls */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-4 mt-8">
-          <Button
-            variant="outline"
-            className="rounded-xl border-slate-200 h-11 px-4"
-            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-          >
-            <ChevronLeft className="w-4 h-4 mr-2" />
-            Sebelumnya
-          </Button>
-          <div className="text-sm font-medium text-slate-600 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-100">
-            Halaman <span className="font-bold text-slate-900">{currentPage}</span> dari <span className="font-bold text-slate-900">{totalPages}</span>
-          </div>
-          <Button
-            variant="outline"
-            className="rounded-xl border-slate-200 h-11 px-4"
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages}
-          >
-            Selanjutnya
-            <ChevronRight className="w-4 h-4 ml-2" />
-          </Button>
-        </div>
-      )}
 
       {/* CTA Footer */}
       <div className="py-10 text-center">

@@ -32,7 +32,7 @@ import { Input, Label } from "~/components/ui/input";
 import { cn } from "~/lib/utils";
 import { useToast } from "../../hooks/useToast";
 
-type TabType = "info" | "security";
+type TabType = "info" | "settings" | "security";
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -89,7 +89,6 @@ export default function ProfilePage() {
         }
         // Update local storage to keep it in sync
         localStorage.setItem('user', JSON.stringify(userData));
-        window.dispatchEvent(new Event("profileUpdated"));
       }
     } catch (err: any) {
       console.error("Failed to fetch profile", err);
@@ -120,7 +119,7 @@ export default function ProfilePage() {
   const handleSaveInfo = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
+    
     try {
       const data = new FormData();
       data.append('name', formData.name);
@@ -128,7 +127,7 @@ export default function ProfilePage() {
       data.append('gender', formData.gender);
       data.append('address', formData.address);
       data.append('birth_date', formData.birth_date);
-
+      
       if (fileInputRef.current?.files?.[0]) {
         data.append('profile_picture', fileInputRef.current.files[0]);
       }
@@ -253,6 +252,7 @@ export default function ProfilePage() {
         <div className="flex p-1.5 bg-white border border-slate-100 rounded-[1.5rem] shadow-sm overflow-x-auto no-scrollbar">
           {[
             { id: "info", label: "Informasi Pribadi", icon: User },
+            { id: "settings", label: "Pengaturan", icon: Settings },
             { id: "security", label: "Keamanan", icon: Shield }
           ].map((tab) => (
             <button
@@ -368,32 +368,86 @@ export default function ProfilePage() {
               </Card>
             )}
 
+            {activeTab === "settings" && (
+              <Card className="p-8 sm:p-10 border-slate-100 rounded-[2.0rem] shadow-sm bg-white space-y-10">
+                <section>
+                  <h3 className="text-lg font-bold text-slate-900 mb-6 font-display flex items-center gap-3">
+                    <span className="w-1.5 h-6 bg-emerald-600 rounded-full" /> Notifikasi
+                  </h3>
+                  <div className="space-y-3">
+                    {[
+                      "Email untuk hasil prediksi baru",
+                      "Email untuk jadwal konsultasi mendatang",
+                      "Notifikasi tips kesehatan harian",
+                      "Newsletter bulanan HeartCare"
+                    ].map((item, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-2xl">
+                        <span className="text-sm font-bold text-slate-600">{item}</span>
+                        <div className="relative inline-flex items-center cursor-pointer">
+                          <input type="checkbox" className="sr-only peer" defaultChecked={idx < 2} />
+                          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                <section>
+                  <h3 className="text-lg font-bold text-slate-900 mb-6 font-display flex items-center gap-3">
+                    <span className="w-1.5 h-6 bg-emerald-600 rounded-full" /> Preferensi
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label>Bahasa Utama</Label>
+                      <select className="w-full h-12 px-4 rounded-2xl border border-slate-200 bg-slate-50 text-sm font-bold outline-none appearance-none cursor-pointer">
+                        <option>Bahasa Indonesia</option>
+                        <option>English (US)</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Zona Waktu</Label>
+                      <select className="w-full h-12 px-4 rounded-2xl border border-slate-200 bg-slate-50 text-sm font-bold outline-none appearance-none cursor-pointer">
+                        <option>WIB (Jakarta) UTC+7</option>
+                        <option>WITA (Makassar) UTC+8</option>
+                        <option>WIT (Jayapura) UTC+9</option>
+                      </select>
+                    </div>
+                  </div>
+                </section>
+
+                <div className="pt-4 flex justify-end gap-4">
+                  <Button variant="ghost" className="rounded-2xl px-12 h-14 font-black">Batal</Button>
+                  <Button size="lg" className="rounded-2xl px-12 h-14 font-black shadow-xl shadow-emerald-200">Simpan Pengaturan</Button>
+                </div>
+              </Card>
+            )}
+
             {activeTab === "security" && (
               <div className="space-y-6">
                 <Card className="p-8 sm:p-10 border-slate-100 rounded-[2.0rem] shadow-sm bg-white">
                   <h3 className="text-lg font-bold text-slate-900 mb-8 font-display">Ubah Password</h3>
                   <form onSubmit={handleUpdatePassword} className="space-y-6 max-w-lg">
                     <div className="space-y-2">
-                      <Label>Password Baru</Label>
-                      <Input
-                        type="password"
-                        placeholder="Minimal 8 karakter"
-                        iconLeft={<Lock className="w-4 h-4" />}
+                       <Label>Password Baru</Label>
+                       <Input 
+                        type="password" 
+                        placeholder="Minimal 8 karakter" 
+                        iconLeft={<Lock className="w-4 h-4" />} 
                         value={passwordData.new}
                         onChange={(e) => setPasswordData(prev => ({ ...prev, new: e.target.value }))}
                         required
-                      />
+                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Konfirmasi Password Baru</Label>
-                      <Input
-                        type="password"
-                        placeholder="Ulangi password baru"
-                        iconLeft={<Lock className="w-4 h-4" />}
+                       <Label>Konfirmasi Password Baru</Label>
+                       <Input 
+                        type="password" 
+                        placeholder="Ulangi password baru" 
+                        iconLeft={<Lock className="w-4 h-4" />} 
                         value={passwordData.confirm}
                         onChange={(e) => setPasswordData(prev => ({ ...prev, confirm: e.target.value }))}
                         required
-                      />
+                       />
                     </div>
                     <Button type="submit" size="lg" className="rounded-2xl px-10 h-14 font-black" disabled={loading}>
                       {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Update Password"}

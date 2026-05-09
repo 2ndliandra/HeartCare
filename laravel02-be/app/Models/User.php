@@ -29,7 +29,6 @@ class User extends Authenticatable
         'gender',
         'address',
         'birth_date',
-        'read_article',
     ];
 
     /**
@@ -49,7 +48,6 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'read_article' => 'array',
     ];
     /**
      * Create a new personal access token for the user.

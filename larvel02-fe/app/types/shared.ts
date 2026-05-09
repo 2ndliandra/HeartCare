@@ -14,13 +14,8 @@ export interface Article {
   thumbnail: string;
   status: string;
   created_at: string;
-  reading_time?: number;
   author?: {
-    id?: string;
     name: string;
-    email?: string;
-    initial?: string;
-    profile_picture?: string | null;
   };
   author_name?: string;
 }

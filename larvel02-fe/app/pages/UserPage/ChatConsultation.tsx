@@ -1,5 +1,4 @@
 import * as React from "react";
-import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   MessageSquare, 
@@ -19,16 +18,8 @@ import { cn } from "~/lib/utils";
 
 import type { Message } from "~/types/UserPage/User";
 
-interface ChatHistoryItem {
-  id?: string;
-  _id?: string;
-  message: string;
-  response: string;
-  created_at: string;
-}
 
 export default function ChatConsultation() {
-  const navigate = useNavigate();
   const [messages, setMessages] = React.useState<Message[]>([]);
   const [input, setInput] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
@@ -61,7 +52,7 @@ export default function ChatConsultation() {
     try {
       const response = await api.get("chats");
       if (response.data?.success && response.data.data.length > 0) {
-        const historyMessages = response.data.data.flatMap((chat: ChatHistoryItem) => [
+        const historyMessages = response.data.data.flatMap((chat: any) => [
           {
             id: `u-${chat.id || chat._id}`,
             text: chat.message,
@@ -156,7 +147,7 @@ export default function ChatConsultation() {
             HeartCare AI <ShieldCheck className="w-4 h-4" />
           </h3>
           <p className="text-xs text-emerald-50/80 font-medium leading-relaxed mb-4">
-            Asisten digital untuk membantu Anda memahami pertanyaan umum seputar kesehatan jantung kapan saja.
+            Didukung oleh dataset medis terpercaya untuk asisten kesehatan jantung Anda 24/7.
           </p>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-emerald-300 rounded-full animate-pulse shadow-[0_0_8px_rgba(110,231,183,1)]" />
@@ -166,7 +157,7 @@ export default function ChatConsultation() {
 
         {/* Suggested Questions */}
         <div className="space-y-4">
-          <h4 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Rekomendasi Pertanyaan</h4>
+          <h4 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Pertanyaan Populer</h4>
           <div className="space-y-2">
             {suggestedQuestions.slice(0, 5).map((q, i) => (
               <motion.button
@@ -190,11 +181,7 @@ export default function ChatConsultation() {
           <p className="text-xs text-slate-600 leading-relaxed font-medium">
             Membatasi asupan garam hingga kurang dari 5 gram per hari dapat membantu menurunkan tekanan darah secara signifikan.
           </p>
-          <button
-            className="mt-4 flex items-center gap-2 text-[10px] font-black text-blue-600 uppercase tracking-widest hover:gap-3 transition-all"
-            onClick={() => navigate("/articles")}
-            type="button"
-          >
+          <button className="mt-4 flex items-center gap-2 text-[10px] font-black text-blue-600 uppercase tracking-widest hover:gap-3 transition-all">
             Lihat Blog <ChevronRight className="w-3 h-3" />
           </button>
         </div>

@@ -1,5 +1,5 @@
-from flask import Flask, request, jsonify  # type: ignore[reportMissingImports]
-from flask_cors import CORS  # type: ignore[reportMissingImports]
+from flask import Flask, request, jsonify
+from flask_cors import CORS 
 import joblib
 import pandas as pd
 import numpy as np
