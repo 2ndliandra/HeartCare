@@ -19,10 +19,11 @@ use App\Http\Controllers\Api\ResetPasswordController;
 use App\Http\Controllers\Api\PredictionController;
 use App\Http\Controllers\Api\AdminUserController;
 use App\Http\Controllers\Api\AdminArticleController;
-use App\Http\Controllers\Api\AdminDatasetController;
 use App\Http\Controllers\Api\AdminDashboardController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\AdminPredictionController;
+use App\Http\Controllers\Api\UserDashboardController;
 use App\Http\Controllers\AiController;
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -33,7 +34,7 @@ Route::post('/reset-password', [ResetPasswordController::class, 'resetPassword']
 Route::get('/articles', [AdminArticleController::class, 'index']); // Public articles list
 Route::get('/articles/{slug}', [AdminArticleController::class, 'show']); // Public article detail
 Route::get('/categories', [CategoryController::class, 'index']); // Public categories list
-Route::post('/test-ai', [AiController::class, 'test']);  
+Route::post('/test-ai', [AiController::class, 'test']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -43,13 +44,16 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'show']);
     Route::post('/profile', [ProfileController::class, 'update']);
     Route::delete('/profile', [ProfileController::class, 'destroy']);
+    Route::post('/articles/{id}/read', [AdminArticleController::class, 'markAsRead']);
     Route::get('/predictions', [PredictionController::class, 'index']);
     Route::post('/predict', [PredictionController::class, 'predict']);
+    Route::get('/user/dashboard', [UserDashboardController::class, 'get']);
 
     // Admin Routes
     Route::middleware(['admin'])->prefix('admin')->group(function () {
         Route::get('/stats', [AdminDashboardController::class, 'stats']);
-        
+        Route::get('/predictions/stats', [AdminPredictionController::class, 'stats']);
+
         Route::get('/users', [AdminUserController::class, 'index']);
         Route::post('/users', [AdminUserController::class, 'store']);
         Route::put('/users/{id}', [AdminUserController::class, 'update']);
@@ -57,13 +61,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
         Route::get('/articles', [AdminArticleController::class, 'index']);
         Route::post('/articles', [AdminArticleController::class, 'store']);
-        Route::post('/articles/{id}', [AdminArticleController::class, 'update']);
+        Route::put('/articles/{id}', [AdminArticleController::class, 'update']);
         Route::delete('/articles/{id}', [AdminArticleController::class, 'destroy']);
 
-        Route::get('/datasets', [AdminDatasetController::class, 'index']);
-        Route::post('/datasets', [AdminDatasetController::class, 'store']);
-        Route::put('/datasets/{id}', [AdminDatasetController::class, 'update']);
-        Route::delete('/datasets/{id}', [AdminDatasetController::class, 'destroy']);
 
         Route::post('/categories', [CategoryController::class, 'store']);
         Route::put('/categories/{id}', [CategoryController::class, 'update']);

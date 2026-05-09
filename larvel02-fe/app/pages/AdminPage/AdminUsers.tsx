@@ -347,42 +347,28 @@ export default function AdminUsers() {
 
         {/* Pagination */}
         {pagination && pagination.last_page > 1 && (
-          <div className="px-8 py-6 border-t border-slate-100 bg-slate-50/30 flex items-center justify-between">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Page {page} of {pagination.last_page}</span>
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                disabled={page === 1}
-                onClick={() => setPage(page - 1)}
-                className="rounded-xl border-slate-200 h-9"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              <div className="flex items-center gap-1">
-                 {Array.from({ length: Math.min(pagination.last_page, 5) }, (_, i) => i + 1).map(p => (
-                   <button
-                    key={p}
-                    onClick={() => setPage(p)}
-                    className={cn(
-                      "w-9 h-9 rounded-xl text-xs font-black transition-all",
-                      page === p ? "bg-emerald-600 text-white shadow-lg shadow-emerald-100 scale-105" : "text-slate-400 hover:bg-white border border-transparent hover:border-slate-200"
-                    )}
-                   >
-                     {p}
-                   </button>
-                 ))}
-              </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                disabled={page === pagination.last_page}
-                onClick={() => setPage(page + 1)}
-                className="rounded-xl border-slate-200 h-9"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </Button>
+          <div className="px-8 py-8 border-t border-slate-100 bg-slate-50/30 flex items-center justify-center gap-4">
+            <Button
+              variant="outline"
+              className="rounded-xl border-slate-200 h-11 px-4 bg-white"
+              onClick={() => setPage(Math.max(page - 1, 1))}
+              disabled={page === 1}
+            >
+              <ChevronLeft className="w-4 h-4 mr-2" />
+              Sebelumnya
+            </Button>
+            <div className="text-sm font-medium text-slate-600 bg-white px-4 py-2.5 rounded-xl border border-slate-200 shadow-sm">
+              Halaman <span className="font-bold text-slate-900">{page}</span> dari <span className="font-bold text-slate-900">{pagination.last_page}</span>
             </div>
+            <Button
+              variant="outline"
+              className="rounded-xl border-slate-200 h-11 px-4 bg-white"
+              onClick={() => setPage(Math.min(page + 1, pagination.last_page))}
+              disabled={page === pagination.last_page}
+            >
+              Selanjutnya
+              <ChevronRight className="w-4 h-4 ml-2" />
+            </Button>
           </div>
         )}
       </Card>

@@ -1,10 +1,12 @@
 import * as React from "react"
 import { Outlet, Link, useNavigate } from "react-router-dom"
 import { UserSidebar } from "./UserSidebar"
-import { Bell, Menu, User, Settings, LogOut, ChevronDown } from "lucide-react"
+import { Menu, User, LogOut, ChevronDown, ChevronsLeft, ChevronsRight } from "lucide-react"
+import { cn } from "~/lib/utils"
 
 export function UserLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false)
   const [dropdownOpen, setDropdownOpen] = React.useState(false)
   const dropdownRef = React.useRef<HTMLDivElement>(null)
   const [dropdownPos, setDropdownPos] = React.useState({ top: 0, right: 0 })
@@ -14,31 +16,39 @@ export function UserLayout() {
     name: "User",
     email: "user@example.com",
     initials: "U",
+    profile_picture: "",
   })
 
   React.useEffect(() => {
-    const userStr = localStorage.getItem("user")
-    if (userStr) {
-      try {
-        const user = JSON.parse(userStr)
-        setUserData({
-          name: user.name || "User",
-          email: user.email || "user@example.com",
-          initials: user.initial || user.name?.substring(0, 1).toUpperCase() || "U"
-        })
-      } catch (e) {
-        console.error("Failed to parse user data", e)
+    const loadUser = () => {
+      const userStr = localStorage.getItem("user")
+      if (userStr) {
+        try {
+          const user = JSON.parse(userStr)
+          setUserData({
+            name: user.name || "User",
+            email: user.email || "user@example.com",
+            initials: user.initial || user.name?.substring(0, 1).toUpperCase() || "U",
+            profile_picture: user.profile_picture || "",
+          })
+        } catch (e) {
+          console.error("Failed to parse user data", e)
+        }
       }
     }
+
+    loadUser()
+    window.addEventListener("profileUpdated", loadUser)
+    return () => window.removeEventListener("profileUpdated", loadUser)
   }, [])
 
   const handleLogout = () => {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('auth_token_set_at');
-    localStorage.removeItem('user');
-    setDropdownOpen(false);
-    navigate('/login');
-    window.location.reload();
+    localStorage.removeItem("auth_token")
+    localStorage.removeItem("auth_token_set_at")
+    localStorage.removeItem("user")
+    setDropdownOpen(false)
+    navigate("/login")
+    window.location.reload()
   }
 
   const toggleDropdown = () => {
@@ -54,33 +64,45 @@ export function UserLayout() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex font-sans">
-      <UserSidebar 
-        user={userData} 
-        isMobileOpen={mobileMenuOpen} 
-        onMobileClose={() => setMobileMenuOpen(false)} 
+      <UserSidebar
+        user={userData}
+        isMobileOpen={mobileMenuOpen}
+        onMobileClose={() => setMobileMenuOpen(false)}
+        isCollapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed((current) => !current)}
       />
-      
-      <div className="flex-1 flex flex-col lg:pl-64 min-w-0 transition-all duration-300">
+
+      <div className={cn("flex-1 flex flex-col min-w-0 transition-all duration-300", sidebarCollapsed ? "lg:pl-0" : "lg:pl-64")}>
         <header className="sticky top-0 z-50 h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 sm:px-8 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <button 
+            <button
               onClick={() => setMobileMenuOpen(true)}
               className="lg:hidden p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
             >
               <Menu className="w-6 h-6" />
             </button>
+            <button
+              onClick={() => setSidebarCollapsed((current) => !current)}
+              className="hidden lg:inline-flex items-center justify-center w-10 h-10 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors"
+              aria-label={sidebarCollapsed ? "Buka sidebar" : "Tutup sidebar"}
+            >
+              {sidebarCollapsed ? <ChevronsRight className="w-5 h-5" /> : <ChevronsLeft className="w-5 h-5" />}
+            </button>
             <div className="hidden sm:block">
-              <h2 className="text-lg font-bold text-slate-900 font-display leading-tight">Halo, {userData.name} 👋</h2>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
+              <h2 className="text-lg font-bold text-slate-900 font-display leading-tight">Halo, {userData.name}</h2>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-3 sm:gap-6">
-            
             <div className="flex items-center gap-3 pl-3 border-l border-slate-100" ref={dropdownRef}>
               <button onClick={toggleDropdown} className="flex items-center gap-3 focus:outline-none">
-                <div className="w-9 h-9 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold shadow-sm border border-emerald-200/50">
-                  {userData.initials}
+                <div className="w-9 h-9 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold shadow-sm border border-emerald-200/50 overflow-hidden">
+                  {userData.profile_picture ? (
+                    <img src={`http://localhost:8000/storage/${userData.profile_picture}`} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    userData.initials
+                  )}
                 </div>
                 <div className="hidden md:block text-left">
                   <p className="text-xs font-black text-slate-900 leading-none">{userData.name}</p>
@@ -92,12 +114,12 @@ export function UserLayout() {
 
             {dropdownOpen && (
               <>
-                <div 
+                <div
                   className="fixed inset-0"
                   style={{ zIndex: 9998 }}
-                  onClick={() => setDropdownOpen(false)} 
+                  onClick={() => setDropdownOpen(false)}
                 />
-                <div 
+                <div
                   className="fixed w-56 bg-white rounded-xl shadow-2xl border border-slate-200 py-2"
                   style={{ zIndex: 9999, top: dropdownPos.top, right: dropdownPos.right }}
                 >
@@ -107,13 +129,6 @@ export function UserLayout() {
                     className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
                   >
                     <User className="w-4 h-4" /> Profil Saya
-                  </Link>
-                  <Link
-                    to="/user/profile"
-                    onClick={() => setDropdownOpen(false)}
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-                  >
-                    <Settings className="w-4 h-4" /> Pengaturan
                   </Link>
                   <div className="border-t border-slate-200 my-2" />
                   <button
@@ -127,7 +142,7 @@ export function UserLayout() {
             )}
           </div>
         </header>
-        
+
         <main className="flex-1 p-4 sm:p-8 overflow-x-hidden">
           <Outlet />
         </main>

@@ -18,7 +18,8 @@ export function PublicLayout() {
             const userData = JSON.parse(userStr)
             setUser({
               name: userData.name,
-              initials: userData.initial || userData.name?.substring(0, 1).toUpperCase() || "U"
+              initials: userData.initial || userData.name?.substring(0, 1).toUpperCase() || "U",
+              profile_picture: userData.profile_picture || "",
             })
           } catch (e) {
             setUser(null)
@@ -30,7 +31,11 @@ export function PublicLayout() {
     }
     checkAuth()
     window.addEventListener("storage", checkAuth)
-    return () => window.removeEventListener("storage", checkAuth)
+    window.addEventListener("profileUpdated", checkAuth)
+    return () => {
+      window.removeEventListener("storage", checkAuth)
+      window.removeEventListener("profileUpdated", checkAuth)
+    }
   }, [])
 
   return (

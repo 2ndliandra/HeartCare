@@ -1,6 +1,6 @@
-// @ts-nocheck
 import * as React from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import {
   FileText,
   Search,
@@ -10,7 +10,6 @@ import {
   Eye,
   ChevronLeft,
   ChevronRight,
-  Filter,
   X,
   Type,
   Tag,
@@ -18,19 +17,13 @@ import {
   Upload,
   Loader2,
   Clock,
-  MoreVertical,
   CheckCircle2,
   AlertCircle
 } from "lucide-react";
-// @ts-ignore
 import EditorJS from '@editorjs/editorjs';
-// @ts-ignore
 import Header from '@editorjs/header';
-// @ts-ignore
 import List from '@editorjs/list';
-// @ts-ignore
 import ImageTool from '@editorjs/image';
-// @ts-ignore
 import Embed from '@editorjs/embed';
 
 import api from "~/lib/api";
@@ -38,8 +31,70 @@ import { Card } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 import { cn } from "~/lib/utils";
+import type { Article, Category } from "~/types/shared";
 
-const ArticleModal = ({ isOpen, onClose, onSuccess, article }: any) => {
+interface EditorBlock {
+  type: string;
+  data: {
+    text?: string;
+    level?: number;
+    items?: string[];
+    style?: 'ordered' | 'unordered';
+  };
+}
+
+interface EditorContentData {
+  blocks: EditorBlock[];
+}
+
+interface ArticleAuthorOption {
+  id?: string;
+  name?: string;
+}
+
+interface AdminArticle extends Article {
+  raw_content?: string | EditorContentData;
+  author_id?: string;
+  author?: ArticleAuthorOption;
+  thumbnail?: string;
+  status: 'draft' | 'published';
+}
+
+interface AdminUserOption {
+  id: string;
+  name: string;
+}
+
+interface AdminArticlesPagination {
+  current_page: number;
+  last_page: number;
+}
+
+interface ArticleModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  article: AdminArticle | null;
+}
+
+const parseEditorData = (rawContent?: string | EditorContentData): EditorContentData | undefined => {
+  if (!rawContent) {
+    return undefined;
+  }
+
+  if (typeof rawContent === 'string') {
+    try {
+      return JSON.parse(rawContent) as EditorContentData;
+    } catch (error) {
+      console.error('Failed to parse article raw content', error);
+      return undefined;
+    }
+  }
+
+  return rawContent;
+};
+
+const ArticleModal = ({ isOpen, onClose, onSuccess, article }: ArticleModalProps) => {
   const editorInstance = React.useRef<EditorJS | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [formData, setFormData] = React.useState({
@@ -49,12 +104,46 @@ const ArticleModal = ({ isOpen, onClose, onSuccess, article }: any) => {
     status: 'published',
     author_id: ''
   });
-  const [categories, setCategories] = React.useState<any[]>([]);
-  const [users, setUsers] = React.useState<any[]>([]);
+  const [categories, setCategories] = React.useState<Category[]>([]);
+  const [users, setUsers] = React.useState<AdminUserOption[]>([]);
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+
+  const initEditor = React.useCallback(() => {
+    if (!editorInstance.current) {
+      editorInstance.current = new EditorJS({
+        holder: 'editorjs-admin',
+        tools: {
+          header: Header,
+          list: List,
+          image: ImageTool,
+          embed: Embed,
+        },
+        placeholder: 'Tulis konten edukasi kesehatan yang mendalam di sini...',
+        data: parseEditorData(article?.raw_content),
+      });
+    }
+  }, [article]);
+
+  const fetchCategories = React.useCallback(async () => {
+    try {
+      const res = await api.get('/categories');
+      setCategories(res.data.data as Category[]);
+    } catch (error) {
+      console.error('Fetch categories error:', error);
+    }
+  }, []);
+
+  const fetchUsers = React.useCallback(async () => {
+    try {
+      const res = await api.get('/admin/users');
+      setUsers(res.data.data as AdminUserOption[]);
+    } catch (error) {
+      console.error('Fetch users error:', error);
+    }
+  }, []);
 
   React.useEffect(() => {
     if (isOpen) {
@@ -68,7 +157,7 @@ const ArticleModal = ({ isOpen, onClose, onSuccess, article }: any) => {
         editorInstance.current = null;
       }
     };
-  }, [isOpen]);
+  }, [fetchCategories, fetchUsers, initEditor, isOpen]);
 
   React.useEffect(() => {
     if (article) {
@@ -93,40 +182,6 @@ const ArticleModal = ({ isOpen, onClose, onSuccess, article }: any) => {
     }
   }, [article, isOpen]);
 
-  const initEditor = () => {
-    if (!editorInstance.current) {
-      editorInstance.current = new EditorJS({
-        holder: 'editorjs-admin',
-        tools: {
-          header: Header,
-          list: List,
-          image: ImageTool,
-          embed: Embed,
-        },
-        placeholder: 'Tulis konten edukasi kesehatan yang mendalam di sini...',
-        data: article ? (typeof article.raw_content === 'string' ? JSON.parse(article.raw_content || '{}') : article.raw_content) : undefined,
-      });
-    }
-  };
-
-  const fetchCategories = async () => {
-    try {
-      const res = await api.get('/categories');
-      setCategories(res.data.data);
-    } catch (err) {
-      console.error('Fetch categories error:', err);
-    }
-  };
-
-  const fetchUsers = async () => {
-    try {
-      const res = await api.get('/admin/users');
-      setUsers(res.data.data);
-    } catch (err) {
-      console.error('Fetch users error:', err);
-    }
-  };
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -140,12 +195,12 @@ const ArticleModal = ({ isOpen, onClose, onSuccess, article }: any) => {
     setLoading(true);
     setError(null);
     try {
-      const savedData = await editorInstance.current?.save();
-      const htmlContent = savedData?.blocks.map((block: any) => {
+      const savedData = (await editorInstance.current?.save()) as EditorContentData | undefined;
+      const htmlContent = savedData?.blocks.map((block) => {
         if (block.type === 'paragraph') return `<p>${block.data.text}</p>`;
         if (block.type === 'header') return `<h${block.data.level}>${block.data.text}</h${block.data.level}>`;
         if (block.type === 'list') {
-          const items = block.data.items.map((i: string) => `<li>${i}</li>`).join('');
+          const items = (block.data.items || []).map((item) => `<li>${item}</li>`).join('');
           return block.data.style === 'ordered' ? `<ol>${items}</ol>` : `<ul>${items}</ul>`;
         }
         return '';
@@ -180,8 +235,13 @@ const ArticleModal = ({ isOpen, onClose, onSuccess, article }: any) => {
       }
       onSuccess();
       onClose();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Gagal menyimpan artikel.');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Gagal menyimpan artikel.';
+      const apiErrorMessage = typeof error === 'object' && error !== null && 'response' in error
+        ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
+        : undefined;
+
+      setError(apiErrorMessage || errorMessage);
     } finally {
       setLoading(false);
     }
@@ -299,12 +359,13 @@ const ArticleModal = ({ isOpen, onClose, onSuccess, article }: any) => {
 };
 
 export default function AdminArticles() {
-  const [articles, setArticles] = React.useState<any[]>([]);
+  const navigate = useNavigate();
+  const [articles, setArticles] = React.useState<AdminArticle[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [page, setPage] = React.useState(1);
-  const [pagination, setPagination] = React.useState<any>(null);
+  const [pagination, setPagination] = React.useState<AdminArticlesPagination | null>(null);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const [selectedArticle, setSelectedArticle] = React.useState<any>(null);
+  const [selectedArticle, setSelectedArticle] = React.useState<AdminArticle | null>(null);
 
   React.useEffect(() => {
     fetchArticles(page);
@@ -314,21 +375,22 @@ export default function AdminArticles() {
     setLoading(true);
     try {
       const res = await api.get(`/admin/articles?page=${targetPage}`);
-      setArticles(res.data.data);
-      setPagination(res.data.pagination);
-    } catch (err) {
-      console.error('Fetch articles error:', err);
+      setArticles(res.data.data as AdminArticle[]);
+      setPagination(res.data.pagination as AdminArticlesPagination);
+    } catch (error) {
+      console.error('Fetch articles error:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (article: any) => {
+  const handleDelete = async (article: AdminArticle) => {
     if (window.confirm(`Hapus artikel "${article.title}"? Tindakan ini tidak dapat dibatalkan.`)) {
       try {
         await api.delete(`/admin/articles/${article.id}`);
         fetchArticles(page);
-      } catch (err) {
+      } catch (error) {
+        console.error('Delete article error:', error);
         alert('Gagal menghapus artikel.');
       }
     }
@@ -412,7 +474,7 @@ export default function AdminArticles() {
                     </div>
                     <Button
                       variant="outline"
-                      onClick={() => window.open(`/article/${article.slug}`, '_blank')}
+                      onClick={() => navigate(`/article/${article.slug}`)}
                       className="h-9 px-4 rounded-xl border-slate-100 text-[10px] font-black uppercase tracking-widest"
                     >
                       Preview <Eye className="w-3.5 h-3.5 ml-2" />
