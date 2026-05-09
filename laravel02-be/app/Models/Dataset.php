@@ -8,6 +8,7 @@ use MongoDB\Laravel\Eloquent\Model;
 class Dataset extends Model
 {
     use HasFactory;
+
     protected $connection = 'mongodb';
     protected $collection = 'datasets';
 

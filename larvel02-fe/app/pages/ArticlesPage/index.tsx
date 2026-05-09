@@ -75,12 +75,13 @@ export default function ArticlesPage() {
         return articles.filter(a => a.status === 'published');
     }, [articles]);
 
+    // Auto-change featured article timer
     useEffect(() => {
         if (publishedArticles.length <= 1) return;
 
         const timer = setInterval(() => {
             setFeaturedIndex((prev) => (prev + 1) % publishedArticles.length);
-        }, 5000);
+        }, 5000); // Change every 5 seconds
 
         return () => clearInterval(timer);
     }, [publishedArticles]);
@@ -141,6 +142,7 @@ export default function ArticlesPage() {
 
     return (
         <div className="min-h-screen bg-white font-sans text-slate-900 selection:bg-primary/10">
+            {/* Search & Hero Section */}
             <section className="relative pt-32 pb-20 overflow-hidden bg-slate-50">
                 <div className="absolute top-0 left-0 w-full h-full opacity-[0.03] pointer-events-none">
                     <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary rounded-full blur-[120px]"></div>
@@ -189,6 +191,7 @@ export default function ArticlesPage() {
                 </div>
             </section>
 
+            {/* Category Filter */}
             <section className="sticky top-0 bg-white/80 backdrop-blur-xl border-b border-slate-100 z-40 py-6">
                 <div className="max-w-7xl mx-auto px-6 overflow-x-auto no-scrollbar">
                     <div className="flex items-center gap-3">
@@ -213,6 +216,7 @@ export default function ArticlesPage() {
             </section>
 
             <main className="max-w-7xl mx-auto px-6 py-20">
+                {/* Featured Card Carousel */}
                 <div className="relative mb-20">
                     <AnimatePresence mode="wait">
                         {featuredArticle && activeCategory === "Semua" && !searchTerm && (
@@ -275,6 +279,7 @@ export default function ArticlesPage() {
                     </AnimatePresence>
                 </div>
 
+                {/* Article Grid */}
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-16">
                     <AnimatePresence mode="popLayout">
                         {paginatedArticles.length > 0 ? (
@@ -349,6 +354,7 @@ export default function ArticlesPage() {
                     </AnimatePresence>
                 </div>
 
+                {/* Pagination Controls */}
                 {totalPages > 1 && (
                     <div className="flex items-center justify-center gap-4 mt-16">
                         <Button

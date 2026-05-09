@@ -55,8 +55,8 @@ class AdminDashboardController extends Controller
             'data' => [
                 'total_users' => $totalUsers,
                 'total_articles' => $publishedArticles,
-                'growth' => $growthData,
-            ],
+                'growth' => $growthData
+            ]
         ]);
     }
 }

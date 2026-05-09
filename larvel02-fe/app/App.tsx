@@ -10,7 +10,6 @@ import AdminDashboard from './pages/AdminPage/AdminDashboard';
 import AdminUsers from './pages/AdminPage/AdminUsers';
 import AdminArticles from './pages/AdminPage/AdminArticles';
 import AdminCategories from './pages/AdminPage/AdminCategories';
-import AdminDatasets from './pages/AdminPage/AdminDatasets';
 
 import UserPage from './pages/UserPage';
 import RiwayatPemeriksaanPage from './pages/UserPage/RiwayatPemeriksaan';
@@ -51,7 +50,6 @@ function App() {
                         <Route path="/admin/users" element={<AdminUsers />} />
                         <Route path="/admin/articles" element={<AdminArticles />} />
                         <Route path="/admin/categories" element={<AdminCategories />} />
-                        <Route path="/admin/datasets" element={<AdminDatasets />} />
                         <Route path="/admin/profile" element={<ProfilePage />} />
                     </Route>
                 </Route>
