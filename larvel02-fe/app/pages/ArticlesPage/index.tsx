@@ -143,11 +143,7 @@ export default function ArticlesPage() {
     return (
         <div className="min-h-screen bg-white font-sans text-slate-900 selection:bg-primary/10">
             {/* Search & Hero Section */}
-            <section className="relative pt-32 pb-20 overflow-hidden bg-slate-50">
-                <div className="absolute top-0 left-0 w-full h-full opacity-[0.03] pointer-events-none">
-                    <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary rounded-full blur-[120px]"></div>
-                    <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-blue-600 rounded-full blur-[100px]"></div>
-                </div>
+            <section className="relative pt-32 pb-20 overflow-hidden bg-cover bg-center" style={{ backgroundImage: "url('/assets/Banner.png')" }}>
 
                 <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
                     <motion.div
