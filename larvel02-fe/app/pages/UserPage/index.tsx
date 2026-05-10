@@ -19,7 +19,6 @@ import {
   TrendingUp,
   ArrowRight,
   Plus,
-  Lightbulb,
   ChevronRight,
   Clock,
   HeartPulse
@@ -30,6 +29,7 @@ import { Button } from "~/components/ui/button";
 import { RiskBadge } from "~/components/shared/RiskBadge";
 import type { Prediction } from "~/types/UserPage/User";
 import { cn } from "~/lib/utils";
+import type { Article } from "~/types/shared";
 
 interface ChatItem {
   id?: string;
@@ -56,6 +56,7 @@ interface UserDashboardPayload {
     total_articles_read: number;
   };
   predictions: Prediction[];
+  articles?: Article[];
   chart_data: ChartDataItem[];
 }
 
@@ -72,6 +73,10 @@ interface RadarChartItem {
   previous: number;
   latestRaw: string;
   previousRaw: string;
+}
+
+interface RecommendedArticleCardProps {
+  article: Article;
 }
 
 interface StatCardProps {
@@ -117,6 +122,38 @@ const riskBadgeTheme = {
   "-": "bg-slate-100 text-slate-600 ring-1 ring-slate-200",
 } as const;
 
+const RecommendedArticleCard = ({ article }: RecommendedArticleCardProps) => (
+  <Link
+    to={`/article/${article.slug}`}
+    className="group flex items-start gap-3 rounded-[1.25rem] border border-slate-200 bg-slate-50/80 p-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-200 hover:bg-white hover:shadow-sm"
+  >
+    <div className="h-14 w-14 shrink-0 overflow-hidden rounded-2xl bg-slate-200">
+      {article.thumbnail ? (
+        <img src={article.thumbnail} alt={article.title} className="h-full w-full object-cover" />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center text-slate-400">
+          <BookOpen className="h-5 w-5" />
+        </div>
+      )}
+    </div>
+    <div className="min-w-0 space-y-1">
+      <p className="line-clamp-2 text-sm font-bold leading-tight text-slate-800 transition-colors group-hover:text-emerald-600">
+        {article.title}
+      </p>
+      <p className="text-[11px] font-medium text-slate-400">
+        {article.author_name || article.author?.name || "HeartCare"}
+      </p>
+      <p className="text-[11px] text-slate-400">
+        {new Date(article.created_at).toLocaleDateString("id-ID", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        })}
+      </p>
+    </div>
+  </Link>
+);
+
 const StatCard = ({ title, value, icon: Icon, trend, colorClass, delay = 0, variant = "default" }: StatCardProps) => {
   const theme = statCardTheme[colorClass as keyof typeof statCardTheme] ?? statCardTheme["bg-emerald-600"];
   const normalizedValue = value.toUpperCase();
@@ -128,14 +165,14 @@ const StatCard = ({ title, value, icon: Icon, trend, colorClass, delay = 0, vari
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay }}
     >
-      <Card className="relative overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+      <Card className="relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
         <div className={cn("absolute inset-x-0 top-0 h-1", colorClass)} />
         <div className="absolute right-0 top-0 h-28 w-28 -translate-y-10 translate-x-10 rounded-full bg-slate-100/70 blur-2xl" />
 
         <div className="relative flex h-full flex-col gap-5">
           <div className="flex items-start justify-between gap-4">
-            <div className={cn("flex h-14 w-14 items-center justify-center rounded-[1.35rem] ring-1", theme.tint, theme.ring)}>
-              <Icon className={cn("h-7 w-7", theme.icon)} />
+            <div className={cn("flex h-12 w-12 items-center justify-center rounded-[1.2rem] ring-1", theme.tint, theme.ring)}>
+              <Icon className={cn("h-6 w-6", theme.icon)} />
             </div>
             <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
               Ringkasan
@@ -151,7 +188,7 @@ const StatCard = ({ title, value, icon: Icon, trend, colorClass, delay = 0, vari
                 </span>
               </div>
             ) : (
-              <h3 className="text-4xl font-black leading-none text-slate-900 font-display">{value}</h3>
+              <h3 className="text-3xl font-black leading-none text-slate-900 font-display">{value}</h3>
             )}
           </div>
 
@@ -180,6 +217,7 @@ export default function UserDashboard() {
   const navigate = useNavigate();
   const [chats, setChats] = React.useState<ChatItem[]>([]);
   const [predictions, setPredictions] = React.useState<Prediction[]>([]);
+  const [articles, setArticles] = React.useState<Article[]>([]);
   const [currentTimestamp] = React.useState(() => Date.now());
   const [dashboardStats, setDashboardStats] = React.useState({
     total_checkups: 0,
@@ -213,6 +251,7 @@ export default function UserDashboard() {
             });
           }
           setPredictions(Array.isArray(dashboardData.predictions) ? dashboardData.predictions : []);
+          setArticles(Array.isArray(dashboardData.articles) ? dashboardData.articles : []);
         }
       } catch (e) {
         console.error("Dashboard fetch error:", e);
@@ -308,7 +347,7 @@ export default function UserDashboard() {
       <div className="fixed bottom-20 left-10 w-80 h-80 bg-purple-500/5 rounded-full blur-[80px] pointer-events-none -z-10" />
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           title="Total Prediksi"
           value={dashboardStats.total_checkups.toString()}
@@ -366,10 +405,10 @@ export default function UserDashboard() {
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-[1.4fr_0.9fr] gap-8 items-stretch">
+          <div className="grid grid-cols-1 xl:grid-cols-[1.25fr_0.85fr_0.8fr] gap-6 items-stretch">
             {radarData.length > 0 ? (
               <>
-                <div className="min-h-[420px]">
+                <div className="min-h-[380px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <RadarChart data={radarData} outerRadius="72%">
                       <PolarGrid stroke="#dbe4ee" />
@@ -422,7 +461,7 @@ export default function UserDashboard() {
                   </ResponsiveContainer>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-5">
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-4">
                     <div className="rounded-[1.5rem] border border-emerald-100 bg-emerald-50 p-5">
                       <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600">Checkup Terbaru</span>
@@ -468,6 +507,35 @@ export default function UserDashboard() {
                     </div>
                   </div>
                 </div>
+                <div className="space-y-5">
+                  <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm h-full">
+                    <div className="mb-4 flex items-center justify-between gap-3">
+                      <div>
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600">Bacaan Pilihan</span>
+                        <h3 className="mt-2 text-lg font-black text-slate-900 font-display">Rekomendasi Artikel</h3>
+                        <p className="mt-1 text-xs text-slate-500">Artikel terbaru yang relevan untuk user baca setelah melihat kondisi tubuh.</p>
+                      </div>
+                      <Link to="/articles" className="rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-emerald-600 transition hover:bg-emerald-100">
+                        Lihat Semua
+                      </Link>
+                    </div>
+
+                    {articles.length > 0 ? (
+                      <div className="space-y-3">
+                        {articles.slice(0, 3).map((article) => (
+                          <RecommendedArticleCard key={article.id} article={article} />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex min-h-[300px] flex-col items-center justify-center rounded-[1.25rem] border border-dashed border-slate-200 bg-slate-50 text-center">
+                        <BookOpen className="h-8 w-8 text-slate-300" />
+                        <p className="mt-3 text-sm font-bold text-slate-500">Belum ada artikel rekomendasi</p>
+                        <p className="mt-1 max-w-[220px] text-xs text-slate-400">Artikel terbaru yang dipublikasikan akan tampil di sini.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
               </>
             ) : (
               <div className="col-span-full min-h-[320px] flex flex-col items-center justify-center text-center">
@@ -659,50 +727,6 @@ export default function UserDashboard() {
             </Card>
           </motion.div>
 
-          {/* Health Tips Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.7 }}
-          >
-            <Card className="p-7 border-none bg-gradient-to-br from-emerald-600 to-emerald-700 text-white rounded-[2.0rem] shadow-xl relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-56 h-56 bg-white/10 rounded-full -mr-28 -mt-28 transition-transform duration-700 group-hover:scale-125" />
-              <div className="absolute bottom-0 left-0 w-28 h-28 bg-white/10 rounded-full -ml-14 -mb-14" />
-
-              <div className="relative z-10 flex flex-col gap-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-[1.5rem] flex items-center justify-center shrink-0 shadow-lg">
-                    <Lightbulb className="w-8 h-8 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-100">Tips Kesehatan Hari Ini</span>
-                    <h3 className="text-2xl font-black font-display mt-2 mb-2">Minum Air Putih & Istirahat Cukup</h3>
-                    <p className="text-emerald-50/80 text-sm font-medium leading-relaxed">
-                      Pastikan Anda minum minimal 8 gelas air putih dan tidur 7-8 jam per hari. Hidrasi yang baik dan istirahat yang cukup sangat krusial untuk menjaga kerja jantung tetap stabil.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-[1.25rem] bg-white/10 p-4 backdrop-blur-sm">
-                    <span className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-100">Fokus</span>
-                    <p className="text-sm font-bold text-white mt-2">Hidrasi Harian</p>
-                  </div>
-                  <div className="rounded-[1.25rem] bg-white/10 p-4 backdrop-blur-sm">
-                    <span className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-100">Durasi</span>
-                    <p className="text-sm font-bold text-white mt-2">7-8 Jam Tidur</p>
-                  </div>
-                </div>
-
-                <Button
-                  className="bg-white text-emerald-700 hover:bg-emerald-50 rounded-2xl h-14 px-8 font-black shadow-xl shrink-0"
-                  onClick={() => navigate('/articles')}
-                >
-                  Pelajari Lebih Lanjut
-                </Button>
-              </div>
-            </Card>
-          </motion.div>
         </div>
       </div>
     </div>

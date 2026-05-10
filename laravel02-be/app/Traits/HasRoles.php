@@ -17,7 +17,60 @@ trait HasRoles
         if (is_string($role)) {
             $role = Role::where('name', $role)->firstOrFail();
         }
-        $this->roles()->syncWithoutDetaching([$role->id]);
+
+        $roleId = (string) $role->id;
+        $userId = (string) $this->id;
+
+        $roleIds = collect($this->role_ids ?? [])
+            ->map(fn ($id) => (string) $id)
+            ->push($roleId)
+            ->unique()
+            ->values()
+            ->all();
+
+        $this->forceFill(['role_ids' => $roleIds])->save();
+
+        $userIds = collect($role->user_ids ?? [])
+            ->map(fn ($id) => (string) $id)
+            ->push($userId)
+            ->unique()
+            ->values()
+            ->all();
+
+        $role->forceFill(['user_ids' => $userIds])->save();
+        $this->unsetRelation('roles');
+    }
+
+    public function syncRole($role)
+    {
+        if (is_string($role)) {
+            $role = Role::where('name', $role)->firstOrFail();
+        }
+
+        $roleId = (string) $role->id;
+        $userId = (string) $this->id;
+
+        foreach (Role::whereIn('_id', $this->role_ids ?? [])->get() as $currentRole) {
+            $userIds = collect($currentRole->user_ids ?? [])
+                ->map(fn ($id) => (string) $id)
+                ->reject(fn ($id) => $id === $userId)
+                ->values()
+                ->all();
+
+            $currentRole->forceFill(['user_ids' => $userIds])->save();
+        }
+
+        $this->forceFill(['role_ids' => [$roleId]])->save();
+
+        $userIds = collect($role->user_ids ?? [])
+            ->map(fn ($id) => (string) $id)
+            ->push($userId)
+            ->unique()
+            ->values()
+            ->all();
+
+        $role->forceFill(['user_ids' => $userIds])->save();
+        $this->unsetRelation('roles');
     }
 
     public function hasRole($role)

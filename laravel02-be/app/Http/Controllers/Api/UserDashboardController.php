@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Article;
 use App\Models\Chat;
 use App\Models\Prediction;
 use Carbon\Carbon;
@@ -15,6 +16,10 @@ class UserDashboardController extends Controller
         $user = Auth::user();
         $predictions = Prediction::where('user_id', Auth::id())
             ->orderBy('created_at', 'asc')
+            ->get();
+        $articles = Article::where('status', 'published')
+            ->orderBy('created_at', 'desc')
+            ->limit(3)
             ->get();
         $consultations = Chat::where('user_id', Auth::id())
             ->get(['created_at']);
@@ -75,6 +80,7 @@ class UserDashboardController extends Controller
                     'total_articles_read' => count($readArticles),
                 ],
                 'predictions' => $predictions,
+                'articles' => $articles,
                 'chart_data' => $chartData,
             ],
         ]);

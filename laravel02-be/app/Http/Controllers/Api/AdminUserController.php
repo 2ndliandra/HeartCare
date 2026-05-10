@@ -104,14 +104,23 @@ class AdminUserController extends Controller
         $user->save();
 
         if ($request->has('role')) {
-            // Remove all current roles
-            $user->roles()->detach();
-            $user->assignRole($request->role);
+            $user->syncRole($request->role);
         }
+
+        $user->refresh();
+        $user->load('roles');
 
         return response()->json([
             'success' => true,
-            'message' => 'User updated successfully'
+            'message' => 'User updated successfully',
+            'data' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone_number' => $user->phone_number,
+                'roles' => $user->roles->pluck('name')->values(),
+                'created_at' => $user->created_at,
+            ]
         ]);
     }
 
