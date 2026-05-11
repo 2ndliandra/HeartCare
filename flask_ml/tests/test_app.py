@@ -116,7 +116,7 @@ class FlaskAppTestCase(unittest.TestCase):
             {"success": True, "risk_level": "RENDAH", "risk_score": 15.0},
         )
 
-    def test_predict_handles_optional_and_falsy_inputs_for_male_flow(self):
+    def test_predict_handles_optional_fields_with_falsy_values(self):
         self.fake_model.prediction = 0
         self.fake_model.probability = 0.2
         payload = {
