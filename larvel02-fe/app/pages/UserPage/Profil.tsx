@@ -133,7 +133,7 @@ export default function ProfilePage() {
         data.append('profile_picture', fileInputRef.current.files[0]);
       }
 
-      const response = await api.post('/profile', data, {
+      const response = await api.put('/profile', data, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -172,8 +172,7 @@ export default function ProfilePage() {
 
     setLoading(true);
     try {
-      const response = await api.post('/profile', {
-        name: formData.name, // backend requires name
+      const response = await api.patch('/profile/password', {
         password: passwordData.new,
         password_confirmation: passwordData.confirm
       });

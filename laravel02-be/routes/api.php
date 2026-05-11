@@ -42,7 +42,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/chats', [AiController::class, 'index']);
     Route::post('/chat', [AiController::class, 'chat']);
     Route::get('/profile', [ProfileController::class, 'show']);
-    Route::post('/profile', [ProfileController::class, 'update']);
+    Route::put('/profile', [ProfileController::class, 'update']);
+    Route::patch('/profile/password', [ProfileController::class, 'updatePassword']);
     Route::delete('/profile', [ProfileController::class, 'destroy']);
     Route::post('/articles/{id}/read', [AdminArticleController::class, 'markAsRead']);
     Route::get('/predictions', [PredictionController::class, 'index']);

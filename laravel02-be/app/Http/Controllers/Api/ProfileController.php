@@ -34,7 +34,6 @@ class ProfileController extends Controller
      */
     public function update(Request $request)
     {
-        // Fetch fresh user instance from DB
         $user = \App\Models\User::find(Auth::id());
 
         if (!$user) {
@@ -48,23 +47,15 @@ class ProfileController extends Controller
             'address' => 'nullable|string',
             'birth_date' => 'nullable|date',
             'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'password' => 'nullable|string|min:8|confirmed',
         ]);
 
-        // Update fields
         $user->name = $request->name;
         $user->phone_number = $request->phone_number;
         $user->gender = $request->gender;
         $user->address = $request->address;
         $user->birth_date = $request->birth_date;
 
-        // Only update password if it's explicitly provided
-        if ($request->filled('password')) {
-            $user->password = Hash::make($request->password);
-        }
-
         if ($request->hasFile('profile_picture')) {
-            // Delete old picture if exists
             if ($user->profile_picture) {
                 Storage::disk('public')->delete($user->profile_picture);
             }
@@ -74,19 +65,36 @@ class ProfileController extends Controller
         }
 
         $user->save();
+        $user->load('roles');
 
         $userData = $user->toArray();
-        if ($user->roles) {
-            $userData['roles'] = $user->roles->pluck('name');
-        } else {
-            $user->load('roles');
-            $userData['roles'] = $user->roles->pluck('name');
-        }
+        $userData['roles'] = $user->roles->pluck('name');
 
         return response()->json([
             'success' => true,
             'message' => 'Profile updated successfully',
             'data' => $userData
+        ]);
+    }
+
+    public function updatePassword(Request $request)
+    {
+        $user = \App\Models\User::find(Auth::id());
+
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'User not found'], 404);
+        }
+
+        $request->validate([
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password updated successfully'
         ]);
     }
 
