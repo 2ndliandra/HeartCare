@@ -31,7 +31,7 @@ class FlaskAppTestCase(unittest.TestCase):
         self.addCleanup(patcher.stop)
         patcher.start()
 
-        spec = importlib.util.spec_from_file_location("heartcare_flask_app", APP_PATH)
+        spec = importlib.util.spec_from_file_location("flask_app", APP_PATH)
         self.module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(self.module)
         self.client = self.module.app.test_client()
