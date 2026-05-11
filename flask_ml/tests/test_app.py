@@ -116,6 +116,39 @@ class FlaskAppTestCase(unittest.TestCase):
             {"success": True, "risk_level": "RENDAH", "risk_score": 15.0},
         )
 
+    def test_predict_handles_optional_and_falsy_inputs_for_male_flow(self):
+        self.fake_model.prediction = 0
+        self.fake_model.probability = 0.2
+        payload = {
+            "age": 30,
+            "gender": "male",
+            "systolic_bp": 110,
+            "diastolic_bp": 70,
+            "cholesterol": 190,
+            "heart_rate": 72,
+            "weight": 60,
+            "height": 170,
+            "smoking": "tidak",
+            "alcohol": "false",
+            "exercise": "0",
+        }
+
+        response = self.client.post("/predict", json=payload)
+        body = response.get_json()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(body["success"])
+        self.assertEqual(body["risk_level"], "RENDAH")
+        self.assertAlmostEqual(body["risk_score"], 20.0)
+
+        row = self.fake_model.last_df.iloc[0]
+        self.assertEqual(row["gender"], 2)
+        self.assertEqual(row["gluc"], 2)
+        self.assertEqual(row["smoke"], 0)
+        self.assertEqual(row["alco"], 0)
+        self.assertEqual(row["active"], 0)
+        self.assertEqual(row["lifestyle_risk"], 1)
+
 
 if __name__ == "__main__":
     unittest.main()
