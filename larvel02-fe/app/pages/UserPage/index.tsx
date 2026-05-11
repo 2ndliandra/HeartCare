@@ -694,17 +694,17 @@ export default function UserDashboard() {
                     <motion.div
                       key={chat.id || idx}
                       whileHover={{ x: 4 }}
-                      className="p-4 rounded-[2.0rem] border border-slate-50 hover:border-emerald-100 bg-slate-50/50 hover:bg-white transition-all cursor-pointer flex gap-4 items-start"
+                      className="min-h-[112px] p-4 rounded-[2.0rem] border border-slate-50 hover:border-emerald-100 bg-slate-50/50 hover:bg-white transition-all cursor-pointer flex gap-4 items-start"
                     >
                       <div className="w-10 h-10 rounded-2xl bg-white shadow-sm flex items-center justify-center text-emerald-600 shrink-0">
                         <MessageSquare className="w-5 h-5" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-bold text-slate-900 truncate mb-1">{chat.message}</h4>
-                        <p className="text-xs text-slate-500 line-clamp-2 mb-2">AI: {chat.response}</p>
+                        <h4 className="text-sm font-bold text-slate-900 line-clamp-2 mb-1 break-words">{chat.message}</h4>
+                        <p className="text-xs text-slate-500 line-clamp-2 mb-2 break-words">AI: {chat.response}</p>
                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-tight">{getRelativeTimeLabel(chat.created_at)}</span>
                       </div>
-                      <ChevronRight className="w-4 h-4 text-slate-300 self-center" />
+                      <ChevronRight className="w-4 h-4 text-slate-300 self-center shrink-0" />
                     </motion.div>
                   ))
                 ) : (

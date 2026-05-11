@@ -31,6 +31,7 @@ class AiController extends Controller
     {
         $prompt = $request->input('prompt');
         $result = $aiService->generate($prompt);
+        $isError = is_array($result) && ($result['error'] ?? false);
 
         if (Auth::check()) {
             $responseText = is_array($result) ? ($result['message'] ?? 'Error fetching AI response') : $result;
@@ -40,6 +41,18 @@ class AiController extends Controller
                 'message' => $prompt,
                 'response' => $responseText
             ]);
+        }
+
+        if ($isError) {
+            return response()->json([
+                'success' => false,
+                'data' => $result,
+                'debug' => [
+                    'prompt' => $prompt,
+                    'provider_status' => $result['provider_status'] ?? null,
+                    'provider_message' => $result['provider_message'] ?? null,
+                ],
+            ], $result['status'] ?? 500);
         }
 
         return response()->json([
