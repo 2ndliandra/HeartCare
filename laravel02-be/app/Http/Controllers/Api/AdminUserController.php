@@ -88,6 +88,7 @@ class AdminUserController extends Controller
             'name' => 'sometimes|string|max:255',
             'email' => 'sometimes|string|email|max:255|unique:users,email,' . $user->id,
             'phone_number' => 'nullable|string|max:20',
+            'password' => 'sometimes|string|min:6',
             'role' => 'sometimes|string|in:user,admin'
         ]);
 

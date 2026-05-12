@@ -64,7 +64,17 @@ export function Navbar({ isAuthenticated = false, user }: NavbarProps) {
       </div>
 
       <nav className="hidden md:flex items-center gap-6">
-        <Link to="/" className="text-sm font-medium text-slate-700 hover:text-emerald-600 transition-colors duration-150">Home</Link>
+        <Link
+          to="/"
+          onClick={() => {
+            if (window.location.pathname === '/') {
+              window.scrollTo({ top: 0, behavior: 'smooth' })
+            }
+          }}
+          className="text-sm font-medium text-slate-700 hover:text-emerald-600 transition-colors duration-150"
+        >
+          Home
+        </Link>
         <a href="/#fitur" className="text-sm font-medium text-slate-700 hover:text-emerald-600 transition-colors duration-150">Feature</a>
         <Link to="/articles" className="text-sm font-medium text-slate-700 hover:text-emerald-600 transition-colors duration-150">Artikel</Link>
         <a href="/#articles" className="text-sm font-medium text-slate-700 hover:text-emerald-600 transition-colors duration-150">About</a>

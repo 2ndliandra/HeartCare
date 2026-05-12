@@ -49,9 +49,8 @@ class ResetPasswordController extends Controller
         }
 
         return response()->json([
-            'success' => true, 
-            'message' => 'Kode reset telah dikirim ke email Anda.',
-            'debug_token' => $token // Returning token for development ease
+            'success' => true,
+            'message' => 'Kode reset telah dikirim ke email Anda.'
         ]);
     }
 

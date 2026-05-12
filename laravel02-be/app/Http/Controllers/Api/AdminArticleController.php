@@ -9,21 +9,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Cache;
 
 class AdminArticleController extends Controller
 {
-    /**
-     * Display a listing of articles with caching.
-     */
     public function index()
     {
-        $page = request()->get('page', 1);
-        $cacheKey = "articles_list_page_{$page}";
-
-        $articles = Cache::remember($cacheKey, 600, function () {
-            return Article::with('author')->orderBy('created_at', 'desc')->paginate(10);
-        });
+        $articles = Article::with('author')->orderBy('created_at', 'desc')->paginate(10);
 
         return ArticleResource::collection($articles)->additional([
             'success' => true,
@@ -69,9 +60,6 @@ class AdminArticleController extends Controller
             'author_id' => $request->author_id ?? auth()->id(),
         ]);
 
-        // Invalidate cache
-        $this->clearArticleCache();
-
         return (new ArticleResource($article))->additional([
             'success' => true,
             'message' => 'Article created successfully',
@@ -116,25 +104,15 @@ class AdminArticleController extends Controller
 
         $article->save();
 
-        // Invalidate cache
-        $this->clearArticleCache($article->slug);
-
         return response()->json([
             'success' => true,
             'message' => 'Article updated successfully'
         ]);
     }
 
-    /**
-     * Get a single article with caching by slug.
-     */
     public function show($slug)
     {
-        $cacheKey = "article_detail_{$slug}";
-
-        $article = Cache::remember($cacheKey, 3600, function () use ($slug) {
-            return Article::where('slug', (string) $slug)->with('author')->first();
-        });
+        $article = Article::where('slug', (string) $slug)->with('author')->first();
 
         if (!$article) {
             return response()->json(['success' => false, 'message' => 'Artikel tidak ditemukan'], 404);
@@ -177,33 +155,11 @@ class AdminArticleController extends Controller
     public function destroy($id)
     {
         $article = Article::findOrFail($id);
-        $slug = $article->slug;
         $article->delete();
-
-        // Invalidate cache
-        $this->clearArticleCache($slug);
 
         return response()->json([
             'success' => true,
             'message' => 'Article deleted successfully'
         ]);
-    }
-
-    /**
-     * Helper to clear article caches.
-     */
-    protected function clearArticleCache($slug = null)
-    {
-        // Clear paginated lists (first few pages)
-        for ($i = 1; $i <= 5; $i++) {
-            Cache::forget("articles_list_page_{$i}");
-        }
-
-        if ($slug) {
-            Cache::forget("article_detail_{$slug}");
-        }
-
-        // Also clear landing page cache if implemented elsewhere
-        Cache::forget('latest_articles_home');
     }
 }
