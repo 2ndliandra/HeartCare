@@ -13,17 +13,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import api from "../../lib/api";
 import { Button } from "~/components/ui/button";
 
-import type { Article, Category } from "~/types/shared";
+import type { Article, Category, CurrentUserProfile } from "~/types/shared";
 
 export default function ArticlesPage() {
     const [articles, setArticles] = useState<Article[]>([]);
     const [categories, setCategories] = useState<string[]>(["Semua"]);
     const [loading, setLoading] = useState(true);
-    const [currentUser, setCurrentUser] = useState<{
-        name: string;
-        initial: string;
-        profile_picture?: string;
-    } | null>(null);
+    const [currentUser, setCurrentUser] = useState<CurrentUserProfile | null>(null);
     const [activeCategory, setActiveCategory] = useState("Semua");
     const [searchTerm, setSearchTerm] = useState("");
     const [featuredIndex, setFeaturedIndex] = useState(0);

@@ -1,26 +1,21 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
-  Heart,
   ArrowLeft,
   Calendar,
   Clock,
-  MessageCircle,
 } from "lucide-react";
 import { motion } from "motion/react";
 import api from "../../lib/api";
 
-import type { Article } from "~/types/shared";
+import type { Article, CurrentUserProfile } from "~/types/shared";
 
 export default function ArticleDetail() {
   const { slug } = useParams();
+  
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState<{
-    name: string;
-    initial: string;
-    profile_picture?: string;
-  } | null>(null);
+  const [currentUser, setCurrentUser] = useState<CurrentUserProfile | null>(null);
 
   useEffect(() => {
     const loadCurrentUser = () => {
@@ -186,33 +181,7 @@ export default function ArticleDetail() {
         <article className="prose prose-slate prose-lg md:prose-xl max-w-none border border-slate-200 rounded-xl px-6 py-8 md:px-10 md:py-12 prose-headings:font-black prose-headings:tracking-tight prose-a:text-primary prose-img:rounded-xl prose-strong:text-slate-900 prose-p:leading-8 prose-p:text-slate-700 prose-li:text-slate-700">
             <div dangerouslySetInnerHTML={{ __html: article.content }} />
         </article>
-
-        <div className="mt-16 pt-8 border-t border-slate-200 flex flex-wrap items-center justify-between gap-6">
-            <div className="flex items-center gap-2 flex-wrap">
-                {['Kesehatan', 'Jantung', 'Lifestyle'].map(tag => (
-                    <span key={tag} className="px-3 py-1.5 bg-slate-100 text-slate-600 text-[10px] font-bold uppercase tracking-widest rounded-md">
-                      #{tag}
-                    </span>
-                ))}
-            </div>
-            <div className="flex items-center gap-2 text-slate-500 text-sm font-bold">
-                <MessageCircle size={18} /> <span className="text-xs uppercase tracking-widest">24 Komentar</span>
-            </div>
-        </div>
       </main>
-
-      {/* Footer */}
-      <footer className="bg-white border-t border-slate-100 py-16">
-        <div className="max-w-4xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-10">
-          <div className="flex items-center gap-3">
-            <div className="bg-primary/5 p-2 rounded-xl">
-                <Heart className="w-7 h-7 text-primary" />
-            </div>
-            <span className="text-xl font-black text-slate-900 tracking-tight">HeartCare</span>
-          </div>
-          <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest text-center mt-2">© 2026 HeartCare. Dedicated to your heart's future.</p>
-        </div>
-      </footer>
     </div>
   );
 }

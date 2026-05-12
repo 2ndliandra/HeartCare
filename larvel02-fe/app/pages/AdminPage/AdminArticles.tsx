@@ -31,7 +31,7 @@ import { Card } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 import { cn } from "~/lib/utils";
-import type { Article, Category } from "~/types/shared";
+import type { Article, Category, ArticleStatus } from "~/types/shared";
 
 interface EditorBlock {
   type: string;
@@ -52,12 +52,12 @@ interface ArticleAuthorOption {
   name?: string;
 }
 
-interface AdminArticle extends Article {
+interface AdminArticle extends Omit<Article, "raw_content" | "author" | "thumbnail" | "status"> {
   raw_content?: string | EditorContentData;
   author_id?: string;
   author?: ArticleAuthorOption;
-  thumbnail?: string;
-  status: 'draft' | 'published';
+  thumbnail?: string | null;
+  status: ArticleStatus;
 }
 
 interface AdminUserOption {
@@ -76,6 +76,25 @@ interface ArticleModalProps {
   onSuccess: () => void;
   article: AdminArticle | null;
 }
+
+interface ArticleFormData {
+  title: string;
+  category: string;
+  thumbnail: string;
+  status: ArticleStatus;
+  author_id: string;
+}
+
+const escapeHtml = (unsafe?: string): string => {
+  if (!unsafe) return '';
+
+  return unsafe
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+};
 
 const parseEditorData = (rawContent?: string | EditorContentData): EditorContentData | undefined => {
   if (!rawContent) {
@@ -97,7 +116,8 @@ const parseEditorData = (rawContent?: string | EditorContentData): EditorContent
 const ArticleModal = ({ isOpen, onClose, onSuccess, article }: ArticleModalProps) => {
   const editorInstance = React.useRef<EditorJS | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
-  const [formData, setFormData] = React.useState({
+  const previewObjectUrlRef = React.useRef<string | null>(null);
+  const [formData, setFormData] = React.useState<ArticleFormData>({
     title: '',
     category: '',
     thumbnail: '',
@@ -112,20 +132,23 @@ const ArticleModal = ({ isOpen, onClose, onSuccess, article }: ArticleModalProps
   const [error, setError] = React.useState<string | null>(null);
 
   const initEditor = React.useCallback(() => {
-    if (!editorInstance.current) {
-      editorInstance.current = new EditorJS({
-        holder: 'editorjs-admin',
-        tools: {
-          header: Header,
-          list: List,
-          image: ImageTool,
-          embed: Embed,
-        },
-        placeholder: 'Tulis konten edukasi kesehatan yang mendalam di sini...',
-        data: parseEditorData(article?.raw_content),
-      });
+    if (editorInstance.current) {
+      editorInstance.current.destroy();
+      editorInstance.current = null;
     }
-  }, [article]);
+
+    editorInstance.current = new EditorJS({
+      holder: 'editorjs-admin',
+      tools: {
+        header: Header,
+        list: List,
+        image: ImageTool,
+        embed: Embed,
+      },
+      placeholder: 'Tulis konten edukasi kesehatan yang mendalam di sini...',
+      data: parseEditorData(article?.raw_content),
+    });
+  }, [article?.id, article?.raw_content]);
 
   const fetchCategories = React.useCallback(async () => {
     try {
@@ -156,10 +179,20 @@ const ArticleModal = ({ isOpen, onClose, onSuccess, article }: ArticleModalProps
         editorInstance.current.destroy();
         editorInstance.current = null;
       }
+
+      if (previewObjectUrlRef.current) {
+        URL.revokeObjectURL(previewObjectUrlRef.current);
+        previewObjectUrlRef.current = null;
+      }
     };
   }, [fetchCategories, fetchUsers, initEditor, isOpen]);
 
   React.useEffect(() => {
+    if (previewObjectUrlRef.current) {
+      URL.revokeObjectURL(previewObjectUrlRef.current);
+      previewObjectUrlRef.current = null;
+    }
+
     if (article) {
       setFormData({
         title: article.title || '',
@@ -169,6 +202,7 @@ const ArticleModal = ({ isOpen, onClose, onSuccess, article }: ArticleModalProps
         author_id: article.author?.id || article.author_id || ''
       });
       setPreviewUrl(article.thumbnail || null);
+      setSelectedFile(null);
     } else {
       setFormData({
         title: '',
@@ -184,10 +218,16 @@ const ArticleModal = ({ isOpen, onClose, onSuccess, article }: ArticleModalProps
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      setPreviewUrl(URL.createObjectURL(file));
+    if (!file) return;
+
+    if (previewObjectUrlRef.current) {
+      URL.revokeObjectURL(previewObjectUrlRef.current);
     }
+
+    const objectUrl = URL.createObjectURL(file);
+    previewObjectUrlRef.current = objectUrl;
+    setSelectedFile(file);
+    setPreviewUrl(objectUrl);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -197,12 +237,18 @@ const ArticleModal = ({ isOpen, onClose, onSuccess, article }: ArticleModalProps
     try {
       const savedData = (await editorInstance.current?.save()) as EditorContentData | undefined;
       const htmlContent = savedData?.blocks.map((block) => {
-        if (block.type === 'paragraph') return `<p>${block.data.text}</p>`;
-        if (block.type === 'header') return `<h${block.data.level}>${block.data.text}</h${block.data.level}>`;
+        if (block.type === 'paragraph') return `<p>${escapeHtml(block.data.text)}</p>`;
+
+        if (block.type === 'header') {
+          const safeLevel = Math.min(6, Math.max(1, Number(block.data.level || 2)));
+          return `<h${safeLevel}>${escapeHtml(block.data.text)}</h${safeLevel}>`;
+        }
+
         if (block.type === 'list') {
-          const items = (block.data.items || []).map((item) => `<li>${item}</li>`).join('');
+          const items = (block.data.items || []).map((item) => `<li>${escapeHtml(item)}</li>`).join('');
           return block.data.style === 'ordered' ? `<ol>${items}</ol>` : `<ul>${items}</ul>`;
         }
+
         return '';
       }).join('');
 
@@ -261,7 +307,7 @@ const ArticleModal = ({ isOpen, onClose, onSuccess, article }: ArticleModalProps
             <h3 className="text-xl font-black text-slate-900 font-display">{article ? 'Update Medical Content' : 'Draft New Education'}</h3>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1">Scientific Writing Mode</p>
           </div>
-          <button onClick={onClose} className="p-2.5 hover:bg-slate-200 rounded-xl transition-colors text-slate-400"><X size={20} /></button>
+          <button type="button" onClick={onClose} className="p-2.5 hover:bg-slate-200 rounded-xl transition-colors text-slate-400"><X size={20} /></button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-10 flex flex-col lg:flex-row gap-12 no-scrollbar">
@@ -294,7 +340,7 @@ const ArticleModal = ({ isOpen, onClose, onSuccess, article }: ArticleModalProps
                   onChange={e => setFormData({ ...formData, category: e.target.value })}
                 >
                   <option value="">Pilih Kategori</option>
-                  {categories.map(cat => <option key={cat.id} value={cat.name}>{cat.name}</option>)}
+                  {categories.map(cat => <option key={cat.id} value={cat.slug || cat.name}>{cat.name}</option>)}
                 </select>
               </div>
 
@@ -303,7 +349,7 @@ const ArticleModal = ({ isOpen, onClose, onSuccess, article }: ArticleModalProps
                 <select
                   className="w-full h-12 px-4 bg-white border border-slate-200 rounded-2xl text-xs font-black uppercase tracking-wider outline-none focus:border-emerald-500 appearance-none"
                   value={formData.status}
-                  onChange={e => setFormData({ ...formData, status: e.target.value })}
+                  onChange={e => setFormData({ ...formData, status: e.target.value as ArticleStatus })}
                 >
                   <option value="draft">Draft (Simpan Internal)</option>
                   <option value="published">Published (Publikasikan)</option>
@@ -329,7 +375,7 @@ const ArticleModal = ({ isOpen, onClose, onSuccess, article }: ArticleModalProps
                   className="aspect-video w-full rounded-[1.5rem] border-2 border-dashed border-slate-200 hover:border-emerald-500 bg-white flex flex-col items-center justify-center cursor-pointer overflow-hidden transition-all group"
                 >
                   {previewUrl ? (
-                    <img src={previewUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                    <img src={previewUrl} alt="Thumbnail artikel" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                   ) : (
                     <div className="flex flex-col items-center text-slate-300">
                       <Upload className="w-8 h-8 mb-2" />
@@ -344,11 +390,12 @@ const ArticleModal = ({ isOpen, onClose, onSuccess, article }: ArticleModalProps
                 <Button
                   onClick={handleSubmit}
                   disabled={loading}
+                  type="submit"
                   className="w-full h-14 rounded-2xl shadow-xl shadow-emerald-100 font-black text-xs uppercase tracking-[0.2em]"
                 >
                   {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (article ? 'Update Artikel' : 'Publish Artikel')}
                 </Button>
-                <Button variant="ghost" onClick={onClose} className="w-full h-10 rounded-xl text-slate-400 font-bold text-xs uppercase">Batal</Button>
+                <Button type="button" variant="ghost" onClick={onClose} className="w-full h-10 rounded-xl text-slate-400 font-bold text-xs uppercase">Batal</Button>
               </div>
             </div>
           </div>
@@ -497,6 +544,7 @@ export default function AdminArticles() {
           <Button
             disabled={page === 1}
             onClick={() => setPage(page - 1)}
+            type="button"
             variant="outline" className="rounded-2xl h-12 w-12 p-0 border-slate-100 shadow-sm"
           >
             <ChevronLeft className="w-5 h-5" />
@@ -505,6 +553,7 @@ export default function AdminArticles() {
             {Array.from({ length: pagination.last_page }, (_, i) => i + 1).map(p => (
               <button
                 key={p}
+                type="button"
                 onClick={() => setPage(p)}
                 className={cn(
                   "w-12 h-12 rounded-2xl text-sm font-black transition-all",
@@ -518,6 +567,7 @@ export default function AdminArticles() {
           <Button
             disabled={page === pagination.last_page}
             onClick={() => setPage(page + 1)}
+            type="button"
             variant="outline" className="rounded-2xl h-12 w-12 p-0 border-slate-100 shadow-sm"
           >
             <ChevronRight className="w-5 h-5" />
