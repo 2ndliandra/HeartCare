@@ -25,7 +25,9 @@ export interface Article {
   slug: string;
   content: string;
   raw_content?: string;
+  category_id?: string | null;
   category: string;
+  category_data?: Category | null;
   thumbnail?: string | null;
   status: ArticleStatus;
   created_at: string;
@@ -38,4 +40,6 @@ export interface Category {
   id: string;
   name: string;
   slug?: string;
+  color?: string;
+  article_count?: number;
 }

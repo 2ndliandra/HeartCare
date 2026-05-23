@@ -19,6 +19,7 @@ class Article extends Model
         'slug',
         'content',
         'raw_content',
+        'category_id',
         'category',
         'thumbnail',
         'author_id',
@@ -28,5 +29,10 @@ class Article extends Model
     public function author()
     {
         return $this->belongsTo(User::class, 'author_id');
+    }
+
+    public function categoryRelation()
+    {
+        return $this->belongsTo(Category::class, 'category_id');
     }
 }

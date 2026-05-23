@@ -1,477 +1,832 @@
-// @ts-nocheck
-import * as React from "react";
-import { useNavigate } from "react-router-dom";
-
-import { motion, AnimatePresence } from "framer-motion";
+import * as React from "react"
+import { useLocation, useNavigate } from "react-router-dom"
 import {
-  User,
-  Settings,
-  Shield,
-  Camera,
-  Save,
-  Trash2,
   AlertTriangle,
-  Mail,
-  Phone,
   Calendar,
-  MapPin,
+  Camera,
+  CheckCircle2,
+  KeyRound,
+  Loader2,
   Lock,
-  RefreshCw,
-  MoreVertical,
-  Monitor,
-  Smartphone,
-  Check,
-  ChevronRight,
-  Loader2
-} from "lucide-react";
-import { authService } from "../../lib/authService";
-import api from "../../lib/api";
-import { Card } from "~/components/ui/card";
-import { Button } from "~/components/ui/button";
-import { Input, Label } from "~/components/ui/input";
-import { cn } from "~/lib/utils";
-import { useToast } from "../../hooks/useToast";
+  Mail,
+  MapPin,
+  Phone,
+  Save,
+  Shield,
+  Trash2,
+  User,
+} from "lucide-react"
 
-type TabType = "info" | "security";
+import api from "~/lib/api"
+import { Badge } from "~/components/ui/badge"
+import { Button } from "~/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card"
+import { HelperText, Input, Label } from "~/components/ui/input"
+import {
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalDescription,
+  ModalFooter,
+  ModalHeader,
+  ModalTitle,
+} from "~/components/ui/modal"
+import { Separator } from "~/components/ui/separator"
+import { cn } from "~/lib/utils"
+import { useToast } from "~/hooks/useToast"
+import type { UserProfile } from "~/types/UserPage/User"
+
+type TabType = "info" | "security"
+
+interface ProfileFormData {
+  name: string
+  email: string
+  phone: string
+  gender: string
+  address: string
+  birth_date: string
+}
+
+interface PasswordFormData {
+  current: string
+  new: string
+  confirm: string
+}
+
+interface ProfileResponse {
+  success?: boolean
+  data?: UserProfile
+}
+
+const defaultProfileFormData: ProfileFormData = {
+  name: "",
+  email: "",
+  phone: "",
+  gender: "L",
+  address: "",
+  birth_date: "",
+}
+
+const defaultPasswordFormData: PasswordFormData = {
+  current: "",
+  new: "",
+  confirm: "",
+}
+
+const allowedProfileImageTypes = ["image/jpeg", "image/png", "image/jpg", "image/gif"]
+
+function parseStoredUser(): UserProfile | null {
+  try {
+    const raw = localStorage.getItem("user")
+    return raw ? (JSON.parse(raw) as UserProfile) : null
+  } catch (error) {
+    console.error("Failed to parse stored user", error)
+    return null
+  }
+}
+
+function buildProfileFormData(user: UserProfile | null): ProfileFormData {
+  if (!user) {
+    return defaultProfileFormData
+  }
+
+  return {
+    name: user.name || "",
+    email: user.email || "",
+    phone: user.phone_number || "",
+    gender: user.gender || "L",
+    address: user.address || "",
+    birth_date: user.birth_date || "",
+  }
+}
+
+function getProfilePictureUrl(profilePicture?: string) {
+  if (!profilePicture) {
+    return null
+  }
+
+  if (profilePicture.startsWith("http://") || profilePicture.startsWith("https://")) {
+    return profilePicture
+  }
+
+  return `http://localhost:8000/storage/${profilePicture}`
+}
 
 export default function ProfilePage() {
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const [activeTab, setActiveTab] = React.useState<TabType>("info");
-  const [loading, setLoading] = React.useState(false);
-  const [showDeleteModal, setShowDeleteModal] = React.useState(false);
-  const [deleteConfirmText, setDeleteConfirmText] = React.useState("");
-
-  // Data State
-  const userStr = localStorage.getItem('user');
-  const user = userStr ? JSON.parse(userStr) : null;
+  const location = useLocation()
+  const navigate = useNavigate()
+  const { toast } = useToast()
+  const storedUser = React.useMemo(() => parseStoredUser(), [])
+  const isAdminProfile = location.pathname.startsWith("/admin")
+  const [activeTab, setActiveTab] = React.useState<TabType>("info")
+  const [loadingInfo, setLoadingInfo] = React.useState(false)
+  const [loadingPassword, setLoadingPassword] = React.useState(false)
+  const [loadingProfile, setLoadingProfile] = React.useState(true)
+  const [showDeleteModal, setShowDeleteModal] = React.useState(false)
+  const [deleteConfirmText, setDeleteConfirmText] = React.useState("")
+  const [profile, setProfile] = React.useState<UserProfile | null>(storedUser)
   const [previewUrl, setPreviewUrl] = React.useState<string | null>(
-    user?.profile_picture ? `http://localhost:8000/storage/${user.profile_picture}` : null
-  );
+    getProfilePictureUrl(storedUser?.profile_picture)
+  )
+  const [formData, setFormData] = React.useState<ProfileFormData>(() =>
+    buildProfileFormData(storedUser)
+  )
+  const [passwordData, setPasswordData] =
+    React.useState<PasswordFormData>(defaultPasswordFormData)
+  const fileInputRef = React.useRef<HTMLInputElement>(null)
+  const previewObjectUrlRef = React.useRef<string | null>(null)
 
-  const [formData, setFormData] = React.useState({
-    name: user?.name || "",
-    email: user?.email || "",
-    phone: user?.phone_number || "",
-    gender: user?.gender || "L",
-    address: user?.address || "",
-    birth_date: user?.birth_date || "",
-  });
+  const fetchProfile = React.useCallback(async () => {
+    setLoadingProfile(true)
 
-  // @ts-ignore
-  const [passwordData, setPasswordData] = React.useState({
-    current: "",
-    new: "",
-    confirm: ""
-  });
-
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
-
-  React.useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  const fetchProfile = async () => {
     try {
-      const response = await api.get('/profile');
-      if (response.data.success) {
-        const userData = response.data.data;
-        setFormData({
-          name: userData.name || "",
-          email: userData.email || "",
-          phone: userData.phone_number || "",
-          gender: userData.gender || "L",
-          address: userData.address || "",
-          birth_date: userData.birth_date || "",
-        });
-        if (userData.profile_picture) {
-          setPreviewUrl(`http://localhost:8000/storage/${userData.profile_picture}`);
-        }
-        // Update local storage to keep it in sync
-        localStorage.setItem('user', JSON.stringify(userData));
-        window.dispatchEvent(new Event("profileUpdated"));
+      const response = await api.get<ProfileResponse>("/profile")
+
+      if (response.data?.success && response.data.data) {
+        const userData = response.data.data
+        setProfile(userData)
+        setFormData(buildProfileFormData(userData))
+        setPreviewUrl(getProfilePictureUrl(userData.profile_picture))
+        localStorage.setItem("user", JSON.stringify(userData))
+        window.dispatchEvent(new Event("profileUpdated"))
       }
-    } catch (err: any) {
-      console.error("Failed to fetch profile", err);
+    } catch (error: unknown) {
+      const apiMessage =
+        typeof error === "object" &&
+        error !== null &&
+        "response" in error
+          ? (error as { response?: { data?: { message?: string } } }).response?.data
+              ?.message
+          : undefined
+
+      console.error("Failed to fetch profile", error)
       toast({
         title: "Gagal memuat profil",
-        description: err.response?.data?.message || "Terjadi kesalahan koneksi",
-        variant: "destructive"
-      });
+        description: apiMessage || "Terjadi kesalahan koneksi",
+        variant: "error",
+      })
+    } finally {
+      setLoadingProfile(false)
     }
-  };
+  }, [toast])
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchProfile()
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewUrl(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    return () => {
+      if (previewObjectUrlRef.current) {
+        URL.revokeObjectURL(previewObjectUrlRef.current)
+      }
     }
-  };
+  }, [fetchProfile])
 
-  const handleSaveInfo = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  const handleInputChange = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = event.target
+    setFormData((current) => ({ ...current, [name]: value }))
+  }
+
+  const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) {
+      return
+    }
+
+    if (!allowedProfileImageTypes.includes(file.type)) {
+      event.target.value = ""
+      toast({
+        title: "Format foto tidak didukung",
+        description: "Gunakan file gambar JPG, JPEG, PNG, atau GIF.",
+        variant: "error",
+      })
+      return
+    }
+
+    if (previewObjectUrlRef.current) {
+      URL.revokeObjectURL(previewObjectUrlRef.current)
+    }
+
+    const objectUrl = URL.createObjectURL(file)
+    previewObjectUrlRef.current = objectUrl
+    setPreviewUrl(objectUrl)
+  }
+
+  const handleSaveInfo = async (event: React.FormEvent) => {
+    event.preventDefault()
+    setLoadingInfo(true)
 
     try {
-      const data = new FormData();
-      data.append('name', formData.name);
-      data.append('phone_number', formData.phone);
-      data.append('gender', formData.gender);
-      data.append('address', formData.address);
-      data.append('birth_date', formData.birth_date);
+      const data = new FormData()
+      data.append("_method", "PUT")
+      data.append("name", formData.name)
+      data.append("phone_number", formData.phone)
+      data.append("gender", formData.gender)
+      data.append("address", formData.address)
+      data.append("birth_date", formData.birth_date)
 
       if (fileInputRef.current?.files?.[0]) {
-        data.append('profile_picture', fileInputRef.current.files[0]);
+        data.append("profile_picture", fileInputRef.current.files[0])
       }
 
-      const response = await api.put('/profile', data, {
+      const response = await api.post<ProfileResponse>("/profile", data, {
         headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+          "Content-Type": "multipart/form-data",
+        },
+      })
 
-      if (response.data.success) {
+      if (response.data?.success) {
         toast({
           title: "Berhasil",
           description: "Profil Anda telah diperbarui",
-          variant: "success"
-        });
-        // Refresh profile data
-        fetchProfile();
+          variant: "success",
+        })
+        fetchProfile()
       }
-    } catch (err: any) {
+    } catch (error: unknown) {
+      const apiMessage =
+        typeof error === "object" &&
+        error !== null &&
+        "response" in error
+          ? (error as { response?: { data?: { message?: string } } }).response?.data
+              ?.message
+          : undefined
+
       toast({
         title: "Gagal memperbarui profil",
-        description: err.response?.data?.message || "Terjadi kesalahan",
-        variant: "destructive"
-      });
+        description: apiMessage || "Terjadi kesalahan",
+        variant: "error",
+      })
     } finally {
-      setLoading(false);
+      setLoadingInfo(false)
     }
-  };
+  }
 
-  const handleUpdatePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleUpdatePassword = async (event: React.FormEvent) => {
+    event.preventDefault()
+
     if (passwordData.new !== passwordData.confirm) {
       toast({
         title: "Password tidak cocok",
         description: "Konfirmasi password baru tidak sesuai",
-        variant: "destructive"
-      });
-      return;
+        variant: "error",
+      })
+      return
     }
 
-    setLoading(true);
-    try {
-      const response = await api.patch('/profile/password', {
-        password: passwordData.new,
-        password_confirmation: passwordData.confirm
-      });
+    setLoadingPassword(true)
 
-      if (response.data.success) {
+    try {
+      const response = await api.patch<ProfileResponse>("/profile/password", {
+        password: passwordData.new,
+        password_confirmation: passwordData.confirm,
+      })
+
+      if (response.data?.success) {
         toast({
           title: "Password berhasil diperbarui",
           description: "Gunakan password baru Anda untuk login berikutnya",
-          variant: "success"
-        });
-        setPasswordData({ current: "", new: "", confirm: "" });
+          variant: "success",
+        })
+        setPasswordData(defaultPasswordFormData)
       }
-    } catch (err: any) {
+    } catch (error: unknown) {
+      const apiMessage =
+        typeof error === "object" &&
+        error !== null &&
+        "response" in error
+          ? (error as { response?: { data?: { message?: string } } }).response?.data
+              ?.message
+          : undefined
+
       toast({
         title: "Gagal memperbarui password",
-        description: err.response?.data?.message || "Terjadi kesalahan",
-        variant: "destructive"
-      });
+        description: apiMessage || "Terjadi kesalahan",
+        variant: "error",
+      })
     } finally {
-      setLoading(false);
+      setLoadingPassword(false)
     }
-  };
+  }
 
   const handleDeleteAccount = () => {
-    if (deleteConfirmText === "HAPUS AKUN") {
-      // Handle delete
-      localStorage.clear();
-      navigate('/login');
+    if (deleteConfirmText !== "HAPUS AKUN") {
+      return
     }
-  };
+
+    localStorage.clear()
+    navigate("/login")
+  }
+
+  const roleLabel = isAdminProfile ? "Admin profile" : "User profile"
+  const avatarInitial =
+    formData.name?.trim().charAt(0).toUpperCase() ||
+    profile?.name?.trim().charAt(0).toUpperCase() ||
+    "U"
 
   return (
-    <div className="max-w-4xl mx-auto pb-12">
-      {/* Profile Header Card */}
-      <Card className="p-8 mb-8 border-none bg-gradient-to-br from-emerald-600 to-emerald-700 text-white rounded-[2.0rem] shadow-xl overflow-hidden relative">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-emerald-500/20 rounded-full -ml-24 -mb-24 blur-2xl" />
-
-        <div className="relative z-10 flex flex-col sm:flex-row items-center gap-8">
-          <div className="relative group">
-            <div className="w-32 h-32 rounded-[2.0rem] bg-white p-1 shadow-2xl overflow-hidden flex items-center justify-center">
-              {previewUrl ? (
-                <img src={previewUrl} alt="Avatar" className="w-full h-full object-cover rounded-[1.8rem]" />
-              ) : (
-                <div className="w-full h-full bg-emerald-50 rounded-[1.8rem] flex items-center justify-center text-emerald-600 font-black text-4xl">
-                  {user?.name?.charAt(0) || "U"}
-                </div>
-              )}
+    <div className="space-y-6 pb-10">
+      <Card className="rounded-[1.9rem] border-slate-200/90 shadow-sm">
+        <CardContent className="flex flex-col gap-6 p-6 lg:flex-row lg:items-start lg:justify-between">
+          <div className="space-y-4">
+            <Badge variant="info" size="sm" className="uppercase tracking-[0.18em]">
+              {roleLabel}
+            </Badge>
+            <div className="space-y-2">
+              <h1 className="font-display text-3xl font-black tracking-[-0.03em] text-slate-950">
+                Profil & Keamanan Akun
+              </h1>
+              <p className="max-w-2xl text-sm leading-6 text-slate-500">
+                Kelola identitas akun, foto profil, dan pengaturan keamanan
+                dari satu panel yang lebih konsisten dengan sistem admin saat ini.
+              </p>
             </div>
-            <button
-              className="absolute -bottom-2 -right-2 w-10 h-10 bg-emerald-900 border-4 border-emerald-600 text-white rounded-2xl flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
-              onClick={() => fileInputRef.current?.click()}
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant={activeTab === "info" ? "primary" : "secondary"}
+              className="h-11 rounded-xl"
+              onClick={() => setActiveTab("info")}
             >
-              <Camera className="w-5 h-5" />
-            </button>
-            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleAvatarChange} />
+              <User className="mr-2 h-4 w-4" />
+              Informasi
+            </Button>
+            <Button
+              variant={activeTab === "security" ? "primary" : "secondary"}
+              className="h-11 rounded-xl"
+              onClick={() => setActiveTab("security")}
+            >
+              <Shield className="mr-2 h-4 w-4" />
+              Keamanan
+            </Button>
           </div>
-
-          <div className="text-center sm:text-left">
-            <h1 className="text-3xl font-black font-display mb-1">{formData.name}</h1>
-            <p className="text-emerald-100/80 font-medium mb-3">{formData.email}</p>
-            <div className="flex flex-wrap justify-center sm:justify-start gap-3">
-              <span className="px-4 py-1.5 bg-white/20 backdrop-blur-md border border-white/20 rounded-full text-xs font-black uppercase tracking-widest">
-                Member Sejak Apr 2026
-              </span>
-              <span className="px-4 py-1.5 bg-emerald-400 text-emerald-900 rounded-full text-xs font-black uppercase tracking-widest flex items-center gap-2">
-                <Check className="w-3 h-3" /> Terverifikasi
-              </span>
-            </div>
-          </div>
-        </div>
+        </CardContent>
       </Card>
 
-      {/* Tabs Layout */}
-      <div className="space-y-6">
-        {/* Navigation Tabs */}
-        <div className="flex p-1.5 bg-white border border-slate-100 rounded-[1.5rem] shadow-sm overflow-x-auto no-scrollbar">
-          {[
-            { id: "info", label: "Informasi Pribadi", icon: User },
-            { id: "security", label: "Keamanan", icon: Shield }
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as TabType)}
-              className={cn(
-                "flex-1 flex items-center justify-center gap-3 py-3.5 px-6 rounded-2xl text-sm font-bold transition-all whitespace-nowrap",
-                activeTab === tab.id
-                  ? "bg-emerald-600 text-white shadow-lg shadow-emerald-200"
-                  : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
-              )}
-            >
-              <tab.icon className="w-4 h-4" />
-              {tab.label}
-            </button>
-          ))}
-        </div>
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_360px]">
+        <div className="space-y-6">
+          <Card className="rounded-[1.9rem] border-slate-200/90 shadow-sm">
+            <CardHeader className="border-b border-slate-100 px-6 py-5">
+              <CardTitle className="text-xl font-black tracking-tight">
+                Ringkasan Akun
+              </CardTitle>
+              <CardDescription>
+                Data utama profil Anda ditampilkan di sini dan akan sinkron ke
+                area layout ketika diperbarui.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+                <div className="relative">
+                  <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-[1.8rem] border border-slate-200 bg-slate-50 text-3xl font-black text-emerald-700 shadow-sm">
+                    {previewUrl ? (
+                      <img
+                        src={previewUrl}
+                        alt="Avatar profil"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      avatarInitial
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="absolute -bottom-2 -right-2 flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-900"
+                  >
+                    <Camera className="h-4 w-4" />
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAvatarChange}
+                  />
+                </div>
 
-        {/* Tab Content */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-          >
-            {activeTab === "info" && (
-              <Card className="p-8 sm:p-10 border-slate-100 rounded-[2.0rem] shadow-sm bg-white">
-                <form onSubmit={handleSaveInfo} className="space-y-8">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="space-y-6">
-                      <div className="space-y-2">
-                        <Label>Nama Lengkap</Label>
-                        <Input
-                          name="name"
-                          value={formData.name}
-                          onChange={handleInputChange}
-                          iconLeft={<User className="w-4 h-4" />}
-                          className="rounded-2xl"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Nomor Telepon</Label>
-                        <Input
-                          name="phone"
-                          value={formData.phone}
-                          onChange={handleInputChange}
-                          iconLeft={<Phone className="w-4 h-4" />}
-                          className="rounded-2xl"
-                        />
-                      </div>
+                <div className="space-y-3">
+                  <div className="space-y-1">
+                    <h2 className="font-display text-2xl font-black text-slate-950">
+                      {formData.name || "Nama belum diisi"}
+                    </h2>
+                    <p className="text-sm text-slate-500">
+                      {formData.email || "Email belum tersedia"}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="success" size="sm">
+                      Profil aktif
+                    </Badge>
+                    <Badge variant="neutral" size="sm">
+                      {formData.gender === "P" ? "Perempuan" : "Laki-laki"}
+                    </Badge>
+                    <Badge variant="neutral" size="sm">
+                      {isAdminProfile ? "Akses admin" : "Akses user"}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {activeTab === "info" ? (
+            <Card className="rounded-[1.9rem] border-slate-200/90 shadow-sm">
+              <CardHeader className="border-b border-slate-100 px-6 py-5">
+                <CardTitle className="text-xl font-black tracking-tight">
+                  Informasi Pribadi
+                </CardTitle>
+                <CardDescription>
+                  Perbarui data utama yang digunakan untuk identitas akun dan
+                  tampilan profil di seluruh aplikasi.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-6">
+                <form onSubmit={handleSaveInfo} className="space-y-6">
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label required>Nama lengkap</Label>
+                      <Input
+                        required
+                        name="name"
+                        value={formData.name}
+                        iconLeft={<User className="h-4 w-4" />}
+                        className="h-12 rounded-2xl"
+                        onChange={handleInputChange}
+                      />
                     </div>
-                    <div className="space-y-6">
-                      <div className="space-y-2">
-                        <Label>Tanggal Lahir</Label>
-                        <Input
-                          name="birth_date"
-                          type="date"
-                          value={formData.birth_date}
-                          onChange={handleInputChange}
-                          iconLeft={<Calendar className="w-4 h-4" />}
-                          className="rounded-2xl"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Jenis Kelamin</Label>
-                        <div className="flex gap-4">
-                          {[
-                            { id: "L", label: "Laki-laki" },
-                            { id: "P", label: "Perempuan" }
-                          ].map(g => (
-                            <button
-                              key={g.id}
-                              type="button"
-                              onClick={() => setFormData(prev => ({ ...prev, gender: g.id }))}
-                              className={cn(
-                                "flex-1 py-3 px-4 rounded-2xl border text-sm font-bold transition-all",
-                                formData.gender === g.id
-                                  ? "bg-emerald-50 border-emerald-600 text-emerald-900 shadow-sm"
-                                  : "bg-white border-slate-100 text-slate-500 hover:border-slate-200"
-                              )}
-                            >
-                              {g.label}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
+
+                    <div className="space-y-2">
+                      <Label>Email</Label>
+                      <Input
+                        disabled
+                        name="email"
+                        value={formData.email}
+                        iconLeft={<Mail className="h-4 w-4" />}
+                        className="h-12 rounded-2xl"
+                        onChange={handleInputChange}
+                      />
+                      <HelperText>Email ditampilkan sebagai referensi akun aktif.</HelperText>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Nomor telepon</Label>
+                      <Input
+                        name="phone"
+                        value={formData.phone}
+                        iconLeft={<Phone className="h-4 w-4" />}
+                        placeholder="08xxxxxxxxxx"
+                        className="h-12 rounded-2xl"
+                        onChange={handleInputChange}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Tanggal lahir</Label>
+                      <Input
+                        name="birth_date"
+                        type="date"
+                        value={formData.birth_date}
+                        iconLeft={<Calendar className="h-4 w-4" />}
+                        className="h-12 rounded-2xl"
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label>Jenis kelamin</Label>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {[
+                        { id: "L", label: "Laki-laki" },
+                        { id: "P", label: "Perempuan" },
+                      ].map((gender) => (
+                        <button
+                          key={gender.id}
+                          type="button"
+                          onClick={() =>
+                            setFormData((current) => ({
+                              ...current,
+                              gender: gender.id,
+                            }))
+                          }
+                          className={cn(
+                            "flex items-center justify-between rounded-2xl border px-4 py-3 text-left transition-all",
+                            formData.gender === gender.id
+                              ? "border-emerald-600 bg-emerald-50 text-emerald-900 shadow-sm"
+                              : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                          )}
+                        >
+                          <span className="text-sm font-semibold">{gender.label}</span>
+                          {formData.gender === gender.id ? (
+                            <CheckCircle2 className="h-4 w-4" />
+                          ) : null}
+                        </button>
+                      ))}
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Alamat Lengkap</Label>
+                    <Label>Alamat lengkap</Label>
                     <div className="relative">
-                      <MapPin className="absolute left-4 top-4 w-4 h-4 text-slate-400" />
+                      <MapPin className="absolute left-4 top-4 h-4 w-4 text-slate-400" />
                       <textarea
                         name="address"
                         value={formData.address}
-                        onChange={handleInputChange}
-                        rows={3}
-                        className="w-full pl-12 pr-4 py-3 rounded-2xl border border-slate-200 bg-slate-50 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600 outline-none text-sm font-medium transition-all"
+                        rows={4}
+                        className="min-h-[120px] w-full rounded-[1.35rem] border border-slate-200 bg-white py-3 pl-11 pr-4 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10"
                         placeholder="Masukkan alamat domisili Anda"
+                        onChange={handleInputChange}
                       />
                     </div>
                   </div>
 
-                  <div className="pt-4 flex justify-end">
-                    <Button type="submit" size="lg" className="rounded-2xl px-12 h-14 font-black shadow-xl shadow-emerald-200" disabled={loading}>
-                      {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Save className="w-5 h-5 mr-3" /> Simpan Perubahan</>}
+                  <div className="flex justify-end">
+                    <Button
+                      type="submit"
+                      disabled={loadingInfo}
+                      className="h-11 rounded-xl"
+                    >
+                      {loadingInfo ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Save className="mr-2 h-4 w-4" />
+                      )}
+                      Simpan Perubahan
                     </Button>
                   </div>
                 </form>
-              </Card>
-            )}
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="rounded-[1.9rem] border-slate-200/90 shadow-sm">
+              <CardHeader className="border-b border-slate-100 px-6 py-5">
+                <CardTitle className="text-xl font-black tracking-tight">
+                  Pengaturan Password
+                </CardTitle>
+                <CardDescription>
+                  Gunakan password yang kuat agar akses akun tetap aman.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6 p-6">
+                <form onSubmit={handleUpdatePassword} className="space-y-5">
+                  <div className="space-y-2">
+                    <Label>Password baru</Label>
+                    <Input
+                      required
+                      type="password"
+                      passwordToggle
+                      value={passwordData.new}
+                      iconLeft={<Lock className="h-4 w-4" />}
+                      placeholder="Minimal 8 karakter"
+                      className="h-12 rounded-2xl"
+                      onChange={(event) =>
+                        setPasswordData((current) => ({
+                          ...current,
+                          new: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
 
-            {activeTab === "security" && (
-              <div className="space-y-6">
-                <Card className="p-8 sm:p-10 border-slate-100 rounded-[2.0rem] shadow-sm bg-white">
-                  <h3 className="text-lg font-bold text-slate-900 mb-8 font-display">Ubah Password</h3>
-                  <form onSubmit={handleUpdatePassword} className="space-y-6 max-w-lg">
-                    <div className="space-y-2">
-                      <Label>Password Baru</Label>
-                      <Input
-                        type="password"
-                        placeholder="Minimal 8 karakter"
-                        iconLeft={<Lock className="w-4 h-4" />}
-                        value={passwordData.new}
-                        onChange={(e) => setPasswordData(prev => ({ ...prev, new: e.target.value }))}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Konfirmasi Password Baru</Label>
-                      <Input
-                        type="password"
-                        placeholder="Ulangi password baru"
-                        iconLeft={<Lock className="w-4 h-4" />}
-                        value={passwordData.confirm}
-                        onChange={(e) => setPasswordData(prev => ({ ...prev, confirm: e.target.value }))}
-                        required
-                      />
-                    </div>
-                    <Button type="submit" size="lg" className="rounded-2xl px-10 h-14 font-black" disabled={loading}>
-                      {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Update Password"}
-                    </Button>
-                  </form>
-                </Card>
+                  <div className="space-y-2">
+                    <Label>Konfirmasi password baru</Label>
+                    <Input
+                      required
+                      type="password"
+                      passwordToggle
+                      value={passwordData.confirm}
+                      iconLeft={<KeyRound className="h-4 w-4" />}
+                      placeholder="Ulangi password baru"
+                      className="h-12 rounded-2xl"
+                      onChange={(event) =>
+                        setPasswordData((current) => ({
+                          ...current,
+                          confirm: event.target.value,
+                        }))
+                      }
+                    />
+                    <HelperText>
+                      Password lama saat ini belum diminta oleh form ini dan tetap
+                      mengikuti kontrak endpoint backend yang sudah ada.
+                    </HelperText>
+                  </div>
 
-                <Card className="p-8 sm:p-10 border-red-50 bg-red-50/30 rounded-[2.0rem] shadow-sm">
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-8">
-                    <div className="text-center sm:text-left">
-                      <h3 className="text-lg font-bold text-red-900 mb-2 font-display">Hapus Akun</h3>
-                      <p className="text-sm text-red-700/70 font-medium max-w-sm">
-                        Menghapus akun akan menghapus semua data riwayat dan preferensi Anda secara permanen.
-                      </p>
-                    </div>
+                  <div className="flex justify-end">
                     <Button
-                      variant="outline"
-                      className="rounded-2xl h-14 px-10 border-red-200 text-red-600 hover:bg-red-600 hover:text-white font-black"
-                      onClick={() => setShowDeleteModal(true)}
+                      type="submit"
+                      disabled={loadingPassword}
+                      className="h-11 rounded-xl"
                     >
-                      <Trash2 className="w-5 h-5 mr-3" /> Hapus Akun Saya
+                      {loadingPassword ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Shield className="mr-2 h-4 w-4" />
+                      )}
+                      Update Password
                     </Button>
                   </div>
-                </Card>
+                </form>
+
+                <Separator />
+
+                <div className="rounded-[1.5rem] border border-rose-200 bg-rose-50/70 p-5">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="space-y-1.5">
+                      <h3 className="font-display text-lg font-black text-rose-900">
+                        Zona Berisiko
+                      </h3>
+                      <p className="max-w-xl text-sm leading-6 text-rose-700/80">
+                        Hapus akun akan mengakhiri sesi Anda di perangkat ini.
+                        Flow backend penghapusan permanen belum tersedia di halaman ini,
+                        jadi aksi sekarang tetap mengikuti perilaku lokal yang sudah ada.
+                      </p>
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      className="h-11 rounded-xl border-rose-200 text-rose-600 hover:bg-rose-600 hover:text-white"
+                      onClick={() => setShowDeleteModal(true)}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Hapus Akun
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        <div className="space-y-6">
+          <Card className="rounded-[1.9rem] border-slate-200/90 shadow-sm">
+            <CardHeader className="border-b border-slate-100 px-6 py-5">
+              <CardTitle className="text-xl font-black tracking-tight">
+                Status Profil
+              </CardTitle>
+              <CardDescription>
+                Snapshot singkat untuk melihat data akun yang sedang aktif.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 p-6">
+              {loadingProfile ? (
+                <div className="space-y-3">
+                  {Array.from({ length: 4 }).map((_, index) => (
+                    <div
+                      key={index}
+                      className="h-14 animate-pulse rounded-2xl bg-slate-50"
+                    />
+                  ))}
+                </div>
+              ) : (
+                <>
+                  <div className="rounded-[1.35rem] border border-slate-200 bg-slate-50/70 p-4">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+                      Nama akun
+                    </p>
+                    <p className="mt-2 text-sm font-semibold text-slate-900">
+                      {formData.name || "-"}
+                    </p>
+                  </div>
+
+                  <div className="rounded-[1.35rem] border border-slate-200 bg-slate-50/70 p-4">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+                      Email
+                    </p>
+                    <p className="mt-2 text-sm font-semibold text-slate-900">
+                      {formData.email || "-"}
+                    </p>
+                  </div>
+
+                  <div className="rounded-[1.35rem] border border-slate-200 bg-slate-50/70 p-4">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+                      Telepon
+                    </p>
+                    <p className="mt-2 text-sm font-semibold text-slate-900">
+                      {formData.phone || "-"}
+                    </p>
+                  </div>
+
+                  <div className="rounded-[1.35rem] border border-slate-200 bg-slate-50/70 p-4">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+                      Tanggal lahir
+                    </p>
+                    <p className="mt-2 text-sm font-semibold text-slate-900">
+                      {formData.birth_date || "-"}
+                    </p>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-[1.9rem] border-slate-200/90 shadow-sm">
+            <CardHeader className="border-b border-slate-100 px-6 py-5">
+              <CardTitle className="text-xl font-black tracking-tight">
+                Catatan
+              </CardTitle>
+              <CardDescription>
+                Beberapa hal penting terkait pengelolaan akun di halaman ini.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 p-6">
+              <div className="flex items-start gap-3 rounded-[1.35rem] border border-slate-200 bg-slate-50/70 p-4 text-sm text-slate-600">
+                <Mail className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+                <p>Email saat ini tampil sebagai field referensi dan belum diedit dari form ini.</p>
               </div>
-            )}
-          </motion.div>
-        </AnimatePresence>
+              <div className="flex items-start gap-3 rounded-[1.35rem] border border-slate-200 bg-slate-50/70 p-4 text-sm text-slate-600">
+                <Camera className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+                <p>Foto profil bisa diganti langsung dari kartu ringkasan tanpa keluar dari halaman.</p>
+              </div>
+              <div className="flex items-start gap-3 rounded-[1.35rem] border border-slate-200 bg-slate-50/70 p-4 text-sm text-slate-600">
+                <Shield className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+                <p>Pembaruan password mengikuti endpoint backend yang sekarang hanya meminta password baru dan konfirmasi.</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
-      <AnimatePresence>
-        {showDeleteModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm">
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="w-full max-w-md bg-white rounded-[2.0rem] shadow-2xl p-10 text-center overflow-hidden relative"
-            >
-              <div className="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
-                <AlertTriangle className="w-10 h-10" />
+      <Modal
+        open={showDeleteModal}
+        onOpenChange={(open) => {
+          setShowDeleteModal(open)
+          if (!open) {
+            setDeleteConfirmText("")
+          }
+        }}
+      >
+        {showDeleteModal ? (
+          <ModalContent
+            size="md"
+            className="max-w-xl rounded-[1.75rem] border border-slate-200"
+          >
+            <ModalHeader className="space-y-2 border-b border-slate-100 bg-rose-50/70">
+              <ModalTitle className="text-2xl font-black tracking-tight text-rose-900">
+                Konfirmasi Hapus Akun
+              </ModalTitle>
+              <ModalDescription className="text-sm leading-6 text-rose-700/80">
+                Ketik <span className="font-semibold">HAPUS AKUN</span> untuk
+                melanjutkan aksi sesuai flow lokal yang saat ini tersedia.
+              </ModalDescription>
+            </ModalHeader>
+
+            <ModalBody className="space-y-5">
+              <div className="flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                <p>
+                  Tindakan ini akan menghapus sesi lokal dan mengarahkan Anda ke
+                  halaman login. Integrasi penghapusan permanen ke backend belum
+                  tersedia di halaman ini.
+                </p>
               </div>
 
-              <h2 className="text-2xl font-black text-slate-900 mb-3 font-display">Hapus Akun?</h2>
-              <p className="text-sm text-slate-500 mb-8 leading-relaxed">
-                Tindakan ini tidak dapat dibatalkan. Anda akan kehilangan seluruh data riwayat pemeriksaan dan analisis kesehatan.
-              </p>
-
-              <div className="space-y-4 text-left mb-8">
-                <Label className="text-red-900">Ketik <span className="font-black">HAPUS AKUN</span> untuk konfirmasi</Label>
+              <div className="space-y-2">
+                <Label>Ketik HAPUS AKUN</Label>
                 <Input
-                  placeholder="HAPUS AKUN"
-                  className="rounded-2xl border-red-200 focus:ring-red-500/10 focus:border-red-600 text-center font-black"
                   value={deleteConfirmText}
-                  onChange={(e) => setDeleteConfirmText(e.target.value.toUpperCase())}
+                  placeholder="HAPUS AKUN"
+                  className="h-12 rounded-2xl border-rose-200 text-center font-semibold uppercase focus:border-rose-500 focus:ring-rose-500/10"
+                  onChange={(event) =>
+                    setDeleteConfirmText(event.target.value.toUpperCase())
+                  }
                 />
               </div>
+            </ModalBody>
 
-              <div className="flex gap-4">
-                <Button
-                  variant="ghost"
-                  className="flex-1 h-14 rounded-2xl font-bold"
-                  onClick={() => setShowDeleteModal(false)}
-                >
-                  Batal
-                </Button>
-                <Button
-                  className="flex-1 h-14 rounded-2xl bg-red-600 hover:bg-red-700 font-bold"
-                  disabled={deleteConfirmText !== "HAPUS AKUN"}
-                  onClick={handleDeleteAccount}
-                >
-                  Hapus Permanen
-                </Button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+            <ModalFooter className="gap-3 border-t border-slate-100 bg-slate-50/70 sm:justify-end">
+              <Button
+                type="button"
+                variant="secondary"
+                className="h-11 rounded-xl"
+                onClick={() => {
+                  setShowDeleteModal(false)
+                  setDeleteConfirmText("")
+                }}
+              >
+                Batal
+              </Button>
+              <Button
+                type="button"
+                disabled={deleteConfirmText !== "HAPUS AKUN"}
+                className="h-11 rounded-xl bg-rose-600 hover:bg-rose-700"
+                onClick={handleDeleteAccount}
+              >
+                Hapus Permanen
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        ) : null}
+      </Modal>
     </div>
-  );
+  )
 }

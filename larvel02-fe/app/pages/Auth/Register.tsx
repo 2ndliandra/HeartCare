@@ -1,82 +1,78 @@
-// @ts-nocheck
-import * as React from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { 
-  HeartPulse, 
-  UserPlus, 
-  Mail, 
-  Lock, 
-  User, 
-  Check, 
-  AlertCircle,
-  Loader2,
-  ArrowRight,
-  ShieldCheck
-} from "lucide-react";
-import { authService } from "../../lib/authService";
-import { Button } from "~/components/ui/button";
-import { Card } from "~/components/ui/card";
-import { Input, Label } from "~/components/ui/input";
-import { cn } from "~/lib/utils";
+import React, { useMemo, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { AlertCircle, ArrowRight, Check, HeartPulse, Lock, Mail, User } from 'lucide-react';
+import { authService } from '~/lib/authService';
+import { Button } from '~/components/ui/button';
+import { Input, Label } from '~/components/ui/input';
+import { cn } from '~/lib/utils';
+
+const registerPoints = [
+  'Daftar cepat dengan email aktif untuk mulai asesmen risiko jantung.',
+  'Data akun langsung terhubung dengan riwayat checkup dan rekomendasi medis.',
+  'Alur registrasi dibuat ringkas dengan validasi dasar yang jelas.',
+];
+
+const registerSignals = [
+  { label: 'Akses awal', value: '/register' },
+  { label: 'Lanjutan login', value: '/login' },
+  { label: 'Visual style', value: 'Clinical editorial' },
+];
+
+type PasswordStrength = {
+  score: number;
+  label: 'Kosong' | 'Lemah' | 'Sedang' | 'Kuat';
+  color: string;
+};
+
+const passwordMeta: PasswordStrength[] = [
+  { score: 0, label: 'Kosong', color: 'bg-slate-200' },
+  { score: 1, label: 'Lemah', color: 'bg-red-500' },
+  { score: 2, label: 'Sedang', color: 'bg-amber-500' },
+  { score: 3, label: 'Kuat', color: 'bg-emerald-500' },
+];
 
 export default function Register() {
   const navigate = useNavigate();
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
-  
-  const [formData, setFormData] = React.useState({
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    agreeTerms: false
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    agreeTerms: false,
   });
 
-  const [passwordStrength, setPasswordStrength] = React.useState({
-    score: 0,
-    label: "Kosong",
-    color: "bg-slate-200"
-  });
-
-  const checkPasswordStrength = (pass: string) => {
+  const passwordStrength = useMemo<PasswordStrength>(() => {
+    const pass = formData.password;
     let score = 0;
-    if (pass.length > 0) score = 1; // Weak
-    if (pass.length >= 6) score = 2; // Medium
-    if (pass.length >= 8 && /[0-9]/.test(pass) && /[a-zA-Z]/.test(pass)) score = 3; // Strong
+    if (pass.length > 0) score = 1;
+    if (pass.length >= 6) score = 2;
+    if (pass.length >= 8 && /[0-9]/.test(pass) && /[a-zA-Z]/.test(pass)) score = 3;
+    return passwordMeta[score];
+  }, [formData.password]);
 
-    const labels = ["Kosong", "Lemah", "Sedang", "Kuat"];
-    const colors = ["bg-slate-200", "bg-red-500", "bg-amber-500", "bg-emerald-500"];
-    const textColors = ["text-slate-400", "text-red-600", "text-amber-600", "text-emerald-600"];
-
-    setPasswordStrength({
-      score,
-      label: labels[score],
-      color: colors[score]
-    });
-  };
+  const passwordsMatch = formData.password.length > 0 && formData.password === formData.confirmPassword;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
-    const newVal = type === 'checkbox' ? checked : value;
-    
-    setFormData(prev => ({ ...prev, [name]: newVal }));
-    
-    if (name === "password") {
-      checkPasswordStrength(value);
-    }
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
   };
-
-  const passwordsMatch = formData.password && formData.password === formData.confirmPassword;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!formData.agreeTerms) {
-      setError("Anda harus menyetujui syarat dan ketentuan.");
+      setError('Anda harus menyetujui syarat dan ketentuan.');
       return;
     }
+
     if (!passwordsMatch) {
-      setError("Konfirmasi password tidak cocok.");
+      setError('Konfirmasi password tidak cocok.');
       return;
     }
 
@@ -87,152 +83,189 @@ export default function Register() {
       const res = await authService.register({
         name: formData.name,
         email: formData.email,
-        password: formData.password
+        password: formData.password,
       });
 
       if (res.success) {
-        // Show success toast or similar and redirect
-        navigate("/login", { state: { message: "Registrasi berhasil! Silakan masuk." } });
+        navigate('/login', { state: { message: 'Registrasi berhasil! Silakan masuk.' } });
       } else {
-        setError(res.message || "Gagal melakukan registrasi.");
+        setError(res.message || 'Gagal melakukan registrasi.');
       }
     } catch (err: any) {
-      console.error("Register error:", err);
-      setError(err.response?.data?.message || "Terjadi kesalahan saat pendaftaran.");
+      console.error('Register error:', err);
+      setError(err.response?.data?.message || 'Terjadi kesalahan saat pendaftaran.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 grid grid-cols-1 lg:grid-cols-2 font-sans overflow-hidden">
-      {/* Left Panel: Brand Illustration (Desktop Only) */}
-      <div className="hidden lg:flex bg-emerald-600 p-12 flex-col justify-center items-center relative overflow-hidden">
-        {/* Decorations */}
-        <div className="absolute top-10 left-10 w-40 h-40 bg-emerald-500/30 rounded-bl-full z-0" />
-        <div className="absolute bottom-20 right-10 w-56 h-56 bg-emerald-700/20 rounded-tr-full z-0" />
-        
-        <motion.div 
-          initial={{ opacity: 0, x: -30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6 }}
-          className="relative z-10 w-full max-w-md flex flex-col items-center"
-        >
-          <div className="flex items-center gap-3 mb-12">
-            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg">
-              <HeartPulse className="w-7 h-7 text-emerald-600" />
+    <div className="min-h-screen bg-[#f8fbf8] text-slate-900">
+      <div className="grid min-h-screen lg:grid-cols-[minmax(0,1.08fr)_minmax(420px,0.92fr)]">
+        <section className="relative overflow-hidden border-b border-slate-200 px-6 py-14 md:px-8 lg:border-b-0 lg:border-r lg:px-12 lg:py-16 xl:px-16">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.10),_transparent_38%),radial-gradient(circle_at_bottom_right,_rgba(15,118,110,0.08),_transparent_32%)]" />
+          <div className="relative mx-auto flex h-full max-w-3xl flex-col justify-between gap-12">
+            <div>
+              <Link to="/" className="inline-flex items-center gap-3 text-slate-950 transition-opacity hover:opacity-80">
+                <HeartPulse className="h-6 w-6 text-emerald-700" />
+                <span className="font-display text-2xl font-bold tracking-[-0.03em]">HeartCare</span>
+                <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+              </Link>
+
+              <div className="mt-14 max-w-2xl">
+                <p className="mb-6 text-[11px] font-medium uppercase tracking-[0.35em] text-emerald-700/80">
+                  Account onboarding
+                </p>
+                <h1 className="text-5xl font-bold leading-[1.02] tracking-[-0.04em] text-slate-950 md:text-6xl xl:text-7xl">
+                  Buat akun untuk mulai
+                  <br />
+                  asesmen <span className="font-serif italic text-emerald-700">risiko</span> jantung
+                </h1>
+                <p className="mt-7 max-w-xl text-base leading-7 text-slate-600 md:text-lg">
+                  Buat akun HeartCare untuk mulai menyimpan hasil pemeriksaan, memantau perkembangan kesehatan,
+                  dan mengakses fitur prediksi risiko jantung secara personal.
+                </p>
+              </div>
             </div>
-            <span className="text-3xl font-bold text-white tracking-tight font-display">
-              HeartCare
-            </span>
-          </div>
 
-          <img 
-            src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
-            alt="Register Illustration" 
-            className="w-full h-auto rounded-[2.0rem] shadow-2xl mb-12 border-4 border-emerald-500/30"
-          />
+            <div className="grid gap-8 xl:grid-cols-[minmax(0,1.1fr)_minmax(240px,0.9fr)] xl:items-end">
+              <div className="border-y border-slate-200 bg-white/70 py-6 backdrop-blur-sm">
+                <div className="space-y-5">
+                  {registerPoints.map((point, index) => (
+                    <div
+                      key={point}
+                      className="grid gap-2 border-b border-slate-200/80 pb-4 last:border-b-0 last:pb-0 md:grid-cols-[52px_minmax(0,1fr)] md:items-start"
+                    >
+                      <span className="text-3xl font-light tracking-[-0.05em] text-emerald-700/75">0{index + 1}</span>
+                      <p className="text-sm leading-7 text-slate-600 md:text-[15px]">{point}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-          <div className="text-center">
-            <h2 className="text-3xl font-bold text-white mb-4 font-display leading-tight">Mulai Jaga Kesehatan Jantung Anda</h2>
-            <p className="text-emerald-100/90 leading-relaxed font-medium">
-              Daftar gratis dan dapatkan prediksi risiko jantung dengan teknologi AI terkini untuk hidup yang lebih tenang.
-            </p>
-          </div>
-        </motion.div>
-      </div>
+              <div className="relative overflow-hidden border border-emerald-950/10 bg-white p-6">
+                <div className="absolute right-0 top-0 h-24 w-24 bg-[radial-gradient(circle_at_top_right,_rgba(16,185,129,0.16),_transparent_70%)]" />
+                <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-5">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.3em] text-slate-500">Registrasi</p>
+                    <h2 className="mt-2 text-2xl font-semibold text-slate-950">Portal Akun Baru</h2>
+                  </div>
+                  <div className="flex h-11 w-11 items-center justify-center rounded-full border border-emerald-700/20 text-emerald-700">
+                    <HeartPulse className="h-5 w-5" />
+                  </div>
+                </div>
 
-      {/* Right Panel: Form */}
-      <div className="flex items-center justify-center p-6 lg:p-12 min-h-screen">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="w-full max-w-md"
-        >
-          {/* Logo (Mobile Only) */}
-          <div className="flex lg:hidden items-center justify-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center text-white">
-              <HeartPulse className="w-6 h-6" />
+                <div className="space-y-4 pt-6">
+                  {registerSignals.map((item) => (
+                    <div key={item.label} className="flex items-center justify-between border-b border-slate-200 pb-3 text-sm">
+                      <span className="text-slate-500">{item.label}</span>
+                      <span className="font-medium text-slate-900">{item.value}</span>
+                    </div>
+                  ))}
+                  <p className="pt-2 text-sm leading-6 text-slate-600">
+                    Setelah registrasi berhasil, pengguna diarahkan ke route login untuk autentikasi awal.
+                  </p>
+                </div>
+              </div>
             </div>
-            <span className="text-2xl font-bold text-slate-900 font-display">HeartCare</span>
           </div>
+        </section>
 
-          <Card className="p-8 sm:p-10 border-slate-200 shadow-xl rounded-[2.0rem] bg-white">
+        <section className="flex items-center px-6 py-14 md:px-8 lg:px-12 lg:py-16 xl:px-16">
+          <div className="mx-auto w-full max-w-md">
             <div className="mb-8">
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2 font-display">Daftar HeartCare</h1>
-              <p className="text-slate-500 text-sm">Buat akun baru dan mulai prediksi kesehatan jantung Anda.</p>
+              <p className="text-[11px] font-medium uppercase tracking-[0.35em] text-emerald-700/80">Create account</p>
+              <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-slate-950 md:text-4xl">
+                Daftar akun HeartCare
+              </h2>
+              <p className="mt-3 text-sm leading-7 text-slate-600 md:text-[15px]">
+                Lengkapi data dasar berikut untuk membuka akses checkup, prediksi, dan rekomendasi kesehatan.
+              </p>
             </div>
 
-            <AnimatePresence mode="wait">
-              {error && (
-                <motion.div 
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg mb-6 flex items-start gap-3"
-                >
-                  <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
-                  <p className="text-xs font-semibold text-red-700 leading-normal">{error}</p>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {error && (
+              <div className="mb-5 flex items-start gap-3 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="space-y-2">
-                <Label required>Nama Lengkap</Label>
-                <Input 
+            <form onSubmit={handleSubmit} className="space-y-5 border border-slate-200 bg-white p-6 md:p-8">
+              <div>
+                <Label htmlFor="name" required className="text-[11px] uppercase tracking-[0.28em] text-slate-500">
+                  Nama lengkap
+                </Label>
+                <Input
+                  id="name"
                   name="name"
                   type="text"
                   placeholder="John Doe"
                   required
-                  iconLeft={<User className="w-4 h-4" />}
+                  iconLeft={<User className="h-4 w-4" />}
                   value={formData.name}
                   onChange={handleInputChange}
+                  disabled={loading}
+                  className="h-12 rounded-none border-x-0 border-b-0 border-t-0 px-0 pl-8 text-[15px] shadow-none focus-visible:ring-0"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label required>Email</Label>
-                <Input 
+              <div>
+                <Label htmlFor="email" required className="text-[11px] uppercase tracking-[0.28em] text-slate-500">
+                  Email
+                </Label>
+                <Input
+                  id="email"
                   name="email"
                   type="email"
                   placeholder="nama@email.com"
                   required
-                  iconLeft={<Mail className="w-4 h-4" />}
+                  iconLeft={<Mail className="h-4 w-4" />}
                   value={formData.email}
                   onChange={handleInputChange}
+                  disabled={loading}
+                  className="h-12 rounded-none border-x-0 border-b-0 border-t-0 px-0 pl-8 text-[15px] shadow-none focus-visible:ring-0"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label required>Password</Label>
-                <Input 
+              <div>
+                <Label htmlFor="password" required className="text-[11px] uppercase tracking-[0.28em] text-slate-500">
+                  Password
+                </Label>
+                <Input
+                  id="password"
                   name="password"
                   type="password"
                   placeholder="Minimal 8 karakter"
                   required
                   passwordToggle
-                  iconLeft={<Lock className="w-4 h-4" />}
+                  iconLeft={<Lock className="h-4 w-4" />}
                   value={formData.password}
                   onChange={handleInputChange}
+                  disabled={loading}
+                  className="h-12 rounded-none border-x-0 border-b-0 border-t-0 px-0 pl-8 text-[15px] shadow-none focus-visible:ring-0"
                 />
-                
-                {/* Password Strength */}
+
                 <div className="pt-2">
-                  <div className="flex justify-between items-center mb-1.5">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Kekuatan Password</span>
-                    <span className={cn("text-[10px] font-bold uppercase tracking-wider", passwordStrength.label !== "Kosong" ? passwordStrength.color.replace('bg-', 'text-') : "text-slate-400")}>
+                  <div className="mb-1.5 flex items-center justify-between">
+                    <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Kekuatan password</span>
+                    <span
+                      className={cn(
+                        'text-[10px] font-bold uppercase tracking-wider',
+                        passwordStrength.label !== 'Kosong'
+                          ? passwordStrength.color.replace('bg-', 'text-')
+                          : 'text-slate-400'
+                      )}
+                    >
                       {passwordStrength.label}
                     </span>
                   </div>
-                  <div className="h-1.5 w-full bg-slate-100 rounded-full flex gap-1 overflow-hidden">
+                  <div className="flex h-1.5 w-full gap-1 overflow-hidden rounded-full bg-slate-100">
                     {[1, 2, 3].map((seg) => (
-                      <div 
+                      <div
                         key={seg}
                         className={cn(
-                          "h-full flex-1 transition-all duration-300",
-                          passwordStrength.score >= seg ? passwordStrength.color : "bg-slate-200/50"
+                          'h-full flex-1 transition-all duration-300',
+                          passwordStrength.score >= seg ? passwordStrength.color : 'bg-slate-200/50'
                         )}
                       />
                     ))}
@@ -240,78 +273,79 @@ export default function Register() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label required>Konfirmasi Password</Label>
-                <div className="relative">
-                  <Input 
-                    name="confirmPassword"
-                    type="password"
-                    placeholder="Ulangi password Anda"
-                    required
-                    passwordToggle
-                    iconLeft={<Lock className="w-4 h-4" />}
-                    iconRight={passwordsMatch ? <div className="p-1 bg-emerald-100 rounded-full"><Check className="w-3 h-3 text-emerald-600" /></div> : undefined}
-                    value={formData.confirmPassword}
-                    onChange={handleInputChange}
-                    error={formData.confirmPassword && !passwordsMatch ? "Password tidak cocok" : undefined}
-                  />
-                </div>
+              <div>
+                <Label htmlFor="confirmPassword" required className="text-[11px] uppercase tracking-[0.28em] text-slate-500">
+                  Konfirmasi password
+                </Label>
+                <Input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  placeholder="Ulangi password Anda"
+                  required
+                  passwordToggle
+                  iconLeft={<Lock className="h-4 w-4" />}
+                  iconRight={
+                    passwordsMatch ? (
+                      <div className="rounded-full bg-emerald-100 p-1">
+                        <Check className="h-3 w-3 text-emerald-600" />
+                      </div>
+                    ) : undefined
+                  }
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                  disabled={loading}
+                  error={formData.confirmPassword && !passwordsMatch ? 'Password tidak cocok' : undefined}
+                  className="h-12 rounded-none border-x-0 border-b-0 border-t-0 px-0 pl-8 text-[15px] shadow-none focus-visible:ring-0"
+                />
               </div>
 
-              {/* Terms */}
-              <div className="flex items-start gap-3 py-2">
-                <div className="relative flex items-center h-5">
-                   <input
-                    id="agreeTerms"
-                    name="agreeTerms"
-                    type="checkbox"
-                    checked={formData.agreeTerms}
-                    onChange={handleInputChange}
-                    className="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500 cursor-pointer"
-                  />
-                </div>
-                <label htmlFor="agreeTerms" className="text-xs text-slate-500 leading-normal cursor-pointer">
-                  Saya setuju dengan <Link to="/terms" className="text-emerald-600 font-bold hover:underline">Syarat & Ketentuan</Link> dan <Link to="/privacy" className="text-emerald-600 font-bold hover:underline">Kebijakan Privasi</Link> HeartCare.
+              <div className="flex items-start gap-3 border-t border-slate-200 pt-3">
+                <input
+                  id="agreeTerms"
+                  name="agreeTerms"
+                  type="checkbox"
+                  checked={formData.agreeTerms}
+                  onChange={handleInputChange}
+                  className="mt-1 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-600 focus:ring-offset-0"
+                />
+                <label htmlFor="agreeTerms" className="text-xs leading-normal text-slate-500">
+                  Saya setuju dengan{' '}
+                  <Link to="/terms" className="font-semibold text-emerald-700 hover:underline">
+                    Syarat & Ketentuan
+                  </Link>{' '}
+                  dan{' '}
+                  <Link to="/privacy" className="font-semibold text-emerald-700 hover:underline">
+                    Kebijakan Privasi
+                  </Link>{' '}
+                  HeartCare.
                 </label>
               </div>
 
-              <Button 
-                type="submit" 
-                size="lg" 
-                className="w-full h-12 text-sm font-bold rounded-xl shadow-none hover:shadow-none ring-offset-2 transition-all hover:scale-[1.02] active:scale-[0.98]"
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                className="mt-2 flex w-full items-center justify-center gap-2 rounded-full bg-emerald-700 px-8 text-white hover:bg-emerald-800"
                 disabled={loading}
               >
-                {loading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Memproses...
-                  </>
-                ) : (
-                  <>
-                    Daftar Sekarang <ArrowRight className="w-4 h-4 ml-2" />
-                  </>
-                )}
+                {loading ? 'Memproses...' : 'Daftar sekarang'}
+                {!loading && <ArrowRight className="h-5 w-5" />}
               </Button>
 
-              <div className="relative flex items-center justify-center my-8">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-slate-100"></span>
-                </div>
-                <span className="relative bg-white px-4 text-xs font-bold text-slate-400 uppercase tracking-widest">atau</span>
-              </div>
-
-              <p className="text-center text-sm text-slate-500 font-medium font-display">
-                Sudah punya akun?{" "}
-                <Link to="/login" className="text-emerald-600 font-bold hover:underline">Masuk di sini</Link>
+              <p className="pt-2 text-center text-sm text-slate-600">
+                Sudah punya akun?{' '}
+                <Link to="/login" className="font-medium text-emerald-700 transition-colors hover:text-emerald-600">
+                  Masuk di sini
+                </Link>
               </p>
             </form>
-          </Card>
 
-          <footer className="mt-12 text-center text-[11px] text-slate-400 font-medium">
-            © 2026 HeartCare. All rights reserved. <br/>
-            Secure AES-256 Medical Data Encryption System.
-          </footer>
-        </motion.div>
+            <p className="mt-6 text-xs uppercase tracking-[0.28em] text-slate-400">
+              Route daftar aktif di /register dan tetap terhubung dengan /login.
+            </p>
+          </div>
+        </section>
       </div>
     </div>
   );

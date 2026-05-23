@@ -20,7 +20,15 @@ class ArticleResource extends JsonResource
             'slug' => $this->slug,
             'content' => $this->content,
             'raw_content' => $this->raw_content,
+            'category_id' => $this->category_id,
             'category' => $this->category,
+            'category_data' => $this->whenLoaded('categoryRelation', function () {
+                return [
+                    'id' => $this->categoryRelation?->_id ?? $this->categoryRelation?->id,
+                    'name' => $this->categoryRelation?->name,
+                    'slug' => $this->categoryRelation?->slug,
+                ];
+            }),
             'thumbnail' => $this->thumbnail,
             'status' => $this->status,
             'author' => new UserResource($this->whenLoaded('author')),

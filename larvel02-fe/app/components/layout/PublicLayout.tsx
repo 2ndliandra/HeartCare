@@ -3,9 +3,15 @@ import { Outlet } from "react-router-dom"
 import { Navbar } from "./Navbar"
 import { Footer } from "./Footer"
 
+type PublicUser = {
+  name: string
+  initials: string
+  profile_picture?: string
+}
+
 export function PublicLayout() {
   const [isAuthenticated, setIsAuthenticated] = React.useState(!!localStorage.getItem("auth_token"))
-  const [user, setUser] = React.useState<any>(null)
+  const [user, setUser] = React.useState<PublicUser | null>(null)
 
   React.useEffect(() => {
     const checkAuth = () => {
@@ -21,7 +27,7 @@ export function PublicLayout() {
               initials: userData.initial || userData.name?.substring(0, 1).toUpperCase() || "U",
               profile_picture: userData.profile_picture || "",
             })
-          } catch (e) {
+          } catch {
             setUser(null)
           }
         }
@@ -39,12 +45,14 @@ export function PublicLayout() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-      <Navbar isAuthenticated={isAuthenticated} user={user} />
-      <main className="flex-1">
-        <Outlet />
-      </main>
-      <Footer />
+    <div className="min-h-screen overflow-x-hidden bg-slate-50 pt-[72px] font-sans supports-[overflow:clip]:overflow-x-clip">
+      <Navbar isAuthenticated={isAuthenticated} user={user ?? undefined} />
+      <div className="relative flex min-h-[calc(100vh-72px)] flex-col">
+        <main className="flex-1">
+          <Outlet />
+        </main>
+        <Footer />
+      </div>
     </div>
   )
 }
