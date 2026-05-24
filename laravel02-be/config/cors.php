@@ -19,14 +19,9 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [],
+    'allowed_origins' => ['*'],
 
-    'allowed_origins_patterns' => [
-        '/^http:\/\/localhost(:\d+)?$/',
-        '/^http:\/\/127\.0\.0\.1(:\d+)?$/',
-        '/^http:\/\/10\.10\.\d{1,3}\.\d{1,3}(:\d+)?$/', // Mengizinkan semua IP 10.10.x.x
-        '/^http:\/\/192\.168\.\d{1,3}\.\d{1,3}(:\d+)?$/', // Mengizinkan semua IP 192.168.x.x
-    ],
+    'allowed_origins_patterns' => [],
 
     'allowed_headers' => ['*'],
 
@@ -34,6 +29,6 @@ return [
 
     'max_age' => 0,
 
-    'supports_credentials' => true,
+    'supports_credentials' => false,
 
 ];

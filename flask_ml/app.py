@@ -52,36 +52,61 @@ def predict():
         else:
             gluc = 3
             
-        smoke = 1 if str(data.get('smoking', '0')).lower() in ['yes', 'ya', 'true', '1'] else 0
-        alco = 1 if str(data.get('alcohol', '0')).lower() in ['yes', 'ya', 'true', '1'] else 0 
-        active = 1 if str(data.get('exercise', '0')).lower() in ['yes', 'ya', 'true', '1'] else 0
+        smoking_value = str(data.get('smoking', '')).lower().strip()
+
+        if smoking_value in ['sering', 'kadang', 'sudah berhenti', 'yes', 'ya', 'true', '1']:
+            smoke = 1
+        else:
+            smoke = 0
+
+
+        alcohol_value = str(data.get('alcohol', '')).lower().strip()
+
+        if alcohol_value in ['sering', 'kadang', 'yes', 'ya', 'true', '1']:
+            alco = 1
+        else:
+            alco = 0
+
+
+        exercise_value = str(data.get('exercise', '')).lower().strip()
+
+        if exercise_value in ['setiap hari', '3-4x seminggu', '1-2x seminggu', 'yes', 'ya', 'true', '1']:
+            active = 1
+        else:
+            active = 0
         
         # Feature Engineering (menambahkan fitur turunan)
-        if ap_hi < 120 and ap_lo < 80:
+
+        # Kategori tekanan darah, disamakan dengan training pd.cut cat.codes
+        if ap_hi <= 120:
+            bp_category = 0
+        elif ap_hi <= 140:
             bp_category = 1
-        elif ap_hi < 130 and ap_lo < 80:
+        elif ap_hi <= 180:
             bp_category = 2
-        elif ap_hi < 140 or ap_lo < 90:
+        else:
             bp_category = 3
-        elif ap_hi <= 180 or ap_lo <= 120:
-            bp_category = 4
-        else:
-            bp_category = 5
-            
+
+        # Pulse pressure
         pulse_pressure = ap_hi - ap_lo
+
+        # Mean arterial pressure
         map_val = (ap_hi + 2 * ap_lo) / 3
-        
+
+        # BMI
         bmi = weight / ((height / 100.0) ** 2) if height > 0 else 0
-        
+
+        # Kategori BMI, disamakan dengan training cat.codes
         if bmi < 18.5:
-            bmi_category = 1
+            bmi_category = 0
         elif bmi < 25:
-            bmi_category = 2
+            bmi_category = 1
         elif bmi < 30:
-            bmi_category = 3
+            bmi_category = 2
         else:
-            bmi_category = 4
-            
+            bmi_category = 3
+
+        # Risiko gaya hidup
         lifestyle_risk = smoke + alco + (0 if active else 1)
 
         # 18 Fitur dengan DataFrame
