@@ -1,187 +1,298 @@
-import { useState, useEffect, useCallback } from "react";
-import { useParams, Link } from "react-router-dom";
-import {
-  ArrowLeft,
-  Calendar,
-  Clock,
-} from "lucide-react";
-import { motion } from "motion/react";
-import api from "../../lib/api";
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { ArrowLeft, ArrowRight, Calendar, Clock } from "lucide-react";
+import { motion } from "framer-motion";
 
-import type { Article, CurrentUserProfile } from "~/types/shared";
+import type { Article } from "~/types/shared";
+
+import api from "../../lib/api";
+import {
+  ArticlePageFrame,
+  ArticleSectionDivider,
+  ArticleTextureHero,
+} from "./article-page-shell";
+
+function getArticleAuthor(article: Article) {
+  const name = article.author?.name || "HeartCare Team";
+  const initial = article.author?.initial || name.substring(0, 1).toUpperCase();
+
+  return {
+    name,
+    initial,
+    profilePicture: article.author?.profile_picture || "",
+  };
+}
 
 export default function ArticleDetail() {
   const { slug } = useParams();
-  
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState<CurrentUserProfile | null>(null);
-
-  useEffect(() => {
-    const loadCurrentUser = () => {
-      const userStr = localStorage.getItem("user");
-      if (!userStr) {
-        setCurrentUser(null);
-        return;
-      }
-
-      try {
-        const user = JSON.parse(userStr);
-        const userName = user.name || "HeartCare Team";
-
-        setCurrentUser({
-          name: userName,
-          initial: user.initial || userName.substring(0, 1).toUpperCase(),
-          profile_picture: user.profile_picture || "",
-        });
-      } catch (error) {
-        console.error("Failed to parse current user", error);
-        setCurrentUser(null);
-      }
-    };
-
-    loadCurrentUser();
-    window.addEventListener("storage", loadCurrentUser);
-    window.addEventListener("profileUpdated", loadCurrentUser);
-
-    return () => {
-      window.removeEventListener("storage", loadCurrentUser);
-      window.removeEventListener("profileUpdated", loadCurrentUser);
-    };
-  }, []);
-
-  const fetchArticle = useCallback(async () => {
-    if (!slug) {
-      setArticle(null);
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await api.get(`/articles/${slug}`);
-      const fetchedArticle = res.data.data as Article;
-      setArticle(fetchedArticle);
-
-      const token = localStorage.getItem('auth_token');
-      if (token && fetchedArticle.id) {
-        try {
-          const readResponse = await api.post(`/articles/${fetchedArticle.id}/read`);
-          const userStr = localStorage.getItem('user');
-          if (userStr) {
-            const user = JSON.parse(userStr);
-            localStorage.setItem('user', JSON.stringify({
-              ...user,
-              read_article: readResponse.data?.data?.read_article ?? user.read_article ?? [],
-            }));
-          }
-        } catch (readError) {
-          console.error('Mark article as read error:', readError);
-        }
-      }
-    } catch (err) {
-      console.error('Fetch error:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [slug]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    fetchArticle();
-  }, [fetchArticle]);
 
-  if (loading) return (
-    <div className="min-h-screen bg-white flex items-center justify-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-    </div>
-  );
+    const fetchArticle = async () => {
+      if (!slug) {
+        setArticle(null);
+        setLoading(false);
+        return;
+      }
 
-  if (!article) return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
-        <h2 className="text-2xl font-black text-slate-900 mb-4">Artikel Tidak Ditemukan</h2>
-        <Link to="/articles" className="text-primary font-bold flex items-center gap-2 hover:underline">
-            <ArrowLeft size={18} /> Kembali ke Artikel
-        </Link>
-    </div>
-  );
+      setLoading(true);
+      try {
+        const response = await api.get(`/articles/${slug}`);
+        const fetchedArticle = response.data.data as Article;
+        setArticle(fetchedArticle);
 
-  const authorName = currentUser?.name || article.author?.name || "HeartCare Team";
-  const authorInitial = currentUser?.initial || article.author?.initial || authorName.substring(0, 1).toUpperCase();
-  const authorProfilePicture = currentUser?.profile_picture || article.author?.profile_picture;
+        const token = localStorage.getItem("auth_token");
+        if (token && fetchedArticle.id) {
+          try {
+            const readResponse = await api.post(`/articles/${fetchedArticle.id}/read`);
+            const userStr = localStorage.getItem("user");
+            if (userStr) {
+              const user = JSON.parse(userStr);
+              localStorage.setItem(
+                "user",
+                JSON.stringify({
+                  ...user,
+                  read_article: readResponse.data?.data?.read_article ?? user.read_article ?? [],
+                }),
+              );
+            }
+          } catch (readError) {
+            console.error("Mark article as read error:", readError);
+          }
+        }
+      } catch (err) {
+        console.error("Fetch article detail error:", err);
+        setArticle(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void fetchArticle();
+  }, [slug]);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-white">
+        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-emerald-700" />
+      </div>
+    );
+  }
+
+  if (!article) {
+    return (
+      <div className="min-h-screen bg-white font-sans text-slate-900">
+        <ArticlePageFrame
+          page="07"
+          label="Detail Artikel"
+          footerDetail="HeartCare journal"
+          contentClassName="px-6 py-20 sm:px-8 lg:px-12 xl:px-16"
+        >
+          <div className="w-full">
+            <ArticleTextureHero
+              label="Artikel tidak ditemukan"
+              title="Artikel yang Anda cari belum tersedia atau sudah dipindahkan."
+              description={
+                <p>
+                  Silakan kembali ke halaman artikel untuk menjelajahi bacaan lain yang masih aktif.
+                </p>
+              }
+              titleWrapClassName="max-w-[720px]"
+              descriptionWrapClassName="mt-8 max-w-2xl text-[14px] leading-7 text-slate-600 md:text-[15px]"
+              divider={null}
+            >
+              <div className="mt-10">
+                <Link
+                  to="/articles"
+                  className="inline-flex items-center gap-2 border border-slate-200 bg-slate-950 px-4 py-3 text-[11px] font-medium uppercase tracking-[0.2em] text-white transition hover:bg-slate-900"
+                >
+                  <ArrowLeft size={16} />
+                  Kembali ke artikel
+                </Link>
+              </div>
+            </ArticleTextureHero>
+          </div>
+        </ArticlePageFrame>
+      </div>
+    );
+  }
+
+  const author = getArticleAuthor(article);
   const readingTimeLabel = `${article.reading_time || 1} Menit Baca`;
+  const publishedDate = new Date(article.created_at).toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900">
-      {/* Hero Section */}
-      <header className="max-w-4xl mx-auto px-6 pt-10 md:pt-14">
-        <Link to="/articles" className="inline-flex items-center gap-2 text-slate-500 text-sm font-bold uppercase tracking-widest mb-8">
-            <ArrowLeft size={16} /> Kembali
-        </Link>
+      <ArticlePageFrame
+        page="07"
+        label="Detail Artikel"
+        footerDetail={article.category || "HeartCare journal"}
+        contentClassName="px-6 py-20 sm:px-8 lg:px-12 xl:px-16"
+      >
+        <div className="w-full">
+          <Link
+            to="/articles"
+            className="mb-6 inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.24em] text-slate-500 transition hover:text-slate-900"
+          >
+            <ArrowLeft size={16} />
+            Kembali ke artikel
+          </Link>
 
-        <motion.div
-           initial={{ opacity: 0, y: 20 }}
-           animate={{ opacity: 1, y: 0 }}
-           transition={{ duration: 0.6 }}
-        >
-            <span className="inline-block px-4 py-1.5 bg-primary/5 text-primary text-[10px] font-black uppercase tracking-[0.2em] rounded-md mb-8 border border-primary/10">
-                {article.category}
-            </span>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 mb-10 leading-[1.1] tracking-tight">
-                {article.title}
-            </h1>
+          <ArticleTextureHero
+            label={article.category || "Artikel"}
+            title={article.title}
+            titleTag="h1"
+            description={
+              <div className="flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.2em] text-slate-500">
+                <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-[#fcfcfa] px-3 py-2">
+                  <Calendar size={14} className="text-emerald-700" />
+                  {publishedDate}
+                </span>
+                <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2">
+                  <Clock size={14} className="text-emerald-700" />
+                  {readingTimeLabel}
+                </span>
+                <span className="inline-flex rounded-full border border-slate-200 bg-white px-3 py-2">
+                  Oleh {author.name}
+                </span>
+              </div>
+            }
+            titleWrapClassName="max-w-[860px]"
+            descriptionWrapClassName="mt-8"
+            divider={null}
+          />
+        </div>
 
-            <div className="flex items-center justify-between py-8 border-y border-slate-200 mb-12">
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center text-primary border border-slate-200 overflow-hidden">
-                        {authorProfilePicture ? (
-                          <img
-                            src={`http://localhost:8000/storage/${authorProfilePicture}`}
-                            alt={authorName}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <span className="text-sm font-black uppercase">{authorInitial}</span>
-                        )}
+        <div className="mt-14 w-full">
+          <ArticleSectionDivider />
+        </div>
+
+        <div className="mt-14 w-full">
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,0.72fr)_minmax(280px,0.28fr)] xl:items-start">
+            <div className="space-y-6">
+              {article.thumbnail ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 18 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.45, ease: "easeOut" }}
+                  className="overflow-hidden border border-slate-200 bg-white shadow-[0_24px_60px_-46px_rgba(15,23,42,0.4)]"
+                >
+                  <div className="relative aspect-video overflow-hidden bg-[#eef6ef]">
+                    <img
+                      src={article.thumbnail}
+                      alt={article.title}
+                      className="h-full w-full object-cover object-center"
+                    />
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-[linear-gradient(to_top,rgba(255,255,255,0.76)_0%,rgba(255,255,255,0.34)_38%,transparent_88%)]" />
+                  </div>
+                </motion.div>
+              ) : null}
+
+              <motion.article
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.45, delay: 0.08, ease: "easeOut" }}
+                className="overflow-hidden border border-slate-200 bg-white shadow-[0_24px_60px_-46px_rgba(15,23,42,0.35)]"
+              >
+                <div className="border-b border-slate-200 bg-[#fcfcfa] px-6 py-4 sm:px-8">
+                  <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-500">
+                    Isi artikel
+                  </span>
+                </div>
+                <div className="px-6 py-8 sm:px-8 sm:py-10">
+                  <div className="prose prose-slate prose-lg max-w-none prose-headings:font-semibold prose-headings:tracking-[-0.03em] prose-a:text-emerald-700 prose-img:rounded-none prose-strong:text-slate-900 prose-p:leading-8 prose-p:text-slate-700 prose-li:text-slate-700">
+                    <div dangerouslySetInnerHTML={{ __html: article.content }} />
+                  </div>
+                </div>
+              </motion.article>
+            </div>
+
+            <div className="space-y-4 xl:sticky xl:top-8">
+              <motion.aside
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.45, delay: 0.12, ease: "easeOut" }}
+                className="overflow-hidden border border-slate-200 bg-white shadow-[0_22px_54px_-44px_rgba(15,23,42,0.35)]"
+              >
+                <div className="border-b border-slate-200 bg-[#fcfcfa] px-5 py-4">
+                  <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-500">
+                    Penulis
+                  </span>
+                </div>
+                <div className="space-y-5 p-5">
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-14 w-14 items-center justify-center overflow-hidden border border-slate-200 bg-slate-100 text-base font-semibold uppercase text-slate-600">
+                      {author.profilePicture ? (
+                        <img
+                          src={`http://localhost:8000/storage/${author.profilePicture}`}
+                          alt={author.name}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        author.initial
+                      )}
                     </div>
                     <div>
-                        <p className="text-xs font-black text-slate-900 uppercase tracking-wider">{authorName}</p>
-                        <div className="flex items-center gap-4 text-[10px] text-slate-400 font-bold mt-1">
-                            <span className="flex items-center gap-1"><Calendar size={12} className="text-primary" /> {new Date(article.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                            <span className="flex items-center gap-1"><Clock size={12} className="text-primary" /> {readingTimeLabel}</span>
-                        </div>
+                      <p className="text-base font-semibold text-slate-950">{author.name}</p>
+                      <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">
+                        HeartCare journal
+                      </p>
                     </div>
-                </div>
-                <div className="hidden sm:flex items-center gap-3">
-                    <div className="flex -space-x-2">
-                        {[1,2,3].map(i => <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-slate-200 overflow-hidden"><img src={`https://i.pravatar.cc/100?img=${i+10}`} alt="reader" /></div>)}
+                  </div>
+
+                  <div className="space-y-3 text-[13px] leading-6 text-slate-600">
+                    <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                      <span>Tanggal terbit</span>
+                      <span className="font-medium text-slate-900">{publishedDate}</span>
                     </div>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">+1.2k Pembaca</p>
+                    <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                      <span>Estimasi baca</span>
+                      <span className="font-medium text-slate-900">{readingTimeLabel}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <span>Kategori</span>
+                      <span className="font-medium text-slate-900">{article.category}</span>
+                    </div>
+                  </div>
                 </div>
+              </motion.aside>
+
+              <motion.aside
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.45, delay: 0.16, ease: "easeOut" }}
+                className="overflow-hidden border border-slate-200 bg-white shadow-[0_22px_54px_-44px_rgba(15,23,42,0.3)]"
+              >
+                <div className="border-b border-slate-200 bg-[#fcfcfa] px-5 py-4">
+                  <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-500">
+                    Lanjutkan eksplorasi
+                  </span>
+                </div>
+                <div className="space-y-4 p-5">
+                  <p className="text-[14px] leading-7 text-slate-600">
+                    Kembali ke arsip artikel untuk membaca topik lain yang masih berhubungan dengan
+                    edukasi jantung, kebiasaan sehat, dan rekomendasi tindak lanjut.
+                  </p>
+                  <Link
+                    to="/articles"
+                    className="inline-flex items-center gap-2 border border-slate-200 bg-slate-950 px-4 py-3 text-[11px] font-medium uppercase tracking-[0.2em] text-white transition hover:bg-slate-900"
+                  >
+                    Lihat artikel lainnya
+                    <ArrowRight size={16} />
+                  </Link>
+                </div>
+              </motion.aside>
             </div>
-        </motion.div>
-      </header>
-
-      {/* Featured Image */}
-      {article.thumbnail && (
-          <div className="max-w-6xl mx-auto px-6 mb-20">
-            <motion.div 
-               initial={{ opacity: 0, scale: 0.95 }}
-               animate={{ opacity: 1, scale: 1 }}
-               transition={{ duration: 0.8, delay: 0.2 }}
-               className="aspect-video rounded-xl overflow-hidden border border-slate-200"
-            >
-                <img src={article.thumbnail} alt={article.title} className="w-full h-full object-cover" />
-            </motion.div>
           </div>
-      )}
-
-      {/* Article Content */}
-      <main className="max-w-4xl mx-auto px-6 mb-32">
-        <article className="prose prose-slate prose-lg md:prose-xl max-w-none border border-slate-200 rounded-xl px-6 py-8 md:px-10 md:py-12 prose-headings:font-black prose-headings:tracking-tight prose-a:text-primary prose-img:rounded-xl prose-strong:text-slate-900 prose-p:leading-8 prose-p:text-slate-700 prose-li:text-slate-700">
-            <div dangerouslySetInnerHTML={{ __html: article.content }} />
-        </article>
-      </main>
+        </div>
+      </ArticlePageFrame>
     </div>
   );
 }

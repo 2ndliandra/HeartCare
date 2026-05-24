@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Article;
+use App\Models\Category;
 use App\Http\Resources\ArticleResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,9 +13,18 @@ use Illuminate\Support\Str;
 
 class AdminArticleController extends Controller
 {
+    private function resolveCategory(string $categoryId): ?Category
+    {
+        return Category::all()->first(function (Category $category) use ($categoryId) {
+            return (string) ($category->_id ?? $category->id) === $categoryId
+                || (string) ($category->id ?? '') === $categoryId
+                || (string) ($category->slug ?? '') === $categoryId;
+        });
+    }
+
     public function index()
     {
-        $articles = Article::with('author')->orderBy('created_at', 'desc')->paginate(10);
+        $articles = Article::with(['author', 'categoryRelation'])->orderBy('created_at', 'desc')->paginate(10);
 
         return ArticleResource::collection($articles)->additional([
             'success' => true,
@@ -33,14 +43,28 @@ class AdminArticleController extends Controller
             'title' => 'required|string|max:255',
             'content' => 'required',
             'raw_content' => 'nullable',
-            'category' => 'required|string',
+            'category' => 'nullable|string',
+            'category_id' => 'required|string',
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'status' => 'required|in:draft,published',
             'author_id' => 'nullable|exists:users,id'
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['success' => false, 'message' => $validator->errors()->first()], 422);
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(),
+                'errors' => $validator->errors()->toArray(),
+            ], 422);
+        }
+
+        $category = $this->resolveCategory((string) $request->category_id);
+        if (!$category) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kategori artikel tidak valid.',
+                'errors' => ['category_id' => ['Kategori artikel tidak valid.']],
+            ], 422);
         }
 
         $thumbnailUrl = null;
@@ -54,11 +78,14 @@ class AdminArticleController extends Controller
             'slug' => Str::slug($request->title),
             'content' => $request->content,
             'raw_content' => $request->raw_content,
-            'category' => (string) $request->category,
+            'category_id' => (string) ($category->_id ?? $category->id),
+            'category' => (string) $category->name,
             'thumbnail' => $thumbnailUrl,
             'status' => $request->status,
             'author_id' => $request->author_id ?? auth()->id(),
         ]);
+
+        $article->load(['author', 'categoryRelation']);
 
         return (new ArticleResource($article))->additional([
             'success' => true,
@@ -74,23 +101,42 @@ class AdminArticleController extends Controller
             'title' => 'sometimes|string|max:255',
             'content' => 'sometimes',
             'raw_content' => 'sometimes',
-            'category' => 'sometimes',
+            'category' => 'sometimes|nullable|string',
+            'category_id' => 'sometimes|string',
             'thumbnail' => 'sometimes|nullable',
             'status' => 'sometimes|in:draft,published',
             'author_id' => 'sometimes|nullable|exists:users,id'
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['success' => false, 'message' => $validator->errors()->first()], 422);
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(),
+                'errors' => $validator->errors()->toArray(),
+            ], 422);
         }
 
         if ($request->has('title')) {
             $article->title = $request->title;
             $article->slug = Str::slug($request->title);
         }
-        if ($request->has('content')) $article->content = $request->content;
+         if ($request->has('content')) $article->content = $request->content;
         if ($request->has('raw_content')) $article->raw_content = $request->raw_content;
-        if ($request->has('category')) $article->category = (string) $request->category;
+        if ($request->has('category_id')) {
+            $category = $this->resolveCategory((string) $request->category_id);
+            if (!$category) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Kategori artikel tidak valid.',
+                    'errors' => ['category_id' => ['Kategori artikel tidak valid.']],
+                ], 422);
+            }
+
+            $article->category_id = (string) ($category->_id ?? $category->id);
+            $article->category = (string) $category->name;
+        } elseif ($request->has('category')) {
+            $article->category = (string) $request->category;
+        }
         if ($request->has('author_id')) $article->author_id = $request->author_id;
 
         if ($request->hasFile('thumbnail')) {
@@ -104,6 +150,8 @@ class AdminArticleController extends Controller
 
         $article->save();
 
+        $article->load(['author', 'categoryRelation']);
+
         return response()->json([
             'success' => true,
             'message' => 'Article updated successfully'
@@ -112,7 +160,7 @@ class AdminArticleController extends Controller
 
     public function show($slug)
     {
-        $article = Article::where('slug', (string) $slug)->with('author')->first();
+        $article = Article::where('slug', (string) $slug)->with(['author', 'categoryRelation'])->first();
 
         if (!$article) {
             return response()->json(['success' => false, 'message' => 'Artikel tidak ditemukan'], 404);

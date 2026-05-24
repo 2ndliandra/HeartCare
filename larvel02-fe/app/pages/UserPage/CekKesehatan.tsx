@@ -4,7 +4,6 @@ import {
   HeartPulse, 
   User, 
   Activity as ActivityIcon, 
-  FileText, 
   Stethoscope, 
   Calendar, 
   Weight, 
@@ -22,6 +21,37 @@ import { Card } from "~/components/ui/card";
 import { Input, Label, HelperText } from "~/components/ui/input";
 import { cn } from "~/lib/utils";
 
+const normalizeSmokingForApi = (value: string) => {
+  if (value === "Kadang" || value === "Sering") {
+    return "yes";
+  }
+
+  return "no";
+};
+
+const normalizeExerciseForApi = (value: string) => {
+  if (value === "Jarang" || !value) {
+    return "no";
+  }
+
+  return "yes";
+};
+
+const normalizeAlcoholForApi = (value: string) => {
+  const normalized = value.toLowerCase();
+  return ["yes", "ya", "true", "1", "kadang", "sering"].includes(normalized) ? "yes" : "no";
+};
+
+const numericRules = [
+  { field: "age", label: "Usia", min: 1, max: 120, unit: "tahun" },
+  { field: "systolic_bp", label: "Tekanan darah sistolik", min: 70, max: 250, unit: "mmHg" },
+  { field: "diastolic_bp", label: "Tekanan darah diastolik", min: 40, max: 150, unit: "mmHg" },
+  { field: "cholesterol", label: "Kolesterol total", min: 80, max: 400, unit: "mg/dL" },
+  { field: "blood_sugar", label: "Gula darah puasa", min: 50, max: 500, unit: "mg/dL", optional: true },
+  { field: "weight", label: "Berat badan", min: 25, max: 250, unit: "kg" },
+  { field: "height", label: "Tinggi badan", min: 100, max: 230, unit: "cm" }
+] as const;
+
 export default function CekKesehatanPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = React.useState(false);
@@ -32,25 +62,23 @@ export default function CekKesehatanPage() {
     diastolic_bp: "",
     cholesterol: "",
     blood_sugar: "",
-    heart_rate: "",
     weight: "",
     height: "",
-    medical_history: [] as string[],
-    symptoms: [] as string[],
     smoking: "",
     exercise: "",
     alcohol: ""
   });
 
   // Calculate completion percentage
-  const totalRequiredFields = 9; // age, gender, systolic, diastolic, cholesterol, heart_rate, weight, height, smoking/exercise
+  const totalRequiredFields = 9; // age, gender, vitals, body metrics, smoking, exercise
   const filledRequiredFields = [
     formData.age, formData.gender, formData.systolic_bp, formData.diastolic_bp, 
-    formData.cholesterol, formData.heart_rate, formData.weight, formData.height, 
-    formData.smoking || formData.exercise
+    formData.cholesterol, formData.weight, formData.height,
+    formData.smoking, formData.exercise
   ].filter(Boolean).length;
   
   const progress = Math.round((filledRequiredFields / totalRequiredFields) * 100);
+  const isFormComplete = filledRequiredFields === totalRequiredFields;
 
   // BMI Calculation
   const bmi = React.useMemo(() => {
@@ -74,24 +102,52 @@ export default function CekKesehatanPage() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const toggleSelection = (field: 'medical_history' | 'symptoms', value: string) => {
-    setFormData(prev => {
-      const current = prev[field];
-      if (current.includes(value)) {
-        return { ...prev, [field]: current.filter(item => item !== value) };
-      } else {
-        // If "Tidak Ada" is selected, clear everything else
-        if (value.includes("Tidak Ada")) {
-          return { ...prev, [field]: [value] };
-        }
-        // If something else is selected, remove "Tidak Ada"
-        return { ...prev, [field]: [...current.filter(item => !item.includes("Tidak Ada")), value] };
+  const validateInputRanges = () => {
+    const errors: string[] = [];
+
+    numericRules.forEach((rule) => {
+      const rawValue = formData[rule.field];
+
+      if ("optional" in rule && rule.optional && rawValue === "") {
+        return;
+      }
+
+      const value = Number(rawValue);
+      if (!Number.isFinite(value) || value < rule.min || value > rule.max) {
+        errors.push(`${rule.label} harus berada pada rentang ${rule.min}-${rule.max} ${rule.unit}.`);
       }
     });
+
+    const systolic = Number(formData.systolic_bp);
+    const diastolic = Number(formData.diastolic_bp);
+    if (Number.isFinite(systolic) && Number.isFinite(diastolic) && systolic <= diastolic) {
+      errors.push("Tekanan darah sistolik harus lebih besar dari diastolik.");
+    }
+
+    return errors;
+  };
+
+  const getPredictionErrorMessage = (err: unknown) => {
+    const error = err as { response?: { data?: { message?: string; error?: string; errors?: Record<string, string[]> } } };
+    const data = error.response?.data;
+    const firstFieldError = data?.errors ? Object.values(data.errors).flat()[0] : null;
+
+    return firstFieldError || data?.message || data?.error || "Gagal melakukan analisis. Silakan periksa koneksi Anda.";
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isFormComplete) {
+      alert("Lengkapi semua data wajib sebelum menjalankan analisis.");
+      return;
+    }
+
+    const inputErrors = validateInputRanges();
+    if (inputErrors.length > 0) {
+      alert(inputErrors[0]);
+      return;
+    }
+
     setLoading(true);
     try {
       // Simulate AI Processing
@@ -103,13 +159,11 @@ export default function CekKesehatanPage() {
         diastolic_bp: Number(formData.diastolic_bp),
         cholesterol: Number(formData.cholesterol),
         blood_sugar: Number(formData.blood_sugar || 90),
-        heart_rate: Number(formData.heart_rate),
         weight: Number(formData.weight),
         height: Number(formData.height),
-        smoking: formData.smoking,
-        alcohol: formData.alcohol,
-        exercise: formData.exercise,
-        history: formData.medical_history
+        smoking: normalizeSmokingForApi(formData.smoking),
+        alcohol: normalizeAlcoholForApi(formData.alcohol),
+        exercise: normalizeExerciseForApi(formData.exercise)
       };
 
       const res = await api.post("/predict", payload);
@@ -128,23 +182,11 @@ export default function CekKesehatanPage() {
       });
     } catch (err) {
       console.error("Prediction error:", err);
-      alert("Gagal melakukan analisis. Silakan periksa koneksi Anda.");
+      alert(getPredictionErrorMessage(err));
     } finally {
       setLoading(false);
     }
   };
-
-  const medicalHistoryOptions = [
-    "Diabetes", "Hipertensi", "Kolesterol Tinggi", 
-    "Riwayat Serangan Jantung", "Riwayat Stroke", 
-    "Penyakit Ginjal", "Tidak Ada Riwayat"
-  ];
-
-  // @ts-ignore
-const symptomOptions = [
-    "Nyeri Dada", "Sesak Napas", "Detak Jantung Tidak Teratur",
-    "Mudah Lelah", "Pusing", "Pingsan", "Tidak Ada Gejala"
-  ];
 
   return (
     <div className="max-w-4xl mx-auto py-4">
@@ -193,6 +235,8 @@ const symptomOptions = [
                     required
                     name="age"
                     type="number"
+                    min={1}
+                    max={120}
                     placeholder="Contoh: 35"
                     iconLeft={<Calendar />}
                     suffix="tahun"
@@ -256,6 +300,8 @@ const symptomOptions = [
                     required
                     name="systolic_bp"
                     type="number"
+                    min={70}
+                    max={250}
                     placeholder="Contoh: 120"
                     iconLeft={<HeartPulse />}
                     suffix="mmHg"
@@ -273,6 +319,8 @@ const symptomOptions = [
                     required
                     name="diastolic_bp"
                     type="number"
+                    min={40}
+                    max={150}
                     placeholder="Contoh: 80"
                     iconLeft={<HeartPulse />}
                     suffix="mmHg"
@@ -290,6 +338,8 @@ const symptomOptions = [
                     required
                     name="cholesterol"
                     type="number"
+                    min={80}
+                    max={400}
                     placeholder="Contoh: 200"
                     iconLeft={<Droplet />}
                     suffix="mg/dL"
@@ -306,6 +356,8 @@ const symptomOptions = [
                   <Input 
                     name="blood_sugar"
                     type="number"
+                    min={50}
+                    max={500}
                     placeholder="Contoh: 95"
                     iconLeft={<Droplet />}
                     suffix="mg/dL"
@@ -316,25 +368,15 @@ const symptomOptions = [
               </div>
 
               <div className="space-y-2 md:col-span-2">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  <div className="space-y-2">
-                    <Label required>Detak Jantung</Label>
-                    <Input 
-                      required
-                      name="heart_rate"
-                      type="number"
-                      placeholder="72"
-                      suffix="bpm"
-                      value={formData.heart_rate}
-                      onChange={handleInputChange}
-                    />
-                  </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-2">
                     <Label required>Berat Badan</Label>
                     <Input 
                       required
                       name="weight"
                       type="number"
+                      min={25}
+                      max={250}
                       placeholder="70"
                       iconLeft={<Weight />}
                       suffix="kg"
@@ -348,6 +390,8 @@ const symptomOptions = [
                       required
                       name="height"
                       type="number"
+                      min={100}
+                      max={230}
                       placeholder="170"
                       iconLeft={<Ruler />}
                       suffix="cm"
@@ -374,44 +418,7 @@ const symptomOptions = [
             </div>
           </div>
 
-          {/* Section 3: Riwayat Medis */}
-          <div className="p-8 border-b border-slate-100">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600">
-                <FileText className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-slate-900 font-display">Riwayat Medis</h3>
-                <p className="text-sm text-slate-500">Centang kondisi medis yang sedang atau pernah Anda alami</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-6">
-              {medicalHistoryOptions.map((opt) => (
-                <button
-                  key={opt}
-                  type="button"
-                  onClick={() => toggleSelection('medical_history', opt)}
-                  className={cn(
-                    "flex items-center gap-3 p-4 border-2 rounded-xl transition-all text-sm font-semibold",
-                    formData.medical_history.includes(opt)
-                      ? "border-emerald-600 bg-emerald-50 text-emerald-700 shadow-sm"
-                      : "border-slate-100 bg-white text-slate-600 hover:border-emerald-100"
-                  )}
-                >
-                  <div className={cn(
-                    "w-5 h-5 rounded border flex items-center justify-center transition-all",
-                    formData.medical_history.includes(opt) ? "bg-emerald-600 border-emerald-600" : "border-slate-300"
-                  )}>
-                    {formData.medical_history.includes(opt) && <ShieldCheck className="w-3.5 h-3.5 text-white" />}
-                  </div>
-                  {opt}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Section 4: Gaya Hidup */}
+          {/* Section 3: Gaya Hidup */}
           <div className="p-8">
             <div className="flex items-center gap-4 mb-8">
               <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600">
@@ -481,7 +488,7 @@ const symptomOptions = [
                 type="submit" 
                 size="lg" 
                 className="w-full md:w-auto px-12 h-14 rounded-2xl shadow-xl shadow-emerald-200/50"
-                disabled={loading || progress < 70}
+                disabled={loading || !isFormComplete}
               >
                 {loading ? (
                   <>

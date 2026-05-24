@@ -1,10 +1,7 @@
-// @ts-nocheck
 import * as React from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { useLocation, useNavigate } from "react-router-dom";
 import { 
   Download, 
-  Printer, 
   Info, 
   MessageSquare, 
   History,
@@ -20,7 +17,6 @@ import {
 } from "lucide-react";
 import { Card } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
-import { RiskBadge } from "~/components/shared/RiskBadge";
 import type { RiskLevel } from "~/components/shared/RiskBadge";
 import { cn } from "~/lib/utils";
 
@@ -29,7 +25,7 @@ export default function HasilPrediksiPage() {
   const navigate = useNavigate();
   
   // Get data from location state or localStorage or use defaults
-  const [data, setData] = React.useState(() => {
+  const [data] = React.useState(() => {
     if (location.state) return location.state;
     const stored = localStorage.getItem('last_prediction');
     if (stored) return JSON.parse(stored);
@@ -37,8 +33,8 @@ export default function HasilPrediksiPage() {
       prediction: { risk_level: "rendah", risk_score: 25 },
       formData: { 
         age: 35, gender: "male", systolic_bp: 120, diastolic_bp: 80, 
-        cholesterol: 200, heart_rate: 72, weight: 70, height: 170,
-        smoking: "Tidak", exercise: "3-4x Seminggu", medical_history: ["Diabetes"]
+        cholesterol: 200, weight: 70, height: 170,
+        smoking: "Tidak", exercise: "3-4x Seminggu"
       }
     };
   });
@@ -55,13 +51,6 @@ export default function HasilPrediksiPage() {
   }
 
   const riskLevel = (rawRisk?.toUpperCase() === "RENDAH" ? "RENDAH" : "TINGGI") as RiskLevel;
-  const score = prediction.risk_score || (riskLevel === "TINGGI" ? 85 : 15);
-
-  const getColorByLevel = (lvl: string) => {
-    if (lvl === "RENDAH") return "text-emerald-600";
-    return "text-red-500";
-  };
-
   const getInterpretation = (lvl: string) => {
     switch (lvl) {
       case "RENDAH":
@@ -132,11 +121,6 @@ export default function HasilPrediksiPage() {
       color: "red"
     });
   }
-
-  // Calculate gauge dash offset
-  const radius = 90;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (score / 100) * circumference;
 
   const displayDate = timestamp ? new Date(timestamp) : new Date();
 
@@ -213,9 +197,9 @@ export default function HasilPrediksiPage() {
             { label: "Usia", val: `${formData.age} tahun` },
             { label: "Tekanan Darah", val: `${formData.systolic_bp}/${formData.diastolic_bp} mmHg` },
             { label: "Kolesterol", val: `${formData.cholesterol} mg/dL` },
-            { label: "Detak Jantung", val: `${formData.heart_rate} bpm` },
-            { label: "Gaya Hidup", val: `${formData.exercise}` },
-            { label: "Riwayat", val: formData.medical_history?.[0] || "Tidak Ada" }
+            { label: "Gula Darah", val: `${formData.blood_sugar ?? 90} mg/dL` },
+            { label: "Berat/Tinggi", val: `${formData.weight} kg / ${formData.height} cm` },
+            { label: "Gaya Hidup", val: `${formData.exercise}` }
           ].map((item, i) => (
             <div key={i} className="p-4 bg-slate-50 border border-slate-100 rounded-2xl">
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">{item.label}</span>

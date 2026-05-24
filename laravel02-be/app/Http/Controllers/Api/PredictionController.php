@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Facades\Http;
 
 use App\Models\Prediction;
 use Illuminate\Support\Facades\Auth;
@@ -26,24 +26,39 @@ class PredictionController extends Controller
     public function predict(Request $request)
     {
         $validated = $request->validate([
-            'age' => 'required|numeric',
+            'age' => 'required|numeric|min:1|max:120',
             'gender' => 'required|string',
-            'systolic_bp' => 'required|numeric',
-            'diastolic_bp' => 'required|numeric',
-            'cholesterol' => 'required|numeric',
-            'heart_rate' => 'required|numeric',
-            'weight' => 'required|numeric',
-            'height' => 'required|numeric',
-            'blood_sugar' => 'numeric|nullable',
+            'systolic_bp' => 'required|numeric|min:70|max:250',
+            'diastolic_bp' => 'required|numeric|min:40|max:150',
+            'cholesterol' => 'required|numeric|min:80|max:400',
+            'weight' => 'required|numeric|min:25|max:250',
+            'height' => 'required|numeric|min:100|max:230',
+            'blood_sugar' => 'numeric|nullable|min:50|max:500',
             'smoking' => 'string|nullable',
             'exercise' => 'string|nullable',
             'alcohol' => 'string|nullable',
-            'history' => 'array|nullable',
         ]);
+
+        if ((float) $validated['systolic_bp'] <= (float) $validated['diastolic_bp']) {
+            return response()->json([
+                'message' => 'Data tekanan darah tidak valid.',
+                'errors' => [
+                    'systolic_bp' => ['Tekanan darah sistolik harus lebih besar dari diastolik.'],
+                ],
+            ], 422);
+        }
+
+        $payload = [
+            ...$validated,
+            'blood_sugar' => $validated['blood_sugar'] ?? 90,
+            'smoking' => $this->normalizeSmoking($validated['smoking'] ?? null),
+            'exercise' => $this->normalizeExercise($validated['exercise'] ?? null),
+            'alcohol' => $this->normalizeBooleanLifestyle($validated['alcohol'] ?? null),
+        ];
 
         // Send request to Flask API
         try {
-            $response = \Illuminate\Support\Facades\Http::timeout(30)->post('http://localhost:5000/predict', $validated);
+            $response = Http::timeout(30)->post('http://localhost:5000/predict', $payload);
 
             if ($response->successful()) {
                 $result = $response->json();
@@ -62,7 +77,7 @@ class PredictionController extends Controller
                 // Persist to MongoDB
                 $prediction = Prediction::create([
                     'user_id' => Auth::id(),
-                    'input_data' => $validated,
+                    'input_data' => $payload,
                     'result_level' => $level,
                     'result_score' => $result['risk_score'] ?? 0,
                 ]);
@@ -89,5 +104,32 @@ class PredictionController extends Controller
                 'details' => $e->getMessage()
             ], 500);
         }
+    }
+
+    protected function normalizeSmoking(?string $value): string
+    {
+        $normalized = strtolower(trim((string) $value));
+
+        return in_array($normalized, ['yes', 'ya', 'true', '1', 'kadang', 'sering'], true)
+            ? 'yes'
+            : 'no';
+    }
+
+    protected function normalizeExercise(?string $value): string
+    {
+        $normalized = strtolower(trim((string) $value));
+
+        return in_array($normalized, ['yes', 'ya', 'true', '1', '1-2x seminggu', '3-4x seminggu', 'setiap hari'], true)
+            ? 'yes'
+            : 'no';
+    }
+
+    protected function normalizeBooleanLifestyle(?string $value): string
+    {
+        $normalized = strtolower(trim((string) $value));
+
+        return in_array($normalized, ['yes', 'ya', 'true', '1', 'kadang', 'sering'], true)
+            ? 'yes'
+            : 'no';
     }
 }

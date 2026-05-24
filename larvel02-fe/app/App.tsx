@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom';
 import Home from './routes/home';
 import './App.css';
 
@@ -8,7 +8,7 @@ import ForgotPassword from './pages/Auth/ForgotPassword';
 import ResetPassword from './pages/Auth/ResetPassword';
 import AdminDashboard from './pages/AdminPage/AdminDashboard';
 import AdminUsers from './pages/AdminPage/AdminUsers';
-import AdminArticles from './pages/AdminPage/AdminArticles';
+import AdminArticles, { AdminArticleCreate } from './pages/AdminPage/AdminArticles';
 import AdminCategories from './pages/AdminPage/AdminCategories';
 
 import UserPage from './pages/UserPage';
@@ -23,6 +23,7 @@ import ArticlesPage from './pages/ArticlesPage';
 import ArticleDetailPage from './pages/ArticlesPage/ArticleDetail';
 
 import ProtectedRoute from './components/ProtectedRoute';
+import { ScrollToHash } from './components/ScrollToHash';
 import { UserLayout } from './components/layout/UserLayout';
 import { AdminLayout } from './components/layout/AdminLayout';
 import { PublicLayout } from './components/layout/PublicLayout';
@@ -30,6 +31,7 @@ import { PublicLayout } from './components/layout/PublicLayout';
 function App() {
     return (
         <BrowserRouter>
+            <ScrollToHash />
             <Routes>
                 <Route element={<PublicLayout />}>
                     <Route path="/" element={<Home />} />
@@ -49,6 +51,8 @@ function App() {
                         <Route path="/admin/dashboard" element={<AdminDashboard />} />
                         <Route path="/admin/users" element={<AdminUsers />} />
                         <Route path="/admin/articles" element={<AdminArticles />} />
+                        <Route path="/admin/articles/tulis" element={<AdminArticleCreate />} />
+                        <Route path="/admin/articles/create" element={<Navigate to="/admin/articles/tulis" replace />} />
                         <Route path="/admin/categories" element={<AdminCategories />} />
                         <Route path="/admin/profile" element={<ProfilePage />} />
                     </Route>

@@ -1,12 +1,11 @@
 import * as React from "react"
 import { Outlet, Link, useNavigate } from "react-router-dom"
 import { AdminSidebar } from "./AdminSidebar"
-import { Menu, User, LogOut, ChevronDown } from "lucide-react"
-import { cn } from "~/lib/utils"
+import { User, LogOut, ChevronDown } from "lucide-react"
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "~/components/ui/sidebar"
 
 export function AdminLayout() {
-  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false)
-  const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false)
+  const [sidebarOpen, setSidebarOpen] = React.useState(true)
   const [dropdownOpen, setDropdownOpen] = React.useState(false)
   const dropdownRef = React.useRef<HTMLDivElement>(null)
   const [dropdownPos, setDropdownPos] = React.useState({ top: 0, right: 0 })
@@ -63,24 +62,17 @@ export function AdminLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex font-sans text-slate-900">
-      <AdminSidebar
-        user={adminData}
-        isMobileOpen={mobileMenuOpen}
-        onMobileClose={() => setMobileMenuOpen(false)}
-        isCollapsed={sidebarCollapsed}
-        onToggleCollapse={() => setSidebarCollapsed((current) => !current)}
-      />
+    <SidebarProvider
+      open={sidebarOpen}
+      onOpenChange={setSidebarOpen}
+      className="min-h-screen bg-slate-50 font-sans text-slate-900"
+    >
+      <AdminSidebar />
 
-      <div className={cn("flex-1 flex flex-col min-w-0 transition-all duration-300", sidebarCollapsed ? "lg:pl-20" : "lg:pl-64")}>
-        <header className="sticky top-0 z-50 h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 sm:px-8 flex items-center justify-between">
+      <SidebarInset className="min-w-0 bg-slate-50 md:border md:border-l-0 md:border-slate-200/80 md:bg-white md:shadow-sm">
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white/92 px-4 backdrop-blur-md sm:px-8">
           <div className="flex items-center gap-4">
-            <button
-              onClick={() => setMobileMenuOpen(true)}
-              className="lg:hidden p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
-            >
-              <Menu className="w-6 h-6" />
-            </button>
+            <SidebarTrigger className="-ml-1 h-9 w-9 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900" />
             <div className="hidden sm:block">
               <h1 className="text-lg font-black text-slate-900 font-display leading-tight uppercase tracking-tight">Admin Terminal</h1>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">{new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</p>
@@ -136,10 +128,10 @@ export function AdminLayout() {
           </div>
         </header>
 
-        <main className="flex-1 p-4 sm:p-8 overflow-x-hidden">
+        <main className="flex-1 overflow-x-hidden p-4 sm:p-8">
           <Outlet />
         </main>
-      </div>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }

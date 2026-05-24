@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom"
 import { ChevronDown, User, LogOut, HeartPulse } from "lucide-react"
 
 import { Button } from "~/components/ui/button"
+import { scrollToHash, scrollToTop } from "~/lib/gsapScroll"
 
 export interface NavbarProps {
   isAuthenticated?: boolean
@@ -52,45 +53,89 @@ export function Navbar({ isAuthenticated = false, user }: NavbarProps) {
     setDropdownOpen(!dropdownOpen)
   }
 
-  return (
-    <header className="sticky top-0 z-50 h-16 bg-white border-b border-slate-200 px-4 md:px-8 flex items-center justify-between w-full">
-      <div className="flex items-center gap-3">
-        <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-white">
-          <HeartPulse className="w-5 h-5" />
-        </div>
-        <span className="text-xl font-bold text-slate-900 font-display hidden sm:block">
-          HeartCare
-        </span>
-      </div>
+  const scrollToSection = (sectionId: string) => (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault()
 
-      <nav className="hidden md:flex items-center gap-6">
+    if (window.location.pathname !== "/") {
+      navigate(`/#${sectionId}`)
+      return
+    }
+
+    window.history.replaceState(null, "", `/#${sectionId}`)
+    scrollToHash(`#${sectionId}`)
+  }
+
+  return (
+    <header className="fixed inset-x-0 top-0 z-[100] h-[72px] bg-transparent">
+      <div className="grid h-full w-full grid-cols-[1fr_auto] border-b border-white/35 bg-white/55 px-4 shadow-[0_10px_30px_rgba(15,23,42,0.08)] backdrop-blur-xl sm:px-6 lg:grid-cols-[220px_minmax(0,1fr)_auto] lg:px-0">
+        <div className="flex items-center gap-2 lg:border-r lg:border-white/35 lg:px-8 xl:px-10">
+          <HeartPulse className="h-5 w-5 text-emerald-700" />
+          <span className="hidden text-lg font-semibold tracking-[-0.03em] text-slate-950 sm:block">
+            HeartCare
+          </span>
+          <span className="hidden h-2 w-2 rounded-full bg-[#10b981] sm:block" />
+        </div>
+
+        <nav className="hidden items-center justify-start gap-8 px-6 lg:flex xl:px-8">
+
         <Link
           to="/"
           onClick={() => {
             if (window.location.pathname === '/') {
-              window.scrollTo({ top: 0, behavior: 'smooth' })
+              scrollToTop()
             }
           }}
-          className="text-sm font-medium text-slate-700 hover:text-emerald-600 transition-colors duration-150"
+          className="text-sm font-light tracking-[0.04em] text-[#6b7c74] transition-colors duration-150 hover:text-emerald-700"
         >
           Home
         </Link>
-        <a href="/#fitur" className="text-sm font-medium text-slate-700 hover:text-emerald-600 transition-colors duration-150">Feature</a>
-        <Link to="/articles" className="text-sm font-medium text-slate-700 hover:text-emerald-600 transition-colors duration-150">Artikel</Link>
-        <a href="/#articles" className="text-sm font-medium text-slate-700 hover:text-emerald-600 transition-colors duration-150">About</a>
+        <Link
+          to="/#features"
+          onClick={scrollToSection("features")}
+          className="text-sm font-light tracking-[0.04em] text-[#6b7c74] transition-colors duration-150 hover:text-emerald-700"
+        >
+          Fitur
+        </Link>
+        <Link to="/articles" className="text-sm font-light tracking-[0.04em] text-[#6b7c74] transition-colors duration-150 hover:text-emerald-700">Artikel</Link>
+        <Link
+          to="/#about"
+          onClick={scrollToSection("about")}
+          className="text-sm font-light tracking-[0.04em] text-[#6b7c74] transition-colors duration-150 hover:text-emerald-700"
+        >
+          Tentang
+        </Link>
       </nav>
 
       {!isAuthenticated ? (
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" asChild>
-            <Link to="/login">Masuk</Link>
-          </Button>
-          <Button variant="primary" size="sm" asChild>
-            <Link to="/register">Daftar</Link>
-          </Button>
-        </div>
+        <>
+          <div className="hidden items-stretch justify-end lg:flex">
+            <div className="flex items-center px-6 xl:px-8">
+              <Button
+                variant="ghost"
+                size="sm"
+                asChild
+                className="rounded-none text-slate-600 hover:bg-transparent hover:text-emerald-700"
+              >
+                <Link to="/register">Daftar</Link>
+              </Button>
+            </div>
+            <div className="my-4 w-px bg-slate-300/80 shadow-[1px_0_0_rgba(255,255,255,0.75)]" />
+            <div className="flex items-center px-6 xl:px-8">
+              <Button
+                variant="primary"
+                size="sm"
+                asChild
+                className="rounded-none bg-slate-950 px-6 hover:bg-emerald-800"
+              >
+                <Link to="/login">Masuk</Link>
+              </Button>
+            </div>
+          </div>
+        </>
       ) : (
-        <div className="flex items-center gap-4">
+        <>
+          <div className="flex items-center justify-end gap-4 lg:border-l lg:border-white/35 lg:px-8 xl:px-10">
+
           <div ref={dropdownRef}>
             <button
               onClick={toggleDropdown}
@@ -118,7 +163,7 @@ export function Navbar({ isAuthenticated = false, user }: NavbarProps) {
                 onClick={() => setDropdownOpen(false)}
               />
               <div
-                className="fixed w-56 bg-white rounded-xl shadow-2xl border border-slate-200 py-2"
+                className="fixed w-56 rounded-xl border border-white/45 bg-white/75 py-2 shadow-2xl backdrop-blur-xl"
                 style={{ zIndex: 9999, top: dropdownPos.top, right: dropdownPos.right }}
               >
                 <Link
@@ -138,8 +183,10 @@ export function Navbar({ isAuthenticated = false, user }: NavbarProps) {
               </div>
             </>
           )}
-        </div>
+          </div>
+        </>
       )}
+      </div>
     </header>
   )
 }

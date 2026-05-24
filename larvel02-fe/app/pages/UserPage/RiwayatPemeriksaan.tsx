@@ -9,7 +9,6 @@ import {
   ChevronRight,
   ChevronLeft,
   CalendarDays,
-  TrendingUp,
   HeartPulse
 } from "lucide-react";
 import {
@@ -26,7 +25,6 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { RiskBadge } from "~/components/shared/RiskBadge";
 import type { RiskLevel } from "~/components/shared/RiskBadge";
-import { cn } from "~/lib/utils";
 
 import api from "~/lib/api";
 
@@ -158,7 +156,7 @@ export default function HistoryPage() {
                 <Tooltip
                   contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                   cursor={{ stroke: '#10b981', strokeWidth: 2 }}
-                  formatter={(value: any, name: any, props: any) => [props.payload.level, 'Status']}
+                  formatter={(_value: any, _name: any, props: any) => [props.payload.level, 'Status']}
                 />
                 <Area
                   type="monotone"

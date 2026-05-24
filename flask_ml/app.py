@@ -2,27 +2,95 @@ from flask import Flask, request, jsonify  # type: ignore[reportMissingImports]
 from flask_cors import CORS  # type: ignore[reportMissingImports]
 import joblib
 import pandas as pd
-import numpy as np
 
 app = Flask(__name__)
 CORS(app)
 
 # Load model
 model = joblib.load('pipeline_cardio.pkl')
+try:
+    model.named_steps['model'].n_jobs = 1
+except Exception:
+    pass
+
+try:
+    model.set_output(transform='pandas')
+except Exception:
+    pass
+
+VALIDATION_RULES = {
+    'age': (1, 120, 'Usia'),
+    'systolic_bp': (70, 250, 'Tekanan darah sistolik'),
+    'diastolic_bp': (40, 150, 'Tekanan darah diastolik'),
+    'cholesterol': (80, 400, 'Kolesterol total'),
+    'blood_sugar': (50, 500, 'Gula darah puasa'),
+    'weight': (25, 250, 'Berat badan'),
+    'height': (100, 230, 'Tinggi badan'),
+}
+
+TRUTHY_VALUES = {'yes', 'ya', 'true', '1', 'kadang', 'sering'}
+ACTIVE_VALUES = {'yes', 'ya', 'true', '1', '1-2x seminggu', '3-4x seminggu', 'setiap hari'}
+
+def parse_number(data, field, default=None):
+    value = data.get(field, default)
+    if value is None or value == '':
+        value = default
+
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        raise ValueError(f'{VALIDATION_RULES[field][2]} harus berupa angka.')
+
+def validate_input(data):
+    errors = {}
+
+    required_fields = ['age', 'gender', 'systolic_bp', 'diastolic_bp', 'cholesterol', 'weight', 'height']
+    for field in required_fields:
+        if field not in data or data.get(field) in [None, '']:
+            errors[field] = f'Missing field: {field}'
+
+    numeric_values = {}
+    for field, (minimum, maximum, label) in VALIDATION_RULES.items():
+        if field == 'blood_sugar' and data.get(field) in [None, '']:
+            numeric_values[field] = 90.0
+            continue
+
+        if field in errors:
+            continue
+
+        try:
+            value = parse_number(data, field, 90 if field == 'blood_sugar' else None)
+            numeric_values[field] = value
+            if value < minimum or value > maximum:
+                errors[field] = f'{label} harus berada pada rentang {minimum}-{maximum}.'
+        except ValueError as exc:
+            errors[field] = str(exc)
+
+    ap_hi = numeric_values.get('systolic_bp')
+    ap_lo = numeric_values.get('diastolic_bp')
+    if ap_hi is not None and ap_lo is not None and ap_hi <= ap_lo:
+        errors['systolic_bp'] = 'Tekanan darah sistolik harus lebih besar dari diastolik.'
+
+    return errors, numeric_values
+
+def is_truthy_lifestyle(value):
+    return str(value or '').strip().lower() in TRUTHY_VALUES
+
+def is_active_lifestyle(value):
+    return str(value or '').strip().lower() in ACTIVE_VALUES
 
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
-        data = request.get_json()
+        data = request.get_json() or {}
         
         # Validasi input
-        required_fields = ['age', 'gender', 'systolic_bp', 'diastolic_bp', 'cholesterol', 'heart_rate', 'weight', 'height']
-        for field in required_fields:
-            if field not in data:
-                return jsonify({'error': f'Missing field: {field}'}), 400
+        errors, values = validate_input(data)
+        if errors:
+            return jsonify({'error': 'Input prediksi tidak valid.', 'errors': errors}), 400
 
         # Parsing data dasar dari request Laravel
-        age_years = float(data.get('age', 0))
+        age_years = values['age']
         age_days = age_years * 365.25
         
         gender_str = str(data.get('gender', '')).lower()
@@ -31,12 +99,12 @@ def predict():
         else:
             gender = 2
             
-        height = float(data.get('height', 0))
-        weight = float(data.get('weight', 0))
-        ap_hi = float(data.get('systolic_bp', 0))
-        ap_lo = float(data.get('diastolic_bp', 0))
+        height = values['height']
+        weight = values['weight']
+        ap_hi = values['systolic_bp']
+        ap_lo = values['diastolic_bp']
         
-        chol_val = float(data.get('cholesterol', 0))
+        chol_val = values['cholesterol']
         if chol_val < 200:
             cholesterol = 1
         elif chol_val <= 239:
@@ -44,7 +112,7 @@ def predict():
         else:
             cholesterol = 3
             
-        gluc_val = float(data.get('blood_sugar', 100))
+        gluc_val = values['blood_sugar']
         if gluc_val < 100:
             gluc = 1
         elif gluc_val <= 125:
@@ -52,28 +120,9 @@ def predict():
         else:
             gluc = 3
             
-        smoking_value = str(data.get('smoking', '')).lower().strip()
-
-        if smoking_value in ['sering', 'kadang', 'sudah berhenti', 'yes', 'ya', 'true', '1']:
-            smoke = 1
-        else:
-            smoke = 0
-
-
-        alcohol_value = str(data.get('alcohol', '')).lower().strip()
-
-        if alcohol_value in ['sering', 'kadang', 'yes', 'ya', 'true', '1']:
-            alco = 1
-        else:
-            alco = 0
-
-
-        exercise_value = str(data.get('exercise', '')).lower().strip()
-
-        if exercise_value in ['setiap hari', '3-4x seminggu', '1-2x seminggu', 'yes', 'ya', 'true', '1']:
-            active = 1
-        else:
-            active = 0
+        smoke = 1 if is_truthy_lifestyle(data.get('smoking')) else 0
+        alco = 1 if is_truthy_lifestyle(data.get('alcohol')) else 0 
+        active = 1 if is_active_lifestyle(data.get('exercise')) else 0
         
         # Feature Engineering (menambahkan fitur turunan)
 
