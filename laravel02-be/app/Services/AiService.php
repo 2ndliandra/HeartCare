@@ -54,7 +54,8 @@ class AiService
         ];
 
         try {
-            $response = Http::withHeaders([
+            $response = Http::withoutVerifying()
+                ->withHeaders([
                 'Content-Type' => 'application/json',
             ])
                 ->timeout(30)
