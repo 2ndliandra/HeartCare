@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { scrollToHash } from "../lib/gsapScroll";
 
 const SMOOTH_SCROLL_RETRY_LIMIT = 10;
+const SMOOTH_SCROLL_RETRY_DELAY = 40;
 
 export function ScrollToHash() {
   const location = useLocation();
@@ -13,6 +14,7 @@ export function ScrollToHash() {
     }
 
     let frameId = 0;
+    let timeoutId = 0;
     let attempts = 0;
 
     const animateToTarget = () => {
@@ -22,7 +24,9 @@ export function ScrollToHash() {
 
       if (attempts < SMOOTH_SCROLL_RETRY_LIMIT) {
         attempts += 1;
-        frameId = window.requestAnimationFrame(animateToTarget);
+        timeoutId = window.setTimeout(() => {
+          frameId = window.requestAnimationFrame(animateToTarget);
+        }, SMOOTH_SCROLL_RETRY_DELAY);
       }
     };
 
@@ -30,6 +34,7 @@ export function ScrollToHash() {
 
     return () => {
       window.cancelAnimationFrame(frameId);
+      window.clearTimeout(timeoutId);
     };
   }, [location.hash, location.pathname]);
 

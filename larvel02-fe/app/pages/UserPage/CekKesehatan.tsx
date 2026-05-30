@@ -19,6 +19,7 @@ import api from "../../lib/api";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { Input, Label, HelperText } from "~/components/ui/input";
+import { saveLastPrediction } from "~/lib/lastPrediction";
 import { cn } from "~/lib/utils";
 
 const normalizeSmokingForApi = (value: string) => {
@@ -175,7 +176,7 @@ export default function CekKesehatanPage() {
       };
 
       // Save to local storage for persistence
-      localStorage.setItem('last_prediction', JSON.stringify(predictionData));
+      saveLastPrediction(predictionData);
       
       navigate(`/user/hasil-prediksi`, { 
         state: predictionData

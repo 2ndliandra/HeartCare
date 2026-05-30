@@ -1,8 +1,7 @@
 import type { MouseEvent } from 'react';
-import { gsap } from 'gsap';
-import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
 import { Button } from '~/components/ui/button';
 import { AnimatedGroup } from '~/components/ui/animated-group';
+import { scrollToHash } from '~/lib/gsapScroll';
 
 const transitionVariants = {
     item: {
@@ -29,19 +28,11 @@ type HeroSectionProps = {
     onCtaClick?: () => void;
 };
 
-gsap.registerPlugin(ScrollToPlugin);
-
 export function HeroSectionOne({ isAuthenticated, onCtaClick }: HeroSectionProps) {
     const handleScrollToHowItWorks = (event: MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
-        gsap.to(window, {
-            duration: 1.1,
-            ease: 'power2.inOut',
-            scrollTo: {
-                y: '#cara-kerja',
-                offsetY: 72,
-            },
-        });
+        window.history.replaceState(null, '', '/#cara-kerja');
+        scrollToHash('#cara-kerja');
     };
 
     return (

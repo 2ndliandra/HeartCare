@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { clearLegacyLastPrediction } from './lastPrediction';
 
 const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
@@ -27,6 +28,7 @@ api.interceptors.request.use((config) => {
             localStorage.removeItem('auth_token');
             localStorage.removeItem('auth_token_set_at');
             localStorage.removeItem('user');
+            clearLegacyLastPrediction();
             window.location.href = '/login';
             return config;
         }
@@ -48,6 +50,7 @@ api.interceptors.response.use(
             localStorage.removeItem('auth_token');
             localStorage.removeItem('auth_token_set_at');
             localStorage.removeItem('user');
+            clearLegacyLastPrediction();
             window.location.href = '/login';
         }
         return Promise.reject(error);

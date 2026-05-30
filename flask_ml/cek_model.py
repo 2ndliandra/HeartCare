@@ -11,6 +11,6 @@ if hasattr(model, 'feature_names_in_'):
         print(f"{i}. {name}")
 else:
     print("Model tidak menyimpan nama fitur secara otomatis.")
-    # Jika tidak ada, kita bongkar struktur pipeline-nya
+    # bongkar struktur pipeline
     print("\n--- STRUKTUR PIPELINE ---")
     print(model)

@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Facebook, HeartPulse, Instagram, Linkedin, Twitter } from "lucide-react";
 import { Link } from "react-router-dom";
+import { scrollToHash } from "~/lib/gsapScroll";
 
 type FooterLink = {
   name: string;
@@ -38,7 +39,7 @@ const defaultSections: FooterSection[] = [
     links: [
       { name: "Fitur unggulan", href: "/#features" },
       { name: "Wawasan terbaru", href: "/#articles" },
-      { name: "Tentang HeartCare", href: "/#latar-belakang" },
+      { name: "Tentang HeartCare", href: "/#about" },
       { name: "Semua artikel", href: "/articles" },
     ],
   },
@@ -76,6 +77,7 @@ const defaultLegalLinks: FooterLink[] = [
 
 function renderFooterLink(link: FooterLink, className?: string) {
   const isExternal = /^https?:\/\//i.test(link.href);
+  const isLandingHash = link.href.startsWith("/#");
 
   if (isExternal) {
     return (
@@ -86,7 +88,19 @@ function renderFooterLink(link: FooterLink, className?: string) {
   }
 
   return (
-    <Link to={link.href} className={className}>
+    <Link
+      to={link.href}
+      className={className}
+      onClick={(event) => {
+        if (!isLandingHash || window.location.pathname !== "/") {
+          return;
+        }
+
+        event.preventDefault();
+        window.history.replaceState(null, "", link.href);
+        scrollToHash(link.href.replace("/", ""));
+      }}
+    >
       {link.name}
     </Link>
   );

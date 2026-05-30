@@ -4,6 +4,7 @@ import { AlertCircle, ArrowRight, Check, HeartPulse, Lock, Mail, User } from 'lu
 import { authService } from '~/lib/authService';
 import { Button } from '~/components/ui/button';
 import { Input, Label } from '~/components/ui/input';
+import { clearLegacyLastPrediction } from '~/lib/lastPrediction';
 import { cn } from '~/lib/utils';
 
 const registerPoints = [
@@ -30,6 +31,14 @@ const passwordMeta: PasswordStrength[] = [
   { score: 2, label: 'Sedang', color: 'bg-amber-500' },
   { score: 3, label: 'Kuat', color: 'bg-emerald-500' },
 ];
+
+type ApiError = {
+  response?: {
+    data?: {
+      message?: string
+    }
+  }
+}
 
 export default function Register() {
   const navigate = useNavigate();
@@ -87,13 +96,18 @@ export default function Register() {
       });
 
       if (res.success) {
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('auth_token_set_at');
+        localStorage.removeItem('user');
+        clearLegacyLastPrediction();
         navigate('/login', { state: { message: 'Registrasi berhasil! Silakan masuk.' } });
       } else {
         setError(res.message || 'Gagal melakukan registrasi.');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as ApiError
       console.error('Register error:', err);
-      setError(err.response?.data?.message || 'Terjadi kesalahan saat pendaftaran.');
+      setError(error.response?.data?.message || 'Terjadi kesalahan saat pendaftaran.');
     } finally {
       setLoading(false);
     }

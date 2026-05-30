@@ -3,6 +3,7 @@ import { Outlet, Link, useNavigate } from "react-router-dom"
 import { UserSidebar } from "./UserSidebar"
 import { User, LogOut, ChevronDown } from "lucide-react"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "~/components/ui/sidebar"
+import { clearLegacyLastPrediction } from "~/lib/lastPrediction"
 
 export function UserLayout() {
   const [sidebarOpen, setSidebarOpen] = React.useState(true)
@@ -45,6 +46,7 @@ export function UserLayout() {
     localStorage.removeItem("auth_token")
     localStorage.removeItem("auth_token_set_at")
     localStorage.removeItem("user")
+    clearLegacyLastPrediction()
     setDropdownOpen(false)
     navigate("/login")
     window.location.reload()

@@ -18,26 +18,49 @@ import {
 import { Card } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import type { RiskLevel } from "~/components/shared/RiskBadge";
+import type { LastPredictionState } from "~/lib/lastPrediction";
+import { readLastPrediction, saveLastPrediction } from "~/lib/lastPrediction";
 import { cn } from "~/lib/utils";
 
 export default function HasilPrediksiPage() {
   const location = useLocation();
   const navigate = useNavigate();
   
-  // Get data from location state or localStorage or use defaults
-  const [data] = React.useState(() => {
-    if (location.state) return location.state;
-    const stored = localStorage.getItem('last_prediction');
-    if (stored) return JSON.parse(stored);
-    return {
-      prediction: { risk_level: "rendah", risk_score: 25 },
-      formData: { 
-        age: 35, gender: "male", systolic_bp: 120, diastolic_bp: 80, 
-        cholesterol: 200, weight: 70, height: 170,
-        smoking: "Tidak", exercise: "3-4x Seminggu"
-      }
-    };
+  const navigationState = location.state as LastPredictionState | null;
+  const [data] = React.useState<LastPredictionState | null>(() => {
+    if (navigationState) return navigationState;
+    return readLastPrediction();
   });
+
+  React.useEffect(() => {
+    if (navigationState) {
+      saveLastPrediction(navigationState);
+    }
+  }, [navigationState]);
+
+  if (!data) {
+    return (
+      <div className="max-w-5xl mx-auto py-4">
+        <Card className="border-dashed border-slate-200 bg-slate-50 p-10 text-center shadow-sm">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+            <HeartPulse className="h-8 w-8" />
+          </div>
+          <h1 className="mt-5 text-2xl font-bold text-slate-950 font-display">Belum ada hasil prediksi</h1>
+          <p className="mx-auto mt-3 max-w-xl text-center text-sm leading-7 text-slate-500">
+            Akun ini belum memiliki hasil checkup yang bisa ditampilkan pada menu hasil terakhir.
+          </p>
+          <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Button className="rounded-2xl px-6" onClick={() => navigate("/user/cek-kesehatan")}>
+              Mulai cek kesehatan
+            </Button>
+            <Button variant="outline" className="rounded-2xl px-6" onClick={() => navigate("/user/riwayat")}>
+              Lihat riwayat
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   const { prediction, formData, timestamp } = data;
 

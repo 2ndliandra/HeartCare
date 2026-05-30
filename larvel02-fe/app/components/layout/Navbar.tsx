@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom"
 import { ChevronDown, User, LogOut, HeartPulse } from "lucide-react"
 
 import { Button } from "~/components/ui/button"
+import { clearLegacyLastPrediction } from "~/lib/lastPrediction"
 import { scrollToHash, scrollToTop } from "~/lib/gsapScroll"
 
 export interface NavbarProps {
@@ -37,6 +38,7 @@ export function Navbar({ isAuthenticated = false, user }: NavbarProps) {
   const handleLogout = () => {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user');
+    clearLegacyLastPrediction();
     setDropdownOpen(false);
     navigate('/');
     window.location.reload();

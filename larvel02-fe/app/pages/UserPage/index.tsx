@@ -25,6 +25,7 @@ import {
 } from "recharts"
 
 import api from "~/lib/api"
+import { saveLastPrediction } from "~/lib/lastPrediction"
 import { cn } from "~/lib/utils"
 import { RiskBadge } from "~/components/shared/RiskBadge"
 import { Badge } from "~/components/ui/badge"
@@ -490,7 +491,7 @@ export default function UserDashboard() {
       return
     }
 
-    localStorage.setItem("last_prediction", JSON.stringify(latestPredictionDetailState))
+    saveLastPrediction(latestPredictionDetailState)
     navigate("/user/hasil-prediksi", { state: latestPredictionDetailState })
   }
 

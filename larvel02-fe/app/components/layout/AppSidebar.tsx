@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react"
-import { Heart } from "lucide-react"
+import { HeartPulse } from "lucide-react"
 import { Link, useLocation } from "react-router-dom"
 
 import { cn } from "~/lib/utils"
@@ -65,19 +65,15 @@ export function AppSidebar({
               asChild
               size="lg"
               tooltip={brandLabel}
-              className="h-auto min-h-12 rounded-2xl border border-emerald-100/80 bg-white px-3 py-3 shadow-sm hover:bg-emerald-50/60 hover:text-slate-950 data-[active=true]:bg-white group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:min-h-10 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:p-0"
+              className="h-auto min-h-12 rounded-xl border border-transparent bg-transparent px-3 py-3 hover:bg-emerald-50/60 hover:text-slate-950 data-[active=true]:bg-transparent group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:min-h-10 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:p-0"
             >
               <Link to={dashboardRoute}>
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-sm group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:rounded-md">
-                  <Heart className="h-5 w-5" />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
-                  <span className="truncate font-semibold text-slate-900">
+                <HeartPulse className="h-5 w-5 shrink-0 text-emerald-700" />
+                <div className="flex min-w-0 flex-1 items-center gap-2 text-left group-data-[collapsible=icon]:hidden">
+                  <span className="truncate text-lg font-semibold tracking-[-0.03em] text-slate-950">
                     {brandLabel}
                   </span>
-                  <span className="truncate text-xs text-slate-500">
-                    Smart heart monitoring
-                  </span>
+                  <span className="h-2 w-2 shrink-0 rounded-full bg-[#10b981]" />
                 </div>
               </Link>
             </SidebarMenuButton>

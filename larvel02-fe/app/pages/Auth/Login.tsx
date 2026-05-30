@@ -5,6 +5,7 @@ import { authService } from '~/lib/authService';
 import { Button } from '~/components/ui/button';
 import { Input, Label } from '~/components/ui/input';
 import { useToast } from '~/hooks/useToast';
+import { clearLegacyLastPrediction } from '~/lib/lastPrediction';
 
 const carePoints = [
   'Analisis faktor risiko jantung dalam satu alur yang lebih tenang.',
@@ -17,6 +18,15 @@ const loginSignals = [
   { label: 'Akses akun', value: 'User & Admin' },
   { label: 'Pendekatan', value: 'Clinical editorial' },
 ];
+
+type ApiError = {
+  response?: {
+    data?: {
+      message?: string
+    }
+  }
+  message?: string
+}
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -67,6 +77,7 @@ const Login: React.FC = () => {
         if (token) {
           localStorage.setItem('auth_token', token);
           localStorage.setItem('auth_token_set_at', Date.now().toString());
+          clearLegacyLastPrediction();
 
           const userData = {
             ...response.data,
@@ -106,9 +117,10 @@ const Login: React.FC = () => {
       } else {
         setError(response.message || 'Email atau password salah. Silakan coba lagi.');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as ApiError
       console.error('Login error', err);
-      setError(err.response?.data?.message || err.message || 'Terjadi kesalahan saat mencoba masuk.');
+      setError(error.response?.data?.message || error.message || 'Terjadi kesalahan saat mencoba masuk.');
     } finally {
       setLoading(false);
     }
