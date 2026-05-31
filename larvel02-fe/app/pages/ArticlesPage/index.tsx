@@ -14,8 +14,8 @@ import { AnimatePresence, motion } from "framer-motion";
 
 import { Button } from "~/components/ui/button";
 import type { Article, Category } from "~/types/shared";
+import { articleService } from "~/lib/articleService";
 
-import api from "../../lib/api";
 import {
   ArticlePageFrame,
   ArticleSectionDivider,
@@ -79,13 +79,13 @@ export default function ArticlesPage() {
       setLoading(true);
       try {
         const [articlesRes, categoriesRes] = await Promise.all([
-          api.get("/articles"),
-          api.get("/categories"),
+          articleService.getArticles(),
+          articleService.getCategories(),
         ]);
 
-        setArticles(articlesRes.data.data as Article[]);
+        setArticles(articlesRes.data as Article[]);
 
-        const dynamicCats = (categoriesRes.data.data as Category[]).map((category) => category.name);
+        const dynamicCats = (categoriesRes.data as Category[]).map((category) => category.name);
         setCategories(["Semua", ...dynamicCats]);
       } catch (err) {
         console.error("Fetch article data error:", err);

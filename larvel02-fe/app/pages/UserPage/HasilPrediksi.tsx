@@ -22,6 +22,8 @@ import type { LastPredictionState } from "~/lib/lastPrediction";
 import { readLastPrediction, saveLastPrediction } from "~/lib/lastPrediction";
 import { cn } from "~/lib/utils";
 
+const toNumber = (value: number | string | undefined | null) => Number(value) || 0;
+
 export default function HasilPrediksiPage() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -101,7 +103,7 @@ export default function HasilPrediksiPage() {
   ];
 
   // Dynamic recommendations based on data
-  if (parseInt(formData.systolic_bp) >= 140 || parseInt(formData.diastolic_bp) >= 90) {
+  if (toNumber(formData.systolic_bp) >= 140 || toNumber(formData.diastolic_bp) >= 90) {
     recommendations.push({
       category: "HIPERTENSI",
       title: "Kontrol Tekanan Darah",
@@ -111,7 +113,7 @@ export default function HasilPrediksiPage() {
     });
   }
 
-  if (parseInt(formData.cholesterol) >= 240) {
+  if (toNumber(formData.cholesterol) >= 240) {
     recommendations.push({
       category: "KOLESTEROL",
       title: "Turunkan Kadar Kolesterol",
@@ -121,8 +123,8 @@ export default function HasilPrediksiPage() {
     });
   }
 
-  const h = (parseFloat(formData.height) || 0) / 100;
-  const w = parseFloat(formData.weight) || 0;
+  const h = toNumber(formData.height) / 100;
+  const w = toNumber(formData.weight);
   const bmi = h > 0 ? (w / (h * h)) : 0;
   
   if (bmi >= 25) {

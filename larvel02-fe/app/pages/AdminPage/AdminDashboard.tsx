@@ -21,7 +21,7 @@ import {
   YAxis,
 } from "recharts"
 
-import api from "~/lib/api"
+import { adminService } from "~/lib/adminService"
 import { cn } from "~/lib/utils"
 import { Badge } from "~/components/ui/badge"
 import { Button } from "~/components/ui/button"
@@ -203,12 +203,12 @@ export default function AdminDashboard() {
     const fetchStats = async () => {
       try {
         const [res, predRes] = await Promise.all([
-          api.get("/admin/stats"),
-          api.get("/admin/predictions/stats"),
+          adminService.getStats(),
+          adminService.getPredictionStats(),
         ])
 
-        setStats((res.data?.data ?? null) as AdminStats | null)
-        setPredStats((predRes.data?.data ?? null) as PredictionStats | null)
+        setStats((res.data ?? null) as AdminStats | null)
+        setPredStats((predRes.data ?? null) as PredictionStats | null)
       } catch (err) {
         console.error("Fetch stats error:", err)
       } finally {

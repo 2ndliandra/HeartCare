@@ -25,8 +25,9 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { RiskBadge } from "~/components/shared/RiskBadge";
 import type { RiskLevel } from "~/components/shared/RiskBadge";
+import { userService } from "~/lib/userService";
 
-import api from "~/lib/api";
+import type { Prediction } from "~/types/UserPage/User";
 
 export default function HistoryPage() {
   const navigate = useNavigate();
@@ -34,7 +35,7 @@ export default function HistoryPage() {
   const [filterLevel, setFilterLevel] = React.useState("ALL");
   const [filterMonth, setFilterMonth] = React.useState("ALL");
   const [currentPage, setCurrentPage] = React.useState(1);
-  const [predictions, setPredictions] = React.useState<any[]>([]);
+  const [predictions, setPredictions] = React.useState<Prediction[]>([]);
   const [loading, setLoading] = React.useState(true);
   const ITEMS_PER_PAGE = 5;
 
@@ -45,9 +46,9 @@ export default function HistoryPage() {
   React.useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const res = await api.get('/predictions');
-        if (res.data?.success) {
-          setPredictions(res.data.data);
+        const res = await userService.getPredictions();
+        if (res.success) {
+          setPredictions(res.data);
         }
       } catch (err) {
         console.error("Fetch history error:", err);
@@ -96,7 +97,7 @@ export default function HistoryPage() {
   const paginatedHistory = filteredHistory.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   // Group by Month (Only for the current page items)
-  const groupedHistory = paginatedHistory.reduce((acc: any, item) => {
+  const groupedHistory = paginatedHistory.reduce<Record<string, Prediction[]>>((acc, item) => {
     const { fullMonth } = formatDate(item.created_at);
     if (!acc[fullMonth]) acc[fullMonth] = [];
     acc[fullMonth].push(item);
@@ -225,7 +226,7 @@ export default function HistoryPage() {
               </div>
 
               <div className="grid gap-4">
-                {groupedHistory[month].map((item: any) => {
+                {groupedHistory[month].map((item) => {
                   const date = formatDate(item.created_at);
                   const input = item.input_data || {};
                   return (

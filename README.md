@@ -1,413 +1,313 @@
-# HeartPredict - Health Heart Disease Detection System
+# HeartCare
 
-A comprehensive AI-powered web application for early detection and monitoring of heart disease risk. The system includes both a Laravel backend API and a React TypeScript frontend.
+HeartCare adalah aplikasi prediksi risiko penyakit kardiovaskular yang terdiri dari frontend web, backend API, server prediksi Flask, dan aplikasi mobile Flutter.
 
-## 📋 Project Structure
+## Struktur Projek
 
-```
-Projek01/
-├── laravel02-be/        # Backend API (Laravel)
-├── larvel02-fe/         # Frontend Application (React + TypeScript)
-├── document/            # Documentation files
-└── README.md           # This file
-```
+| Folder | Fungsi | Teknologi utama |
+| --- | --- | --- |
+| `larvel02-fe` | Frontend web | React, TypeScript, Vite, Tailwind CSS, Axios |
+| `laravel02-be` | Backend API | Laravel 10, Sanctum, MongoDB |
+| `flask_ml` | Server prediksi machine learning | Flask, Pandas, scikit-learn, Joblib |
+| `cardio_mobile` | Aplikasi mobile | Flutter, Dio, BLoC |
 
-## 🚀 Quick Start - Clone & Setup
-
-### Prerequisites
-
-Before starting, ensure you have installed:
-
-- **Node.js** (v16+) and **npm** or **pnpm**
-- **PHP** (v8.1+)
-- **Composer** (PHP package manager)
-- **MySQL/MariaDB** (v5.7+)
-- **Git**
-- **Laragon** or similar local development environment (optional)
-
-### Step 1: Clone the Repository
+Untuk mobile, disarankan clone langsung dari repository mobile:
 
 ```bash
-# Clone the repository
-git clone https://github.com/2ndliandra/HeartCare.git
-cd HeartCare
-
-# Or if using the old repository URL
-git clone https://github.com/2ndliandra/SEL.git
-cd SEL
+git clone https://github.com/imrozahh/cardio_mobile.git
 ```
 
----
+## Prasyarat
 
-## 💻 Backend Setup (Laravel API)
+Pastikan perangkat sudah memiliki:
 
-### Step 2: Install Backend Dependencies
+- Git
+- Node.js dan npm
+- PHP 8.1 atau lebih baru
+- Composer
+- MongoDB
+- Ekstensi PHP MongoDB (`ext-mongodb`)
+- Python 3.10 atau 3.11
+- Flutter SDK dan Android Studio jika menjalankan mobile
+
+## Library Utama
+
+Frontend web menggunakan React, TypeScript, Vite, Tailwind CSS, Axios, Framer Motion, Recharts, Lucide React, dan Editor.js.
+
+Backend Laravel menggunakan Laravel 10, Laravel Sanctum, Guzzle HTTP, MongoDB Laravel driver, Jenssegers MongoDB, dan Google Generative AI package.
+
+Server Flask menggunakan Flask, Flask-CORS, Waitress, NumPy, Pandas, scikit-learn, dan Joblib.
+
+Mobile Flutter menggunakan Flutter SDK, go_router untuk routing, flutter_bloc untuk state management, equatable, dio, flutter_secure_storage, dartz, get_it, google_fonts, intl, dan flutter_svg.
+
+## Clone Repository Utama
+
+```bash
+git clone https://github.com/2ndliandra/HeartCare.git
+cd HeartCare
+```
+
+## Setup Backend Laravel
+
+Masuk ke folder backend:
 
 ```bash
 cd laravel02-be
+```
+
+Install dependency PHP:
+
+```bash
 composer install
 ```
 
-### Step 3: Environment Configuration
+Jika backend membutuhkan package JavaScript Laravel/Vite, install juga dependency npm:
 
 ```bash
-# Copy the example environment file
-cp .env.example .env
+npm install
+```
 
-# Generate application key
+Buat file `.env` di folder `laravel02-be`. Jika belum ada `.env.example`, buat manual dengan isi dasar seperti berikut:
+
+```env
+APP_NAME=HeartCare
+APP_ENV=local
+APP_KEY=
+APP_DEBUG=true
+APP_URL=http://localhost:8000
+
+DB_CONNECTION=mongodb
+MONGODB_URI=mongodb://127.0.0.1:27017
+MONGODB_DATABASE=belajar_mongo
+
+SANCTUM_STATEFUL_DOMAINS=localhost:5173,127.0.0.1:5173
+SESSION_DOMAIN=localhost
+
+GEMINI_API_KEY=
+```
+
+Jika MongoDB menggunakan username dan password, sesuaikan `MONGODB_URI`, contoh:
+
+```env
+MONGODB_URI=mongodb://username:password@127.0.0.1:27017/?authSource=admin
+```
+
+Generate application key:
+
+```bash
 php artisan key:generate
 ```
 
-### Step 4: Configure Database
-
-Edit `.env` file and update database credentials:
-
-```env
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=heartpredict_db
-DB_USERNAME=root
-DB_PASSWORD=
-```
-
-### Step 5: Create Database & Run Migrations
+Jalankan migrasi dan seeder:
 
 ```bash
-# Create database (if using MySQL client)
-mysql -u root -e "CREATE DATABASE heartpredict_db;"
-
-# Run migrations
-php artisan migrate
-
-# Seed the database with initial data
-php artisan db:seed
+php artisan migrate --seed
 ```
 
-### Step 6: Generate Sanctum Token (for API authentication)
+Buat symbolic link storage jika aplikasi menggunakan upload file:
 
 ```bash
-php artisan install:api
+php artisan storage:link
 ```
 
-### Step 7: Start Backend Server
+Jalankan backend:
 
 ```bash
-php artisan serve
+php artisan serve --host=127.0.0.1 --port=8000
 ```
 
-The backend API will run on: `http://localhost:8000`
+Backend API akan berjalan di:
 
----
+```text
+http://localhost:8000/api
+```
 
-## 🎨 Frontend Setup (React)
+## Setup Server Flask Machine Learning
 
-### Step 8: Install Frontend Dependencies
+Masuk ke folder Flask:
 
-Open a new terminal and navigate to the frontend directory:
+```bash
+cd flask_ml
+```
+
+Buat virtual environment:
+
+```bash
+python -m venv venv
+```
+
+Aktifkan virtual environment di Windows PowerShell:
+
+```powershell
+.\venv\Scripts\Activate.ps1
+```
+
+Aktifkan virtual environment di Linux atau macOS:
+
+```bash
+source venv/bin/activate
+```
+
+Install dependency Python:
+
+```bash
+pip install -r requirements.txt
+```
+
+Pastikan file model berikut tersedia di folder `flask_ml`:
+
+```text
+pipeline_cardio.pkl
+```
+
+Jalankan server Flask:
+
+```bash
+python app.py
+```
+
+Server Flask akan berjalan di:
+
+```text
+http://localhost:5000
+```
+
+Cek health endpoint:
+
+```text
+http://localhost:5000/health
+```
+
+Backend Laravel mengirim request prediksi ke:
+
+```text
+http://localhost:5000/predict
+```
+
+## Setup Frontend Web
+
+Masuk ke folder frontend:
 
 ```bash
 cd larvel02-fe
-
-# Using npm
-npm install
-
-# Or using pnpm (faster)
-pnpm install
 ```
 
-### Step 9: Configure Environment Variables
+Install dependency:
 
-Create a `.env` file in the `larvel02-fe` directory:
+```bash
+npm install
+```
+
+Buat file `.env` di folder `larvel02-fe`:
 
 ```env
 VITE_API_URL=http://localhost:8000/api
 ```
 
-### Step 10: Start Frontend Development Server
+Jalankan frontend:
 
 ```bash
-# Using npm
 npm run dev
-
-# Or using pnpm
-pnpm dev
 ```
 
-The frontend will run on: `http://localhost:5173` (or similar port shown in terminal)
+Frontend biasanya berjalan di:
 
----
-
-## 🔍 API Configuration
-
-Make sure the frontend can communicate with the backend. Update `larvel02-fe/app/lib/api.ts` if needed:
-
-```typescript
-const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
-    headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-    },
-});
+```text
+http://localhost:5173
 ```
 
----
-
-## 📚 Available Routes
-
-### Backend API (Laravel)
-
-- **Authentication Routes** (`/api/auth/`)
-  - `POST /login` - User login
-  - `POST /register` - User registration
-  - `POST /logout` - User logout
-  - `POST /forgot-password` - Request password reset
-  - `POST /reset-password` - Reset password with token
-
-- **User Routes** (`/api/user/`)
-  - `GET /me` - Get current user profile
-  - `GET /profile` - Get user profile details
-  - `PUT /profile` - Update user profile
-
-- **Health Check Routes** (`/api/`)
-  - `POST /cek-kesehatan` - Submit health check data
-  - `GET /hasil-prediksi` - Get health prediction results
-  - `GET /rekomendasi` - Get medical recommendations
-
-### Frontend Routes (React)
-
-- **Public Routes**
-  - `/` - Landing page
-  - `/login` - Login page
-  - `/register` - Registration page
-  - `/forgot-password` - Forgot password page
-  - `/articles` - Articles listing
-
-- **User Routes** (Protected)
-  - `/user` - User dashboard
-  - `/user/cek-kesehatan` - Health check form
-  - `/user/hasil-prediksi` - Prediction results
-  - `/user/konsultasi` - AI consultation
-  - `/user/rekomendasi` - Medical recommendations
-  - `/user/riwayat` - Examination history
-  - `/user/profile` - User profile
-
----
-
-## 🔐 Authentication & Security
-
-### Session Management
-
-- **Token Storage**: JWT tokens are stored in `localStorage` as `auth_token`
-- **Session Duration**: 1 hour (configurable in `larvel02-fe/app/lib/api.ts`)
-- **Automatic Logout**: After 1 hour of inactivity or on logout
-
-### Recent Bug Fixes
-
-✅ **Fixed logout session clearing** - Sessions now properly clear on logout
-✅ **Fixed navigation consistency** - "Profil Saya" button now always renders correctly
-
----
-
-## 🐛 Known Issues & Fixes
-
-### Issue 1: Logout Not Clearing Session
-**Status**: ✅ FIXED
-
-**Solution**: Logout now uses `localStorage.clear()` and `sessionStorage.clear()`, forcing a fresh page reload.
-
-### Issue 2: Profile Button Disappearing
-**Status**: ✅ FIXED
-
-**Solution**: Navigation now dynamically updates based on current route using `useLocation()` hook.
-
----
-
-## 📦 Build for Production
-
-### Backend
+Build production:
 
 ```bash
-cd laravel02-be
-
-# Build for production
-php artisan optimize
-
-# Create storage link for file uploads
-php artisan storage:link
-```
-
-### Frontend
-
-```bash
-cd larvel02-fe
-
-# Build production bundle
 npm run build
+```
 
-# Preview production build
+Preview hasil build:
+
+```bash
 npm run preview
 ```
 
----
+## Setup Mobile Flutter
 
-## 🧪 Running Tests
-
-### Backend (Laravel)
+Mobile disarankan dijalankan dari repository berikut:
 
 ```bash
-cd laravel02-be
+git clone https://github.com/imrozahh/cardio_mobile.git
+cd cardio_mobile
+```
 
-# Run all tests
+Install dependency Flutter:
+
+```bash
+flutter pub get
+```
+
+Routing mobile menggunakan `go_router`. Konfigurasi route utama ada di:
+
+```text
+lib/core/router/app_router.dart
+```
+
+Pastikan konfigurasi base URL API mobile mengarah ke backend Laravel.
+
+Jika menjalankan mobile di emulator Android, biasanya backend lokal dapat diakses melalui:
+
+```text
+http://10.0.2.2:8000/api
+```
+
+Jika menjalankan mobile di perangkat fisik, gunakan IP lokal komputer, contoh:
+
+```text
+http://192.168.1.10:8000/api
+```
+
+Jalankan aplikasi mobile:
+
+```bash
+flutter run
+```
+
+## Urutan Menjalankan Aplikasi
+
+1. Jalankan MongoDB.
+2. Jalankan backend Laravel di port `8000`.
+3. Jalankan server Flask di port `5000`.
+4. Jalankan frontend web di port `5173`.
+5. Jalankan mobile Flutter jika diperlukan.
+
+## Perintah Validasi
+
+Backend Laravel:
+
+```bash
 php artisan test
-
-# Run specific test file
-php artisan test tests/Feature/AuthTest.php
 ```
 
-### Frontend
+Frontend web:
 
 ```bash
-cd larvel02-fe
-
-# Run unit tests (if configured)
-npm run test
+npm run build
 ```
 
----
-
-## 📝 Database Schema
-
-### Main Tables
-
-- **users** - User accounts and profiles
-- **articles** - News and health articles
-- **categories** - Article categories
-- **datasets** - Health data for AI training
-- **chats** - AI consultation messages
-- **roles** - User role definitions
-- **permissions** - Permission management
-- **password_resets** - Password reset tokens
-
-Run migrations to create all tables:
+Flask:
 
 ```bash
-php artisan migrate
+python app.py
 ```
 
----
-
-## 🔧 Troubleshooting
-
-### Backend Issues
-
-**Problem**: `SQLSTATE[HY000] [2002] No such file or directory`
-- **Solution**: Ensure MySQL is running and DB credentials in `.env` are correct
-
-**Problem**: `Class not found` errors
-- **Solution**: Run `composer install` and `php artisan key:generate`
-
-### Frontend Issues
-
-**Problem**: `VITE_API_URL is not defined`
-- **Solution**: Create `.env` file with `VITE_API_URL=http://localhost:8000/api`
-
-**Problem**: API calls failing with 401/403
-- **Solution**: Ensure backend is running and token is properly stored in localStorage
-
-**Problem**: "Profil Saya" button not showing
-- **Solution**: This is fixed in latest version. Run `git pull` and rebuild
-
----
-
-## 📖 Additional Resources
-
-- [Laravel Documentation](https://laravel.com/docs)
-- [React Documentation](https://react.dev)
-- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
-- [Tailwind CSS Docs](https://tailwindcss.com/docs)
-
----
-
-## 🤝 Contributing
-
-1. Create a feature branch: `git checkout -b feature/your-feature`
-2. Commit changes: `git commit -am 'Add your feature'`
-3. Push to branch: `git push origin feature/your-feature`
-4. Create a Pull Request
-
----
-
-## 📄 License
-
-This project is private and distributed under internal use only.
-
----
-
-## 👥 Team & Support
-
-For issues, questions, or contributions, please contact the development team.
-
-**Last Updated**: April 15, 2026
-**Latest Changes**: Fixed authentication session management and navigation consistency
-
----
-
-## 🎯 Development Workflow
-
-### For Development
-
-1. Keep two terminals open:
-   - Terminal 1: `cd laravel02-be && php artisan serve`
-   - Terminal 2: `cd larvel02-fe && npm run dev`
-
-2. Frontend will auto-reload on file changes
-3. Backend needs manual restart for PHP changes
-
-### For Database Changes
+Mobile:
 
 ```bash
-# Create new migration
-php artisan make:migration migration_name
-
-# Run migrations
-php artisan migrate
-
-# Rollback last migration
-php artisan migrate:rollback
+flutter analyze
+flutter test
 ```
 
-### Git Workflow
+## Troubleshooting
 
-```bash
-# Check status
-git status
-
-# Add changes
-git add .
-
-# Commit with descriptive message
-git commit -m "Description of changes"
-
-# Push to remote
-git push origin main
-```
-
----
-
-## ✅ Final Checklist for New Setup
-
-- [ ] Cloned repository successfully
-- [ ] Backend dependencies installed (`composer install`)
-- [ ] Backend `.env` configured with database credentials
-- [ ] Database created and migrations run
-- [ ] Backend server running on `http://localhost:8000`
-- [ ] Frontend dependencies installed (`npm install` or `pnpm install`)
-- [ ] Frontend `.env` configured with API URL
-- [ ] Frontend running on `http://localhost:5173`
-- [ ] Can access login page
-- [ ] Can successfully login with test credentials
-- [ ] Navigation menu shows all items including "Profil Saya"
-
-**Ready to develop!** 🚀
+Jika frontend tidak bisa menghubungi backend, cek nilai `VITE_API_URL`, pastikan Laravel berjalan di port `8000`, dan pastikan endpoint memakai prefix `/api`.
+Jika prediksi gagal, pastikan server Flask berjalan di port `5000` dan file `pipeline_cardio.pkl` tersedia di folder `flask_ml`.
+Jika Laravel gagal terhubung ke database, pastikan MongoDB aktif, `MONGODB_URI` benar, dan ekstensi PHP MongoDB sudah aktif.
+Jika mobile tidak bisa akses API saat memakai perangkat fisik, jangan gunakan `localhost`. Gunakan IP lokal komputer yang menjalankan backend Laravel.
+Jika `php artisan migrate --seed` gagal karena data sudah ada, cek isi database MongoDB atau jalankan migrasi sesuai kondisi database lokal.

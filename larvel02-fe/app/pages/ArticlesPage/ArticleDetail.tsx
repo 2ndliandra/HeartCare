@@ -4,8 +4,8 @@ import { ArrowLeft, ArrowRight, Calendar, Clock } from "lucide-react";
 import { motion } from "framer-motion";
 
 import type { Article } from "~/types/shared";
+import { articleService } from "~/lib/articleService";
 
-import api from "../../lib/api";
 import {
   ArticlePageFrame,
   ArticleSectionDivider,
@@ -40,14 +40,14 @@ export default function ArticleDetail() {
 
       setLoading(true);
       try {
-        const response = await api.get(`/articles/${slug}`);
-        const fetchedArticle = response.data.data as Article;
+        const response = await articleService.getArticleBySlug(slug);
+        const fetchedArticle = response.data as Article;
         setArticle(fetchedArticle);
 
         const token = localStorage.getItem("auth_token");
         if (token && fetchedArticle.id) {
           try {
-            const readResponse = await api.post(`/articles/${fetchedArticle.id}/read`);
+            const readResponse = await articleService.markAsRead(fetchedArticle.id);
             const userStr = localStorage.getItem("user");
             if (userStr) {
               const user = JSON.parse(userStr);
@@ -55,7 +55,7 @@ export default function ArticleDetail() {
                 "user",
                 JSON.stringify({
                   ...user,
-                  read_article: readResponse.data?.data?.read_article ?? user.read_article ?? [],
+                  read_article: readResponse.data?.read_article ?? user.read_article ?? [],
                 }),
               );
             }

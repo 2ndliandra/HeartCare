@@ -24,8 +24,8 @@ import {
   Tooltip,
 } from "recharts"
 
-import api from "~/lib/api"
 import { saveLastPrediction } from "~/lib/lastPrediction"
+import { userService } from "~/lib/userService"
 import { cn } from "~/lib/utils"
 import { RiskBadge } from "~/components/shared/RiskBadge"
 import { Badge } from "~/components/ui/badge"
@@ -41,26 +41,7 @@ import {
 import { Separator } from "~/components/ui/separator"
 import type { Article } from "~/types/shared"
 import type { Prediction } from "~/types/UserPage/User"
-
-interface ChatItem {
-  id?: string
-  _id?: string
-  message: string
-  response: string
-  created_at?: string
-}
-
-interface UserDashboardPayload {
-  stats?: {
-    total_checkups: number
-    checkups_trend: string
-    total_consultations: number
-    consultations_trend: string
-    total_articles_read: number
-  }
-  predictions?: Prediction[]
-  articles?: Article[]
-}
+import type { ChatHistoryItem, UserDashboardResponseData } from "~/lib/userService"
 
 interface RadarMetricConfig {
   key: keyof Prediction["input_data"]
@@ -324,7 +305,7 @@ function StatCard({
 
 export default function UserDashboard() {
   const navigate = useNavigate()
-  const [chats, setChats] = React.useState<ChatItem[]>([])
+  const [chats, setChats] = React.useState<ChatHistoryItem[]>([])
   const [predictions, setPredictions] = React.useState<Prediction[]>([])
   const [articles, setArticles] = React.useState<Article[]>([])
   const [currentTimestamp] = React.useState(() => Date.now())
@@ -340,16 +321,16 @@ export default function UserDashboard() {
     const fetchData = async () => {
       try {
         const [chatRes, dashboardRes] = await Promise.all([
-          api.get("chats").catch(() => null),
-          api.get("user/dashboard").catch(() => null),
+          userService.getChats().catch(() => null),
+          userService.getDashboard().catch(() => null),
         ])
 
-        if (chatRes?.data?.success) {
-          setChats(Array.isArray(chatRes.data.data) ? chatRes.data.data : [])
+        if (chatRes?.success) {
+          setChats(Array.isArray(chatRes.data) ? chatRes.data : [])
         }
 
-        if (dashboardRes?.data?.success) {
-          const dashboardData = dashboardRes.data.data as Partial<UserDashboardPayload>
+        if (dashboardRes?.success) {
+          const dashboardData = dashboardRes.data as Partial<UserDashboardResponseData>
           if (dashboardData.stats) {
             setDashboardStats({
               total_checkups: dashboardData.stats.total_checkups ?? 0,
@@ -898,7 +879,7 @@ export default function UserDashboard() {
               </CardHeader>
               <CardContent className="space-y-4 p-6">
                 {chats.length > 0 ? (
-                  chats.slice(0, 3).map((chat: ChatItem, idx: number) => (
+                  chats.slice(0, 3).map((chat, idx) => (
                     <div key={chat.id || chat._id || idx}>
                       <Link
                         to="/user/konsultasi"

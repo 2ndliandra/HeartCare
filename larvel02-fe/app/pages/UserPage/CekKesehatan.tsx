@@ -15,11 +15,11 @@ import {
   Loader2,
   ShieldCheck
 } from "lucide-react";
-import api from "../../lib/api";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { Input, Label, HelperText } from "~/components/ui/input";
 import { saveLastPrediction } from "~/lib/lastPrediction";
+import { userService } from "~/lib/userService";
 import { cn } from "~/lib/utils";
 
 const normalizeSmokingForApi = (value: string) => {
@@ -167,10 +167,10 @@ export default function CekKesehatanPage() {
         exercise: normalizeExerciseForApi(formData.exercise)
       };
 
-      const res = await api.post("/predict", payload);
+      const res = await userService.predict(payload);
       
       const predictionData = { 
-        prediction: res.data.prediction,
+        prediction: res.prediction,
         formData: formData,
         timestamp: new Date().toISOString()
       };

@@ -17,7 +17,6 @@ import {
   User,
 } from "lucide-react"
 
-import api from "~/lib/api"
 import { Badge } from "~/components/ui/badge"
 import { Button } from "~/components/ui/button"
 import {
@@ -39,6 +38,7 @@ import {
 } from "~/components/ui/modal"
 import { Separator } from "~/components/ui/separator"
 import { cn } from "~/lib/utils"
+import { userService } from "~/lib/userService"
 import { useToast } from "~/hooks/useToast"
 import type { UserProfile } from "~/types/UserPage/User"
 
@@ -57,11 +57,6 @@ interface PasswordFormData {
   current: string
   new: string
   confirm: string
-}
-
-interface ProfileResponse {
-  success?: boolean
-  data?: UserProfile
 }
 
 const defaultProfileFormData: ProfileFormData = {
@@ -146,10 +141,10 @@ export default function ProfilePage() {
     setLoadingProfile(true)
 
     try {
-      const response = await api.get<ProfileResponse>("/profile")
+      const response = await userService.getProfile()
 
-      if (response.data?.success && response.data.data) {
-        const userData = response.data.data
+      if (response.success && response.data) {
+        const userData = response.data
         setProfile(userData)
         setFormData(buildProfileFormData(userData))
         setPreviewUrl(getProfilePictureUrl(userData.profile_picture))
@@ -236,13 +231,9 @@ export default function ProfilePage() {
         data.append("profile_picture", fileInputRef.current.files[0])
       }
 
-      const response = await api.post<ProfileResponse>("/profile", data, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      })
+      const response = await userService.updateProfile(data)
 
-      if (response.data?.success) {
+      if (response.success) {
         toast({
           title: "Berhasil",
           description: "Profil Anda telah diperbarui",
@@ -284,12 +275,12 @@ export default function ProfilePage() {
     setLoadingPassword(true)
 
     try {
-      const response = await api.patch<ProfileResponse>("/profile/password", {
+      const response = await userService.updatePassword({
         password: passwordData.new,
         password_confirmation: passwordData.confirm,
       })
 
-      if (response.data?.success) {
+      if (response.success) {
         toast({
           title: "Password berhasil diperbarui",
           description: "Gunakan password baru Anda untuk login berikutnya",

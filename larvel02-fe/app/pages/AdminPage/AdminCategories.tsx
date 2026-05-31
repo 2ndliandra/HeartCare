@@ -11,7 +11,8 @@ import {
   Trash2,
 } from "lucide-react"
 
-import api from "~/lib/api"
+import { adminService } from "~/lib/adminService"
+import { articleService } from "~/lib/articleService"
 import { Badge } from "~/components/ui/badge"
 import { Button } from "~/components/ui/button"
 import {
@@ -94,11 +95,11 @@ function CategoryModalPanel({
 
     try {
       if (category) {
-        await api.put(`/admin/categories/${category.id}`, {
+        await adminService.updateCategory(category.id, {
           name: formData.name.trim(),
         })
       } else {
-        await api.post("/admin/categories", {
+        await adminService.createCategory({
           name: formData.name.trim(),
         })
       }
@@ -247,8 +248,8 @@ export default function AdminCategories() {
   const fetchCategories = React.useCallback(async () => {
     setLoading(true)
     try {
-      const res = await api.get("/categories")
-      setCategories(Array.isArray(res.data?.data) ? res.data.data : [])
+      const res = await articleService.getCategories()
+      setCategories(Array.isArray(res.data) ? res.data : [])
     } catch (error) {
       console.error("Fetch categories error:", error)
     } finally {
@@ -268,7 +269,7 @@ export default function AdminCategories() {
       )
     ) {
       try {
-        await api.delete(`/admin/categories/${category.id}`)
+        await adminService.deleteCategory(category.id)
         fetchCategories()
       } catch (error) {
         console.error("Delete category error:", error)

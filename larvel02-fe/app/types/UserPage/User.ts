@@ -26,7 +26,7 @@ export interface PredictionInput {
   systolic_bp: number | string;
   diastolic_bp: number | string;
   cholesterol: number | string;
-  heart_rate: number | string;
+  heart_rate?: number | string;
   weight: number | string;
   height: number | string;
   blood_sugar?: number | string;

@@ -26,7 +26,8 @@ import ImageTool from "@editorjs/image"
 // @ts-expect-error editorjs embed package has no compatible type export here
 import Embed from "@editorjs/embed"
 
-import api from "~/lib/api"
+import { adminService } from "~/lib/adminService"
+import { articleService } from "~/lib/articleService"
 import { Badge } from "~/components/ui/badge"
 import { Button } from "~/components/ui/button"
 import {
@@ -258,8 +259,8 @@ function ArticleModalPanel({
     const loadOptions = async () => {
       try {
         const [categoriesRes, usersRes] = await Promise.all([
-          api.get("/categories"),
-          api.get("/admin/users"),
+          articleService.getCategories(),
+          adminService.getUsers(),
         ])
 
         if (!active) {
@@ -267,9 +268,9 @@ function ArticleModalPanel({
         }
 
         setCategories(
-          Array.isArray(categoriesRes.data?.data) ? categoriesRes.data.data : []
+          Array.isArray(categoriesRes.data) ? categoriesRes.data : []
         )
-        setUsers(Array.isArray(usersRes.data?.data) ? usersRes.data.data : [])
+        setUsers(Array.isArray(usersRes.data) ? (usersRes.data as AdminUserOption[]) : [])
       } catch (loadError) {
         console.error("Fetch article modal options error:", loadError)
       }
@@ -371,13 +372,9 @@ function ArticleModalPanel({
 
       if (article) {
         data.append("_method", "PUT")
-        await api.post(`/admin/articles/${article.id}`, data, {
-          headers: { "Content-Type": "multipart/form-data" },
-        })
+        await adminService.updateArticle(article.id, data)
       } else {
-        await api.post("/admin/articles", data, {
-          headers: { "Content-Type": "multipart/form-data" },
-        })
+        await adminService.createArticle(data)
       }
 
       onSuccess()
@@ -733,9 +730,9 @@ export default function AdminArticles() {
   const fetchArticles = React.useCallback(async (targetPage: number) => {
     setLoading(true)
     try {
-      const res = await api.get(`/admin/articles?page=${targetPage}`)
-      const pageArticles = Array.isArray(res.data?.data) ? (res.data.data as AdminArticle[]) : []
-      const nextPagination = res.data?.pagination as AdminArticlesPagination | undefined
+      const res = await adminService.getArticles(targetPage)
+      const pageArticles = Array.isArray(res.data) ? (res.data as AdminArticle[]) : []
+      const nextPagination = res.pagination as AdminArticlesPagination | undefined
 
       setArticles(pageArticles)
       if (nextPagination) {
@@ -747,11 +744,11 @@ export default function AdminArticles() {
       if (nextPagination && nextPagination.last_page > 1) {
         const pageRequests = Array.from({ length: nextPagination.last_page }, (_, index) => index + 1)
           .filter((pageNumber) => pageNumber !== targetPage)
-          .map((pageNumber) => api.get(`/admin/articles?page=${pageNumber}`))
+          .map((pageNumber) => adminService.getArticles(pageNumber))
 
         const pageResponses = await Promise.all(pageRequests)
         const restArticles = pageResponses.flatMap((response) =>
-          Array.isArray(response.data?.data) ? (response.data.data as AdminArticle[]) : []
+          Array.isArray(response.data) ? (response.data as AdminArticle[]) : []
         )
         allArticles = [...pageArticles, ...restArticles]
       }
@@ -780,7 +777,7 @@ export default function AdminArticles() {
       )
     ) {
       try {
-        await api.delete(`/admin/articles/${article.id}`)
+        await adminService.deleteArticle(article.id)
         fetchArticles(page)
       } catch (error) {
         console.error("Delete article error:", error)

@@ -17,7 +17,7 @@ import {
   Users,
 } from "lucide-react"
 
-import api from "~/lib/api"
+import { adminService } from "~/lib/adminService"
 import { Badge } from "~/components/ui/badge"
 import { Button } from "~/components/ui/button"
 import {
@@ -110,9 +110,9 @@ function UserModalPanel({ onClose, onSuccess, user }: UserModalPanelProps) {
 
     try {
       if (user) {
-        await api.put(`/admin/users/${user.id}`, formData)
+        await adminService.updateUser(user.id, formData)
       } else {
-        await api.post("/admin/users", formData)
+        await adminService.createUser(formData)
       }
 
       onSuccess()
@@ -306,9 +306,9 @@ export default function AdminUsers() {
   const fetchUsers = React.useCallback(async (targetPage: number) => {
     setLoading(true)
     try {
-      const res = await api.get(`/admin/users?page=${targetPage}`)
-      setUsers((res.data?.data ?? []) as AdminUser[])
-      setPagination((res.data?.pagination ?? null) as PaginationData | null)
+      const res = await adminService.getUsers(targetPage)
+      setUsers((res.data ?? []) as AdminUser[])
+      setPagination((res.pagination ?? null) as PaginationData | null)
     } catch (err) {
       console.error("Fetch users error:", err)
     } finally {
@@ -328,7 +328,7 @@ export default function AdminUsers() {
       )
     ) {
       try {
-        await api.delete(`/admin/users/${user.id}`)
+        await adminService.deleteUser(user.id)
         fetchUsers(page)
       } catch {
         alert("Gagal menghapus user.")

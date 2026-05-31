@@ -18,9 +18,9 @@ import {
   Star,
   Download
 } from "lucide-react";
-import api from "../../lib/api";
 import { Card } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
+import { articleService } from "~/lib/articleService";
 import { cn } from "~/lib/utils";
 
 export default function RekomendasiMedis() {
@@ -35,8 +35,8 @@ export default function RekomendasiMedis() {
   const fetchArticles = async () => {
     setLoading(true);
     try {
-      const res = await api.get('/articles');
-      const published = res.data.data
+      const res = await articleService.getArticles();
+      const published = res.data
         .filter((a: any) => a.status === 'published')
         .slice(0, 6);
       setArticles(published);

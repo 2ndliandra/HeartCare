@@ -13,19 +13,11 @@ import {
   ShieldCheck,
   Loader2
 } from "lucide-react";
-import api from "~/lib/api";
 import { Button } from "~/components/ui/button";
+import { userService } from "~/lib/userService";
 import { cn } from "~/lib/utils";
 
 import type { Message } from "~/types/UserPage/User";
-
-interface ChatHistoryItem {
-  id?: string;
-  _id?: string;
-  message: string;
-  response: string;
-  created_at: string;
-}
 
 export default function ChatConsultation() {
   const navigate = useNavigate();
@@ -59,9 +51,9 @@ export default function ChatConsultation() {
 
   const fetchChatHistory = async () => {
     try {
-      const response = await api.get("chats");
-      if (response.data?.success && response.data.data.length > 0) {
-        const historyMessages = response.data.data.flatMap((chat: ChatHistoryItem) => [
+      const response = await userService.getChats();
+      if (response.success && response.data.length > 0) {
+        const historyMessages: Message[] = response.data.flatMap((chat) => [
           {
             id: `u-${chat.id || chat._id}`,
             text: chat.message,
@@ -101,8 +93,8 @@ export default function ChatConsultation() {
     }
 
     try {
-      const response = await api.post("chat", { prompt: textToSend });
-      let responseText = response.data?.data;
+      const response = await userService.sendChat(textToSend);
+      let responseText = response.data;
 
       if (typeof responseText === "object" && responseText !== null) {
         responseText = responseText.message || responseText.error || JSON.stringify(responseText);

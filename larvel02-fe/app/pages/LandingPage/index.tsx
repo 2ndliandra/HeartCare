@@ -15,9 +15,9 @@ import {
   TrendingUp,
 } from "lucide-react";
 
-import api from "../../lib/api";
 import { Button } from "~/components/ui/button";
 import { HeroSectionOne } from "~/components/blocks/hero-section-1";
+import { articleService } from "~/lib/articleService";
 import type { Article } from "~/types/shared";
 
 type FeatureItem = {
@@ -972,55 +972,86 @@ function formatDate(dateString: string) {
   });
 }
 
+const ARTICLE_REFRESH_INTERVAL_MS = 60_000;
+
+function pickRandomArticles(articles: Article[], limit = 4) {
+  const shuffled = [...articles];
+
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+    [shuffled[index], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[index]];
+  }
+
+  return shuffled.slice(0, limit);
+}
+
 export default function LandingPage() {
   const navigate = useNavigate();
   const isAuthenticated = !!localStorage.getItem("auth_token");
   const [articles, setArticles] = React.useState<Article[]>([]);
   const [loadingArticles, setLoadingArticles] = React.useState(true);
-  const [activeCategory, setActiveCategory] = React.useState<string>("Semua");
-
-  const categories = ["Semua", "Jantung", "Pola hidup", "Gaya hidup"];
   const tagStyles: Record<string, string> = {
     Jantung: "bg-emerald-50 text-emerald-700",
     "Pola hidup": "bg-amber-50 text-amber-700",
     "Gaya hidup": "bg-blue-50 text-blue-700",
   };
 
-  const filteredArticles = activeCategory === "Semua"
-    ? articles
-    : articles.filter((a) => (a.category || "Kesehatan") === activeCategory);
-
   React.useEffect(() => {
     let active = true;
+    let refreshTimer: number | undefined;
+    let refreshInFlight = false;
 
-    async function fetchLatestArticles() {
-      setLoadingArticles(true);
+    async function fetchRandomArticles(showLoading = false) {
+      if (refreshInFlight) {
+        return;
+      }
+
+      refreshInFlight = true;
+      if (showLoading) {
+        setLoadingArticles(true);
+      }
       try {
-        const res = await api.get("/articles");
+        const firstPage = await articleService.getArticles();
         if (!active) {
           return;
         }
 
-        const latest = res.data.data
-          .filter((article: Article) => article.status === "published")
-          .slice(0, 4);
+        const pageRequests = Array.from(
+          { length: Math.max((firstPage.pagination?.last_page ?? 1) - 1, 0) },
+          (_, index) => articleService.getArticles(index + 2)
+        );
+        const remainingPages = await Promise.all(pageRequests);
+        if (!active) {
+          return;
+        }
 
-        setArticles(latest);
+        const publishedArticles = [firstPage, ...remainingPages]
+          .flatMap((page) => page.data)
+          .filter((article) => article.status === "published");
+
+        setArticles(pickRandomArticles(publishedArticles));
       } catch {
         if (active) {
           setArticles([]);
         }
       } finally {
+        refreshInFlight = false;
         if (active) {
           setLoadingArticles(false);
         }
       }
     }
 
-    fetchLatestArticles();
+    fetchRandomArticles(true);
+    refreshTimer = window.setInterval(() => {
+      fetchRandomArticles();
+    }, ARTICLE_REFRESH_INTERVAL_MS);
 
     return () => {
       active = false;
+      if (refreshTimer) {
+        window.clearInterval(refreshTimer);
+      }
     };
   }, []);
 
@@ -1345,20 +1376,6 @@ export default function LandingPage() {
                     Artikel, panduan, dan konteks terbaru disusun untuk membantu pengguna memahami
                     isu kesehatan jantung secara lebih praktis.
                   </p>
-                  <div className="flex flex-wrap gap-2">
-                    {categories.map((cat) => (
-                      <button
-                        key={cat}
-                        onClick={() => setActiveCategory(cat)}
-                        className={`text-xs px-4 py-1.5 rounded-full border transition-colors ${activeCategory === cat
-                          ? "bg-emerald-50 border-emerald-300 text-emerald-700 font-medium"
-                          : "border-gray-200 text-gray-500 hover:border-gray-300 hover:text-gray-700 bg-white"
-                          }`}
-                      >
-                        {cat}
-                      </button>
-                    ))}
-                  </div>
                 </div>
               }
             />
@@ -1385,8 +1402,8 @@ export default function LandingPage() {
                     <div className="h-4 w-12 bg-slate-100 mt-0.5" />
                   </div>
                 ))
-              ) : filteredArticles.length > 0 ? (
-                filteredArticles.map((article, index) => {
+              ) : articles.length > 0 ? (
+                articles.map((article, index) => {
                   const tag = article.category || "Kesehatan";
                   const tagStyle = tagStyles[tag] || "bg-slate-50 text-slate-700";
 
@@ -1422,7 +1439,7 @@ export default function LandingPage() {
                 })
               ) : (
                 <div className="py-12 text-center text-sm text-gray-400">
-                  Belum ada artikel untuk kategori ini.
+                  Belum ada artikel yang bisa ditampilkan.
                 </div>
               )}
             </div>

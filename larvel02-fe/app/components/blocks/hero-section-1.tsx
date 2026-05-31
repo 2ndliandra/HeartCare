@@ -1,9 +1,10 @@
 import type { MouseEvent } from 'react';
+import type { Variants } from 'framer-motion';
 import { Button } from '~/components/ui/button';
 import { AnimatedGroup } from '~/components/ui/animated-group';
 import { scrollToHash } from '~/lib/gsapScroll';
 
-const transitionVariants = {
+const transitionVariants: { item: Variants } = {
     item: {
         hidden: {
             opacity: 0,
