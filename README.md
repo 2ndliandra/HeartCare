@@ -68,9 +68,9 @@ Pada sisi admin, sistem menyediakan fitur untuk mengelola data pengguna, artikel
 | Folder | Fungsi | Teknologi utama |
 | --- | --- | --- |
 | `larvel02-fe` | Frontend web | React, TypeScript, Vite, Tailwind CSS, Axios |
-| `laravel02-be` | Backend API | Laravel 10, Sanctum, MongoDB |
-| `flask_ml` | Server prediksi machine learning | Flask, Pandas, scikit-learn, Joblib |
-| `cardio_mobile` | Aplikasi mobile | Flutter, Dio, BLoC |
+| `laravel02-be` | Backend API | Laravel 10, Sanctum, MongoDB | Laravel HTTP Client
+| `flask_ml` | Server prediksi machine learning | Flask, Pandas, scikit-learn |
+| `cardio_mobile` | Aplikasi mobile | Dart, Flutter, Dio, BLoC, GoRouter |
 
 Untuk mobile, disarankan clone langsung dari repository mobile:
 
