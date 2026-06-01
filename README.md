@@ -1,6 +1,67 @@
-# HeartCare
+# HeartCare: Sistem Prediksi Dini Penyakit Cardiovascular dengan Metode Random Forest Berbasis Website Terintegrasi Mobile
 
-HeartCare adalah aplikasi prediksi risiko penyakit kardiovaskular yang terdiri dari frontend web, backend API, server prediksi Flask, dan aplikasi mobile Flutter.
+HeartCare Team
+
+## Anggota Kelompok
+
+1. Mochammad Novaliandra Saktiaji [Ketua] - (E31240122)
+2. Elyazid Maulana Akbar - (E31240335)
+3. Febbry Chandra Wijayanti - (E31241250)
+4. Imro'atul Azizah - (E31240337)
+
+## HeartCare
+
+HeartCare merupakan sistem deteksi dini risiko penyakit cardiovascular berbasis web dan mobile yang dikembangkan untuk membantu masyarakat dalam melakukan pemantauan kondisi kesehatan secara lebih mudah dan cepat. Sistem ini memanfaatkan teknologi machine learning menggunakan algoritma Random Forest untuk menganalisis berbagai parameter kesehatan pengguna, seperti usia, tekanan darah, kadar kolesterol, gula darah, indeks massa tubuh (BMI), dan faktor kesehatan lainnya guna menghasilkan prediksi risiko penyakit jantung.
+
+Sistem HeartCare terdiri dari aplikasi mobile berbasis Flutter, aplikasi web berbasis React TypeScript, Backend API berbasis Laravel, database MongoDB, serta Flask API yang menjalankan model machine learning. Selain fitur prediksi, sistem juga menyediakan histori pemeriksaan, artikel kesehatan, serta fitur konsultasi AI yang bertujuan membantu pengguna memperoleh informasi kesehatan secara lebih interaktif. Seluruh komponen sistem terintegrasi untuk mendukung proses deteksi dini, pemantauan kesehatan, dan penyajian informasi kesehatan secara realtime.
+
+## Sistem Arsitektur
+
+![Dashboard HeartCare](assets/images/ars.jpg.jpeg)
+
+## Penjelasan Alur Sistem
+
+Sistem HeartCare dimulai ketika pengguna mengakses aplikasi melalui web atau mobile dan melakukan proses registrasi maupun login. Setelah berhasil masuk ke sistem, pengguna dapat melakukan checkup kesehatan dengan mengisi data yang diperlukan untuk proses prediksi penyakit jantung.
+
+Data kesehatan yang dimasukkan pengguna akan dikirim ke Backend Laravel API, kemudian diteruskan ke Flask API yang menjalankan model machine learning Random Forest. Model akan memproses data kesehatan pengguna dan menghasilkan prediksi risiko penyakit jantung. Hasil prediksi tersebut kemudian disimpan ke database MongoDB dan ditampilkan kembali kepada pengguna melalui aplikasi.
+
+Selain fitur prediksi, pengguna juga dapat melihat histori pemeriksaan, membaca artikel kesehatan, menggunakan fitur konsultasi AI, mengelola profil, serta melakukan logout. Untuk fitur konsultasi AI, Backend Laravel akan meneruskan pertanyaan pengguna ke Gemini AI dan mengembalikan respons yang dihasilkan ke aplikasi.
+
+Pada sisi admin, sistem menyediakan fitur untuk mengelola data pengguna, artikel kesehatan, kategori artikel, serta data pendukung lainnya. Seluruh data yang dikelola akan disimpan ke MongoDB sehingga dapat digunakan oleh aplikasi web maupun mobile secara terintegrasi.
+
+## Fitur Utama
+
+### User Features
+
+- **Login & Register**  
+  Memungkinkan pengguna membuat akun dan masuk ke dalam sistem secara aman.
+- **Dashboard Kesehatan**  
+  Menampilkan ringkasan informasi kesehatan pengguna, hasil prediksi terbaru, dan statistik pemeriksaan.
+- **Prediksi Risiko Penyakit Jantung**  
+  Melakukan analisis risiko penyakit jantung menggunakan algoritma Random Forest berdasarkan data kesehatan yang diinput pengguna.
+- **Hasil Prediksi**  
+  Menampilkan hasil klasifikasi risiko penyakit jantung beserta informasi pendukung dan rekomendasi kesehatan.
+- **Riwayat Prediksi**  
+  Menyimpan dan menampilkan seluruh hasil pemeriksaan yang pernah dilakukan pengguna.
+- **Konsultasi AI**  
+  Menyediakan layanan chatbot berbasis Gemini AI untuk membantu pengguna memperoleh informasi kesehatan secara interaktif.
+- **Artikel Kesehatan**  
+  Menyediakan berbagai artikel edukatif mengenai kesehatan jantung dan pola hidup sehat.
+- **Profil Pengguna**  
+  Memungkinkan pengguna mengelola informasi akun dan data pribadi.
+
+### Admin Features
+
+- **Manajemen Pengguna**  
+  Mengelola data pengguna yang terdaftar dalam sistem.
+- **Manajemen Artikel**  
+  Menambah, mengubah, dan menghapus artikel kesehatan yang ditampilkan kepada pengguna.
+- **Manajemen Kategori Artikel**  
+  Mengelola kategori artikel untuk mempermudah pengelompokan informasi.
+- **Monitoring Data Prediksi**  
+  Memantau data hasil prediksi yang tersimpan dalam sistem.
+- **Profil Admin**  
+  Mengelola informasi akun administrator.
 
 ## Struktur Projek
 
