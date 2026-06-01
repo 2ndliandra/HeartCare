@@ -32,7 +32,7 @@ Pastikan perangkat sudah memiliki:
 
 ## Library Utama
 
-Frontend web menggunakan React, TypeScript, Vite, Tailwind CSS, Axios, Framer Motion, Recharts, Lucide React, dan Editor.js.
+Frontend web menggunakan React, TypeScript, Vite, Tailwind CSS, Axios, Recharts, Lucide React, dan Editor.js.
 
 Backend Laravel menggunakan Laravel 10, Laravel Sanctum, Guzzle HTTP, MongoDB Laravel driver, Jenssegers MongoDB, dan Google Generative AI package.
 
