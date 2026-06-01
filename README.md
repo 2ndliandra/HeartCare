@@ -332,37 +332,33 @@ flutter run
 
 ## Urutan Menjalankan Aplikasi
 
-1. Jalankan MongoDB.
-2. Jalankan backend Laravel di port `8000`.
-3. Jalankan server Flask di port `5000`.
-4. Jalankan frontend web di port `5173`.
-5. Jalankan mobile Flutter jika diperlukan.
-
-## Perintah Validasi
-
-Backend Laravel:
+1. Jalankan MongoDB:
 
 ```bash
-php artisan test
+mongosh
 ```
 
-Frontend web:
+2. Jalankan Backend:
 
 ```bash
-npm run build
+php artisan serve
 ```
 
-Flask:
+3. Jalankan Flask:
 
 ```bash
 python app.py
 ```
 
-Mobile:
+4. Jalankan Frontend:
 
 ```bash
-flutter analyze
-flutter test
+npm run dev
+```
+5. Jalankan Mobile Jika Diperlukan:
+
+```bash
+Flutter run
 ```
 
 ## Troubleshooting
