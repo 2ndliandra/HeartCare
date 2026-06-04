@@ -103,36 +103,46 @@ function UserModalPanel({ onClose, onSuccess, user }: UserModalPanelProps) {
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
 
-  const handleSubmit = async (event?: React.FormEvent) => {
-    event?.preventDefault()
-    setLoading(true)
-    setError(null)
+const handleSubmit = async (event?: React.FormEvent) => {
+  event?.preventDefault()
+  setLoading(true)
+  setError(null)
 
-    try {
-      if (user) {
-        await adminService.updateUser(user.id, formData)
-      } else {
-        await adminService.createUser(formData)
-      }
+  try {
+    const payload = user
+      ? {
+          name: formData.name,
+          email: formData.email,
+          phone_number: formData.phone_number,
+          role: formData.role,
+          ...(formData.password.trim() ? { password: formData.password } : {}),
+        }
+      : { ...formData }
 
-      onSuccess()
-      onClose()
-    } catch (err) {
-      const message =
-        typeof err === "object" &&
-        err !== null &&
-        "response" in err &&
-        typeof (err as { response?: { data?: { message?: string } } }).response?.data
-          ?.message === "string"
-          ? (err as { response?: { data?: { message?: string } } }).response?.data
-              ?.message || null
-          : null
-
-      setError(message || "Terjadi kesalahan sistem.")
-    } finally {
-      setLoading(false)
+    if (user) {
+      await adminService.updateUser(user.id, payload)
+    } else {
+      await adminService.createUser(payload)
     }
+
+    onSuccess()
+    onClose()
+  } catch (err) {
+    const message =
+      typeof err === "object" &&
+      err !== null &&
+      "response" in err &&
+      typeof (err as { response?: { data?: { message?: string } } }).response?.data
+        ?.message === "string"
+        ? (err as { response?: { data?: { message?: string } } }).response?.data
+            ?.message || null
+        : null
+
+    setError(message || "Terjadi kesalahan sistem.")
+  } finally {
+    setLoading(false)
   }
+}
 
   return (
     <ModalContent size="lg" className="rounded-[1.75rem] border border-slate-200">
